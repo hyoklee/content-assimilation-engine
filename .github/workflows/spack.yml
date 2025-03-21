@@ -22,8 +22,9 @@ jobs:
         spack external find
         spack repo add iowarp-spack
         spack install iowarp+posix
-        spack load iowarp+posix
     - name: create module
+      run: |
+        spack load iowarp+posix
         chi_make_repo ~/my_mod_repo example
         chi_make_mod ~/my_mod_repo/compressor
         cd ~/my_mod_repo
