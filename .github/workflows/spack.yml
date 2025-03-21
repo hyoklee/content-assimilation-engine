@@ -1,0 +1,33 @@
+name: spack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: checkout spack
+      uses: actions/checkout@v4
+      with:
+        repository: spack/spack
+        path: ./spack
+    - name: install iowarp
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        spack external find
+        spack repo add iowarp-spack
+        spack install iowarp+posix
+        spack load iowarp+posix
+    - name: create module
+        chi_make_repo ~/my_mod_repo example
+        chi_make_mod ~/my_mod_repo/compressor
+        cd ~/my_mod_repo
+        mkdir build
+        cd build
+        cmake ..
+        make -j
