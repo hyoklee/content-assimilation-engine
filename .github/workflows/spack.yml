@@ -16,11 +16,16 @@ jobs:
       with:
         repository: spack/spack
         path: ./spack
+    - name: checkout iowarp-install
+      uses: actions/checkout@v4
+      with:
+        repository: iowarp/iowarp-install
+        path: ./iowarp-install
     - name: install iowarp
       run: |
         . ./spack/share/spack/setup-env.sh
         spack external find
-        spack repo add iowarp-spack
+        spack repo add ./iowarp-install/iowarp-spack
         spack install iowarp+posix
     - name: create module
       run: |
