@@ -1,4 +1,4 @@
-name: ubuntu-24.04 spack-0.22.2
+name: ubuntu-24.04 spack-0.23.0
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: spack/spack
-        ref: v0.22.2
+        ref: v0.23.0
         path: ./spack
     - name: checkout iowarp-install
       uses: actions/checkout@v4
