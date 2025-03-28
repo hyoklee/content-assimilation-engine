@@ -1,4 +1,4 @@
-name: ubuntu-24.04 spack-0.23.0
+name: arm64 ubuntu-24.04 spack-1.0.0.a4
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: spack/spack
-        ref: v0.23.0
+        ref: v1.0.0-alpha.4
         path: ./spack
     - name: checkout iowarp-install
       uses: actions/checkout@v4
@@ -47,11 +47,3 @@ jobs:
         spack load iowarp+posix
         jarvis bootstrap from local
         jarvis rg build
-    - name: test cae
-      run: |
-        . ./spack/share/spack/setup-env.sh
-        spack load iowarp+posix
-        mkdir build
-        cd build
-        cmake ..
-        make
