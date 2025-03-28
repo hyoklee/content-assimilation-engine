@@ -42,6 +42,7 @@ jobs:
         cmake ..
         make -j
     - name: test jarvis
+      run: |
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
         jarvis bootstrap from local
