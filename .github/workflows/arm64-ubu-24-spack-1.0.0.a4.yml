@@ -3,7 +3,7 @@ name: arm64 ubuntu-24.04 spack-1.0.0.a4
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main- ]
 
 jobs:
   build:
