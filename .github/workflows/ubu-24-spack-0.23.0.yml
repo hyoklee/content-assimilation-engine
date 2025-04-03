@@ -28,6 +28,7 @@ jobs:
         cmakeVersion: 3.31.5
     - name: install iowarp
       run: |
+        sudo apt install -y ninja-build
         . ./spack/share/spack/setup-env.sh
         spack external find
         cd ./iowarp-install/
