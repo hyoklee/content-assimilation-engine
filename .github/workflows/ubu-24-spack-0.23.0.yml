@@ -22,10 +22,8 @@ jobs:
       with:
         repository: iowarp/iowarp-install
         path: ./iowarp-install
-    - name: install
-      run:  |
-        sudo apt-get -q update
-        sudo apt install libjson-c-dev
+    - name: cmake
+      uses: lukka/get-cmake@3.31.5
     - name: install iowarp
       run: |
         . ./spack/share/spack/setup-env.sh
