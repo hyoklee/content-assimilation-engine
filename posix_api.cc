@@ -554,7 +554,7 @@ int HERMES_DECL(unlink)(const char *pathname) {
 
  CHI_NAMESPACE_INIT  
  int main() {
-    CHI_NAMESPACE_INIT 
+   CHIMAERA_CLIENT_INIT();
     printf("cae posix\n");
   }
   
