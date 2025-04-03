@@ -32,7 +32,7 @@ jobs:
         spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
-        spack install iowarp+posix ^cmake#3.31.5
+        spack install iowarp+posix ^cmake@3.31.5
     - name: build module
       run: |
         . ./spack/share/spack/setup-env.sh
