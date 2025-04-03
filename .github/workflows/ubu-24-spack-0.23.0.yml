@@ -22,9 +22,6 @@ jobs:
       with:
         repository: iowarp/iowarp-install
         path: ./iowarp-install
-    - name: install iowarp
-      run: |
-        sudo apt remove cmake
     - name: cmake
       uses: lukka/get-cmake@latest
       with:
@@ -35,7 +32,7 @@ jobs:
         spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
-        spack install iowarp+posix
+        spack install iowarp+posix ^cmake#3.31.5
     - name: build module
       run: |
         . ./spack/share/spack/setup-env.sh
