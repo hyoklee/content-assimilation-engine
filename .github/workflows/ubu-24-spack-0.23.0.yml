@@ -23,7 +23,9 @@ jobs:
         repository: iowarp/iowarp-install
         path: ./iowarp-install
     - name: cmake
-      uses: lukka/get-cmake@3.31.5
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: 3.31.5
     - name: install iowarp
       run: |
         . ./spack/share/spack/setup-env.sh
