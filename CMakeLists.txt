@@ -15,9 +15,3 @@ add_executable(b b.cc)
 target_link_libraries(b hermes::hermes_core_client)
 endif()
 
-find_package(yaml-cpp)
-include_directories(${yaml-cpp_INCLUDE_DIRS})
-add_executable(wrp wrp.cc )
-target_link_libraries(wrp yaml-cpp::yaml-cpp)
-
-add_test(NAME parse_yaml COMMAND wrp put ../../data/posix.yml)
