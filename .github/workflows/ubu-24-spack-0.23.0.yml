@@ -34,7 +34,7 @@ jobs:
         cd ./iowarp-install/
         spack repo add iowarp-spack
         spack install iowarp+posix ^cmake@3.31.5
-    - name: build module
+    - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
@@ -48,6 +48,7 @@ jobs:
         make -j
     - name: test jarvis
       run: |
+        pwd
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
         jarvis bootstrap from local
@@ -56,6 +57,16 @@ jobs:
       run: |
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
+        mkdir build
+        cd build
+        cmake ..
+        make
+    - name: test engine
+      run: |
+        pwd
+        . ./spack/share/spack/setup-env.sh
+        spack load iowarp+posix
+        cd engine
         mkdir build
         cd build
         cmake ..
