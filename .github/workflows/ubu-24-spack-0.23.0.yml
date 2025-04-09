@@ -25,7 +25,7 @@ jobs:
     - name: cmake
       uses: lukka/get-cmake@latest
       with:
-        cmakeVersion: 3.31.5
+        cmakeVersion: 3.31.6
         ninjaVersion: 1.12.1
     - name: spack
       run: |
@@ -33,7 +33,7 @@ jobs:
         spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
-        spack install iowarp+posix ^cmake@3.31.5
+        spack install iowarp+posix ^cmake@3.31.6
     - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
@@ -54,6 +54,11 @@ jobs:
         spack load iowarp+posix
         jarvis bootstrap from local
         jarvis rg build
+        mkdir -p ~/my_mod_repo/jarvis_example/jarvis_example
+        mkdir -p ~/my_mod_repo/jarvis_example/pipelines
+        jarvis repo add ~/my_mod_repo/jarvis_example
+        jarvis repo create compressor app
+        tree ~/my_mod_repo/
     - name: test cae
       run: |
         . ./spack/share/spack/setup-env.sh
