@@ -1,9 +1,9 @@
-name: ubuntu-24.04 spack-0.23.0
+name: ubuntu-24.04 spack-0.23.0 pure
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main- ]
+    branches: main
 
 jobs:
   build:
@@ -22,18 +22,12 @@ jobs:
       with:
         repository: iowarp/iowarp-install
         path: ./iowarp-install
-    - name: cmake
-      uses: lukka/get-cmake@latest
-      with:
-        cmakeVersion: 3.31.5
-        ninjaVersion: 1.12.1
     - name: spack
       run: |
         . ./spack/share/spack/setup-env.sh
-        spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
-        spack install iowarp+posix ^cmake@3.31.5
+        spack install iowarp+posix
     - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
