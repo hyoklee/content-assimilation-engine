@@ -29,11 +29,9 @@ jobs:
     - name: install
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build	
+        sudo apt-get install -y ninja-build
     - name: spack
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build
         . ./spack/share/spack/setup-env.sh
         spack external find
         cd ./iowarp-install/
