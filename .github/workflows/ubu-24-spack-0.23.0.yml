@@ -45,11 +45,12 @@ jobs:
         spack load iowarp+posix
         chi_make_repo ~/my_mod_repo example
         chi_make_mod ~/my_mod_repo/compressor
+        scspkg create compressor
         chi_refresh_repo ~/my_mod_repo
         cd ~/my_mod_repo
         mkdir build
         cd build
-        cmake ..
+        cmake ..  -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example)
         make -j
     - name: test jarvis
       run: |
