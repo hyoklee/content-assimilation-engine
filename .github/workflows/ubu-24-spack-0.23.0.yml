@@ -26,9 +26,14 @@ jobs:
       uses: lukka/get-cmake@latest
       with:
         cmakeVersion: 3.31.5
-    - name: install iowarp
+    - name: install
       run: |
-        sudo apt install -y ninja-build
+        sudo apt-get update
+        sudo apt-get install -y ninja-build	
+    - name: spack
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
         . ./spack/share/spack/setup-env.sh
         spack external find
         cd ./iowarp-install/
