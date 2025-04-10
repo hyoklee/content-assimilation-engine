@@ -63,7 +63,8 @@ int parse_yaml(std::string input_file) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <command> [options]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <command> [options]"
+		  << std::endl;
         return 1;
     }
 
@@ -71,16 +72,18 @@ int main(int argc, char* argv[]) {
 
     if (command == "put") {
         if (argc < 3) {
-            std::cerr << "Usage: " << argv[0] << " put <input.omni>" << std::endl;
+            std::cerr << "Usage: " << argv[0] << " put <input.omni>"
+		      << std::endl;
             return 1;
         }
         std::string name = argv[2];
         std::cout << "input: " << name << std::endl;
-        parse_yaml(name);
+        return parse_yaml(name);
 	
     } else if (command == "get") {
         if (argc < 3) {
-            std::cerr << "Usage: " << argv[0] << " get <output.omni>" << std::endl;
+            std::cerr << "Usage: " << argv[0] << " get <output.omni>"
+		      << std::endl;
             return 1;
         }
         std::string name = argv[2];

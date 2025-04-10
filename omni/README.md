@@ -1,1 +1,3 @@
-Parses the omni format file and sends tasks to CAE backend.
+# OMNI
+
+Parse the OMNI format file and send tasks to CAE backend.
