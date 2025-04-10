@@ -1,0 +1,21 @@
+name: ubu omni r
+
+on:
+  push:
+    branches: main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: install
+      run: sudo apt-get install -y yaml-cpp
+    - name: test
+      run: |
+          cd omni
+          mkdir build
+          cd build
+          cmake  -DSITE:STRING="ubu" -DBUILDNAME="omni/r" ..
+          ctest -C Release -D Experimental
