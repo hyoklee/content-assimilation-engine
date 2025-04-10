@@ -1,0 +1,25 @@
+name: win omni r
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: install
+        run: |
+          vcpkg install yaml-cpp
+      - name: test
+        run: |
+          vcpkg integrate install
+          cd omni
+          mkdir build
+          cd build
+          cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="win" -DBUILDNAME="omni/r" ..
+          ctest -C Release -D Experimental
+        shell: cmd
