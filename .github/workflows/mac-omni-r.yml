@@ -1,25 +1,23 @@
-name: win omni r
+name: mac omni r
 
 on:
   push:
     branches:
-      - main-
+      - main
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: macos-latest
     steps:
       - name: checkout
         uses: actions/checkout@v4
       - name: install
         run: |
-          vcpkg install yaml-cpp
+          brew install yaml-cpp
       - name: test
         run: |
-          vcpkg integrate install
           cd omni
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="win" -DBUILDNAME="omni/r" ..
+          cmake  -DSITE:STRING="mac" -DBUILDNAME="omni/r" ..
           ctest -C Release -D Experimental
-        shell: cmd
