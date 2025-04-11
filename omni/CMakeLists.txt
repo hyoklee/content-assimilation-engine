@@ -12,8 +12,10 @@ include_directories(${yaml-cpp_INCLUDE_DIRS})
 add_executable(wrp wrp.cc)
 
 # compile with coverage options
-target_compile_options(wrp PRIVATE -coverage)
-target_link_options(wrp PRIVATE -coverage)
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  target_compile_options(wrp PRIVATE -coverage)
+  target_link_options(wrp PRIVATE -coverage)
+endif()  
 
 target_link_libraries(wrp yaml-cpp::yaml-cpp)
 
