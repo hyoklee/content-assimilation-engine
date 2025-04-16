@@ -1,23 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
-project(cae)
-find_package(Hermes REQUIRED)
-#------------------------------------------------------------------------------
-# Build adapters
-#------------------------------------------------------------------------------
 add_subdirectory(filesystem)
 add_subdirectory(posix)
-if (HERMES_ENABLE_STDIO_ADAPTER)
-    add_subdirectory(stdio)
-endif()
-if (HERMES_ENABLE_MPIIO_ADAPTER)
-    add_subdirectory(mpiio)
-endif()
-if (HERMES_ENABLE_VFD)
-    add_subdirectory(vfd)
-endif()
-if (HERMES_ENABLE_NVIDIA_GDS_ADAPTER)
-    add_subdirectory(nvidia_gds)
-endif()
 
 #-----------------------------------------------------------------------------
 # Install adapter headers
