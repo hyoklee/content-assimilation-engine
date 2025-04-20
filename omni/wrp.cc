@@ -1,3 +1,9 @@
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -60,6 +66,56 @@ int parse_yaml(std::string input_file) {
   }
   return 0;
 }
+
+int read_exact_bytes_from_offset(const char *filename, off_t offset,
+                                 size_t num_bytes, unsigned char *buffer) {
+    int fd = -1;
+    ssize_t total_bytes_read = 0;
+    ssize_t bytes_read;
+
+    // Open the file in read-only mode
+    fd = open(filename, O_RDONLY);
+    if (fd == -1) {
+        perror("Error opening file");
+        return -1; // Indicate an error
+    }
+
+    // Move the file offset to the desired position
+    if (lseek(fd, offset, SEEK_SET) == -1) {
+        perror("Error seeking file");
+        close(fd); // Close the file descriptor before returning
+        return -1; // Indicate an error
+    }
+
+    // Read exactly num_bytes from the current file offset
+    while (total_bytes_read < num_bytes) {
+        bytes_read = read(fd, buffer + total_bytes_read, num_bytes - total_bytes_read);
+        if (bytes_read == -1) {
+            perror("Error reading file");
+            close(fd); // Close the file descriptor before returning
+            return -1; // Indicate an error
+        }
+        if (bytes_read == 0) {
+            // End of file reached before reading the requested number of bytes
+            fprintf(stderr, "End of file reached after reading %zu bytes, expected %zu.\n", total_bytes_read, num_bytes);
+            close(fd);
+            return -2; // Indicate premature end of file
+        }
+        total_bytes_read += bytes_read;
+    }
+
+    // Close the file descriptor
+    if (close(fd) == -1) {
+        perror("Error closing file");
+        // Note: We've already read the data, so this error is less critical
+        return -1; // Indicate an error
+    }
+    if ((size_t)total_bytes_read == num_bytes)
+      return 0;
+    else
+      return 1;
+}
+
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
