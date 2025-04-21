@@ -76,7 +76,7 @@ jobs:
         pwd
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
-        cd adapter
+        cd adapters
         mkdir build
         cd build
         cmake ..
