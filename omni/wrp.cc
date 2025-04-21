@@ -43,9 +43,11 @@ int parse_yaml(std::string input_file) {
 	}
 	if(key == "nbyte") {
 	  int nbyte = it->second.as<int>();
-	  unsigned char buffer[nbyte];	  
+#ifndef _WIN32	  	  
+	  unsigned char buffer[nbyte];
   	  read_exact_bytes_from_offset(value.c_str(), offset, nbyte, buffer);
-  	  std::cout << "buffer=" << buffer << std::endl;
+  	  std::cout << "buffer=" << buffer << std::endl; 
+#endif 
 	}	
 	
         if(it->second.IsScalar()){
@@ -88,7 +90,7 @@ int parse_yaml(std::string input_file) {
   }
   return 0;
 }
-
+#ifndef _WIN32
 int read_exact_bytes_from_offset(const char *filename, off_t offset,
                                  size_t num_bytes, unsigned char *buffer) {
     int fd = -1;
@@ -137,7 +139,7 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
     else
       return 1;
 }
-
+#endif
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
