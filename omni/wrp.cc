@@ -1,5 +1,9 @@
 #include <fcntl.h>
+#ifdef _WIN32
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,9 +15,13 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
-int parse_yaml(std::string input_file) {
+int read_exact_bytes_from_offset(const char *filename, off_t offset,
+                                 size_t num_bytes, unsigned char *buffer);
 
+int parse_yaml(std::string input_file) {
+  std::string value;
   std::ifstream ifs(input_file);
+  int offset;
 
   if (!ifs.is_open()) {
     std::cerr << "Error: Could not open file " << input_file << std::endl;
@@ -26,6 +34,20 @@ int parse_yaml(std::string input_file) {
     if (root.IsMap()) {
       for (YAML::const_iterator it = root.begin(); it != root.end(); ++it) {
         std::string key = it->first.as<std::string>();
+	if(key == "path") {
+	  value = it->second.as<std::string>();
+	}
+	
+	if(key == "offset") {
+	  offset = it->second.as<int>();
+	}
+	if(key == "nbyte") {
+	  int nbyte = it->second.as<int>();
+	  unsigned char buffer[nbyte];	  
+  	  read_exact_bytes_from_offset(value.c_str(), offset, nbyte, buffer);
+  	  std::cout << "buffer=" << buffer << std::endl;
+	}	
+	
         if(it->second.IsScalar()){
           std::string value = it->second.as<std::string>();
           std::cout << key << ": " << value << std::endl;
