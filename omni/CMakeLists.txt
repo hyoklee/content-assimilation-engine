@@ -74,3 +74,9 @@ set_tests_properties(invalid_yml
     WILL_FAIL "TRUE"
     RETURN_VALUE 1
 )
+
+add_test(NAME path COMMAND wrp put ../path.yml)
+
+add_test(NAME root_seq COMMAND wrp put ../root_seq.yml)
+
+add_test(NAME lseek COMMAND wrp put ../lseek.yml)
