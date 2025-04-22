@@ -15,11 +15,35 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
+#include "config.h"
+#ifdef USE_HERMES
+#include <hermes/hermes.h>
+
+int put(std::string name, std::string tags, std::string path,
+	unsigned char* buffer, int nbyte) {
+
+  std::cout << tags << std::endl;
+
+  CHIMAERA_CLIENT_INIT();  
+  hermes::Context ctx;
+  hermes::Bucket bkt(name);
+  hermes::Blob blob(nbyte);
+  memcpy(blob.data(), buffer, blob.size());
+  hermes::BlobId blob_id = bkt.Put(path, blob, ctx);
+
+  return 0;
+}
+#endif
+
 int read_exact_bytes_from_offset(const char *filename, off_t offset,
                                  size_t num_bytes, unsigned char *buffer);
 
 int parse_yaml(std::string input_file) {
-  std::string value;
+  
+  std::string name;  
+  std::string tags;
+  std::string path;
+  
   std::ifstream ifs(input_file);
   int offset;
 
@@ -34,8 +58,12 @@ int parse_yaml(std::string input_file) {
     if (root.IsMap()) {
       for (YAML::const_iterator it = root.begin(); it != root.end(); ++it) {
         std::string key = it->first.as<std::string>();
+	if(key == "name") {
+	  name = it->second.as<std::string>();
+	}
+
 	if(key == "path") {
-	  value = it->second.as<std::string>();
+	  path = it->second.as<std::string>();
 	}
 	
 	if(key == "offset") {
@@ -45,8 +73,11 @@ int parse_yaml(std::string input_file) {
 	  int nbyte = it->second.as<int>();
 #ifndef _WIN32	  	  
 	  unsigned char buffer[nbyte];
-  	  read_exact_bytes_from_offset(value.c_str(), offset, nbyte, buffer);
-  	  std::cout << "buffer=" << buffer << std::endl; 
+  	  read_exact_bytes_from_offset(path.c_str(), offset, nbyte, buffer);
+  	  std::cout << "buffer=" << buffer << std::endl;
+#ifdef HERMES	  
+	  put(name, tags, path, buffer, nbyte);
+#endif	  
 #endif 
 	}	
 	
@@ -59,7 +90,15 @@ int parse_yaml(std::string input_file) {
             if(it->second[i].IsScalar()){
               std::cout << " - " << it->second[i].as<std::string>()
 			<< std::endl;
+	      if(key == "tags") {
+		tags += it->second[i].as<std::string>();
+		if (i < it->second.size() - 1) {
+		  tags += ",";
+		}
+	      }
+	      
             }
+	    
           }
         } else if (it->second.IsMap()){
              std::cout << key << ": " << std::endl;
@@ -97,43 +136,38 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
     ssize_t total_bytes_read = 0;
     ssize_t bytes_read;
 
-    // Open the file in read-only mode
     fd = open(filename, O_RDONLY);
     if (fd == -1) {
         perror("Error opening file");
-        return -1; // Indicate an error
+        return -1;
     }
 
-    // Move the file offset to the desired position
     if (lseek(fd, offset, SEEK_SET) == -1) {
         perror("Error seeking file");
-        close(fd); // Close the file descriptor before returning
-        return -1; // Indicate an error
+        close(fd);
+        return -1;
     }
 
-    // Read exactly num_bytes from the current file offset
     while (total_bytes_read < num_bytes) {
         bytes_read = read(fd, buffer + total_bytes_read, num_bytes - total_bytes_read);
         if (bytes_read == -1) {
             perror("Error reading file");
-            close(fd); // Close the file descriptor before returning
-            return -1; // Indicate an error
+            close(fd);
+            return -1;
         }
         if (bytes_read == 0) {
-            // End of file reached before reading the requested number of bytes
             fprintf(stderr, "End of file reached after reading %zu bytes, expected %zu.\n", total_bytes_read, num_bytes);
             close(fd);
-            return -2; // Indicate premature end of file
+            return -2;
         }
         total_bytes_read += bytes_read;
     }
 
-    // Close the file descriptor
     if (close(fd) == -1) {
         perror("Error closing file");
-        // Note: We've already read the data, so this error is less critical
-        return -1; // Indicate an error
+        return -1;
     }
+    
     if ((size_t)total_bytes_read == num_bytes)
       return 0;
     else

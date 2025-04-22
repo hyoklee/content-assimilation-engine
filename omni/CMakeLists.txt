@@ -7,8 +7,38 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(yaml-cpp)
-include_directories(${yaml-cpp_INCLUDE_DIRS})
 
+if(HERMES)
+set(USE_HERMES TRUE)
+find_package(Hermes)
+
+find_package(cereal)
+message(STATUS "found cereal at ${cereal_DIR}")
+set(CDIR  ${cereal_DIR}/../../../include)
+message(${CDIR})
+
+find_package(Thallium REQUIRED)
+set(TDIR  ${Thallium_DIR}/../../../include)
+message(${TDIR})
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Margo REQUIRED margo)
+message(STATUS "Margo_INCLUDE_DIRS: ${Margo_INCLUDE_DIRS}")
+endif()
+
+configure_file(config.h.in ${CMAKE_BINARY_DIR}/config.h)
+
+include_directories(
+        ${CMAKE_BINARY_DIR}
+        ${CMAKE_SOURCE_DIR}
+        ${HERMES_SRC_DIR}
+        ${HERMES_ADAPTER_DIR}
+        ${HERMES_IO_CLIENT_DIR}
+        ${TDIR}
+        ${Margo_INCLUDE_DIRS}
+        ${CDIR}
+	${YAML_CPP_INCLUDE_DIR}
+        .)
 add_executable(wrp wrp.cc)
 
 # compile with coverage options
@@ -17,7 +47,11 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   target_link_options(wrp PRIVATE -coverage)
 endif()  
 
+if(HERMES)
+target_link_libraries(wrp yaml-cpp::yaml-cpp hermes::hermes_core_client)
+else()
 target_link_libraries(wrp yaml-cpp::yaml-cpp)
+endif()
 
 add_test(NAME put COMMAND wrp put ../posix.yml)
 
