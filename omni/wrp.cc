@@ -15,7 +15,6 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
-#include "config.h"
 #ifdef USE_HERMES
 #include <hermes/hermes.h>
 

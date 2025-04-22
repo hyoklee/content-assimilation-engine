@@ -1,5 +1,0 @@
-// config.h.in
-#ifndef CONFIG_H
-#define CONFIG_H
-#define USE_HERMES "@USE_HERMES@"
-#endif // CONFIG_H

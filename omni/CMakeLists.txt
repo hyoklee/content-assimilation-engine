@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(yaml-cpp)
 
 if(HERMES)
-set(USE_HERMES TRUE)
+add_definitions(-DUSE_HERMES)
 find_package(Hermes)
 
 find_package(cereal)
@@ -25,8 +25,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(Margo REQUIRED margo)
 message(STATUS "Margo_INCLUDE_DIRS: ${Margo_INCLUDE_DIRS}")
 endif()
-
-configure_file(config.h.in ${CMAKE_BINARY_DIR}/config.h)
 
 include_directories(
         ${CMAKE_BINARY_DIR}
