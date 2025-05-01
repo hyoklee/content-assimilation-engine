@@ -41,6 +41,9 @@ jobs:
         cd build
         cmake ..  -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example)
         make -j
+        make install
+        module avail
+        module load compressor
     - name: test jarvis
       run: |
         pwd
