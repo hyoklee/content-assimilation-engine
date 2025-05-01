@@ -30,8 +30,14 @@ jobs:
         spack install iowarp+posix
     - name: test module
       run: |
+        sudo apt -y install lmod
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
+        SCSPKG_MODULE_DIR=$(scspkg module dir)
+        echo "module use ${SCSPKG_MODULE_DIR}" >> ~/.bashrc
+        . ~/.bashrc
+        module use ${SCSPKG_MODULE_DIR}
+        scspkg init
         chi_make_repo ~/my_mod_repo example
         chi_make_mod ~/my_mod_repo/compressor
         scspkg create compressor
