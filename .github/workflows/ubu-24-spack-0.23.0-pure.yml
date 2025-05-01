@@ -31,6 +31,7 @@ jobs:
     - name: test module
       run: |
         sudo apt -y install lmod
+        source /etc/profile.d/lmod.sh        
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
         SCSPKG_MODULE_DIR=$(scspkg module dir)
