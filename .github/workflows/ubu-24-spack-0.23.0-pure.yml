@@ -60,10 +60,10 @@ jobs:
         spack load iowarp-cte
         spack load iowarp-runtime
         jarvis rg build
-	export CTE_PATH=`spack find --paths iowarp-cte | grep iowarp | cut -d' ' -f3`
+        export CTE_PATH=`spack find --paths iowarp-cte | grep iowarp | cut -d' ' -f3`
         echo $CTE_PATH
         jarvis repo add $CTE_PATH/jarvis/jarvis_hermes
-	export CRE_PATH=`spack find --paths iowarp-runtime | grep iowarp | cut -d' ' -f3`
+        export CRE_PATH=`spack find --paths iowarp-runtime | grep iowarp | cut -d' ' -f3`
         echo $CRE_PATH
         jarvis repo add $CRE_PATH/jarvis/jarvis_chimaera
         jarvis bootstrap from local
