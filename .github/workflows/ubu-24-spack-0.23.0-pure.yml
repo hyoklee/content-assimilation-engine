@@ -58,6 +58,10 @@ jobs:
         spack load iowarp+posix
         jarvis bootstrap from local
         jarvis rg build
+        jarvis env build hermes
+        jarvis ppl index copy jarvis_hermes.hermes.test_hermes
+        jarvis ppl load yaml test_hermes.yaml
+        jarvis ppl run
         mkdir -p ~/my_mod_repo/jarvis_example/jarvis_example
         mkdir -p ~/my_mod_repo/jarvis_example/pipelines
         jarvis repo add ~/my_mod_repo/jarvis_example
