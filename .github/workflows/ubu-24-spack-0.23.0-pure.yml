@@ -31,7 +31,7 @@ jobs:
     - name: test module
       run: |
         sudo apt -y install lmod
-        source /etc/profile.d/lmod.sh        
+        source /etc/profile.d/lmod.sh
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
         SCSPKG_MODULE_DIR=$(scspkg module dir)
@@ -51,13 +51,22 @@ jobs:
         make install
         module avail
         module load compressor
+        scspkg list
     - name: test jarvis
       run: |
         pwd
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
-        jarvis bootstrap from local
+        spack load iowarp-cte
+        spack load iowarp-runtime
         jarvis rg build
+	export CTE_PATH=`spack find --paths iowarp-cte | grep iowarp | cut -d' ' -f3`
+        echo $CTE_PATH
+        jarvis repo add $CTE_PATH/jarvis/jarvis_hermes
+	export CRE_PATH=`spack find --paths iowarp-runtime | grep iowarp | cut -d' ' -f3`
+        echo $CRE_PATH
+        jarvis repo add $CRE_PATH/jarvis/jarvis_chimaera
+        jarvis bootstrap from local
         jarvis env build hermes
         jarvis ppl index copy jarvis_hermes.hermes.test_hermes
         jarvis ppl load yaml test_hermes.yaml
