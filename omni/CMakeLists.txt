@@ -51,9 +51,9 @@ else()
 target_link_libraries(wrp yaml-cpp::yaml-cpp)
 endif()
 
-add_test(NAME put COMMAND wrp put ../posix.yml)
+add_test(NAME put COMMAND wrp put ../test/posix.yml)
 
-add_test(NAME get COMMAND wrp get ../output.yml)
+add_test(NAME get COMMAND wrp get ../test/output.yml)
 
 add_test(NAME ls COMMAND wrp ls)
 
@@ -92,23 +92,23 @@ set_tests_properties(not_found
     RETURN_VALUE 1
 )
 
-add_test(NAME nested COMMAND wrp put ../nested.yml)
+add_test(NAME nested COMMAND wrp put ../test/nested.yml)
 
-add_test(NAME empty COMMAND wrp put ../empty.yml)
+add_test(NAME empty COMMAND wrp put ../test/empty.yml)
 
-add_test(NAME root COMMAND wrp put ../root.yml)
+add_test(NAME root COMMAND wrp put ../test/root.yml)
 
-add_test(NAME scalar COMMAND wrp put ../scalar.yml)
+add_test(NAME scalar COMMAND wrp put ../test/scalar.yml)
 
-add_test(NAME invalid_yml COMMAND wrp put ../invalid.yml)
+add_test(NAME invalid_yml COMMAND wrp put ../test/invalid.yml)
 set_tests_properties(invalid_yml
     PROPERTIES
     WILL_FAIL "TRUE"
     RETURN_VALUE 1
 )
 
-add_test(NAME path COMMAND wrp put ../path.yml)
+add_test(NAME path COMMAND wrp put ../test/path.yml)
 
-add_test(NAME root_seq COMMAND wrp put ../root_seq.yml)
+add_test(NAME root_seq COMMAND wrp put ../test/root_seq.yml)
 
-add_test(NAME lseek COMMAND wrp put ../lseek.yml)
+add_test(NAME lseek COMMAND wrp put ../test/lseek.yml)
