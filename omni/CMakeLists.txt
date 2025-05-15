@@ -112,3 +112,5 @@ add_test(NAME path COMMAND wrp put ../test/path.yml)
 add_test(NAME root_seq COMMAND wrp put ../test/root_seq.yml)
 
 add_test(NAME lseek COMMAND wrp put ../test/lseek.yml)
+
+install(TARGETS wrp DESTINATION bin)

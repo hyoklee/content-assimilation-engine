@@ -74,7 +74,7 @@ int parse_yaml(std::string input_file) {
 	  unsigned char buffer[nbyte];
   	  read_exact_bytes_from_offset(path.c_str(), offset, nbyte, buffer);
   	  std::cout << "buffer=" << buffer << std::endl;
-#ifdef HERMES	  
+#ifdef USE_HERMES	  
 	  put(name, tags, path, buffer, nbyte);
 #endif	  
 #endif 
