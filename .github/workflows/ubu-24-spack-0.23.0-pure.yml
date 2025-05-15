@@ -104,3 +104,15 @@ jobs:
         cd build
         cmake ..
         make
+    - name: test omni
+      run: |
+          scspkg create wrp
+          cd omni
+          mkdir build
+          cd build
+          cmake -DHERMES=ON -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root wrp) ..
+          make
+          make install
+        module avail
+        module load  wrp
+        scspkg list
