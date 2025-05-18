@@ -36,7 +36,20 @@ include_directories(
         ${Margo_INCLUDE_DIRS}
         ${CDIR}
 	${YAML_CPP_INCLUDE_DIR}
-        .)
+        .
+)
+
+if(AWS)
+  include_directories(${AWSSDK_INCLUDE_DIR})
+endif()
+
+option(AWS "Enable AWS SDK support" OFF)
+
+if(AWS)
+  # AWS SDK for C++
+  find_package(AWSSDK REQUIRED COMPONENTS s3)
+endif()
+
 add_executable(wrp wrp.cc)
 
 # compile with coverage options
@@ -46,9 +59,14 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()  
 
 if(HERMES)
-target_link_libraries(wrp yaml-cpp::yaml-cpp hermes::hermes_core_client)
+  target_link_libraries(wrp yaml-cpp::yaml-cpp hermes::hermes_core_client)
 else()
-target_link_libraries(wrp yaml-cpp::yaml-cpp)
+  target_link_libraries(wrp yaml-cpp::yaml-cpp)
+endif()
+
+if(AWS)
+  # Link AWS SDK for C++
+  target_link_libraries(wrp aws-cpp-sdk-s3)
 endif()
 
 add_test(NAME put COMMAND wrp put ../test/posix.yml)
