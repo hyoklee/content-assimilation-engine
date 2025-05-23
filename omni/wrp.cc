@@ -24,21 +24,6 @@ typedef SSIZE_T ssize_t;
 
 #ifdef USE_HERMES
 #include <hermes/hermes.h>
-
-int put(std::string name, std::string tags, std::string path,
-	unsigned char* buffer, int nbyte) {
-
-  std::cout << tags << std::endl;
-
-  CHIMAERA_CLIENT_INIT();  
-  hermes::Context ctx;
-  hermes::Bucket bkt(name);
-  hermes::Blob blob(nbyte);
-  memcpy(blob.data(), buffer, blob.size());
-  hermes::BlobId blob_id = bkt.Put(path, blob, ctx);
-
-  return 0;
-}
 #endif
 
 #ifdef USE_POCO
@@ -48,10 +33,24 @@ int put(std::string name, std::string tags, std::string path,
 #include "Poco/Exception.h"
 #include <thread>
 #include <chrono>
+#endif
+
+int read_exact_bytes_from_offset(const char *filename, off_t offset,
+                                 size_t num_bytes, unsigned char *buffer);
+
 int put(std::string name, std::string tags, std::string path,
 	unsigned char* buffer, int nbyte) {
 
   std::cout << tags << std::endl;
+#ifdef USE_HERMES
+  CHIMAERA_CLIENT_INIT();  
+  hermes::Context ctx;
+  hermes::Bucket bkt(name);
+  hermes::Blob blob(nbyte);
+  memcpy(blob.data(), buffer, blob.size());
+  hermes::BlobId blob_id = bkt.Put(path, blob, ctx);
+#endif
+#ifdef USE_POCO
   const std::size_t sharedMemorySize = nbyte+1;
 
   try {
@@ -75,19 +74,15 @@ int put(std::string name, std::string tags, std::string path,
 
   } catch (Poco::Exception& e) {
     std::cerr << "Poco Exception: " << e.displayText() << std::endl;
-    return 1;
+    return -1;
   } catch (std::exception& e) {
     std::cerr << "Standard Exception: " << e.what() << std::endl;
-    return 1;
+    return -1;
   }
-
-  return 0;  
-
-}
 #endif
+  return 0;
+}
 
-int read_exact_bytes_from_offset(const char *filename, off_t offset,
-                                 size_t num_bytes, unsigned char *buffer);
 
 int read_omni(std::string input_file) {
   
@@ -123,67 +118,29 @@ int read_omni(std::string input_file) {
 	}
 	if(key == "nbyte") {
 	  nbyte = it->second.as<int>();
-
-#ifdef USE_POCO
-	  std::vector<char>  buffer(nbyte);
-	  try {
-	    Poco::FileInputStream file(path);
-	    if (!file.good()) { // Check if the file was opened successfully
-	      std::cerr << "Error: Could not open file " << path << std::endl;
-	      return -1;
-	    }
-
-	    if (!file.seekg(offset, std::ios::beg)) {
-	      std::cerr << "Error: Could not seek to offset " << offset << " in file " << path << std::endl;
-	      file.close(); // Close the file explicitly if seek fails
-	      return -1;
-	    }
-	    file.read(buffer.data(), nbyte);
-	    file.close();
-	    
-	    std::cout << "buffer=" << buffer.data() << std::endl;
-	    unsigned char* ptr =
-	      reinterpret_cast<unsigned char*>(buffer.data());	
+	  std::vector<char> buffer(nbyte);
+          unsigned char* ptr =
+	      reinterpret_cast<unsigned char*>(buffer.data());		  
+	  if(read_exact_bytes_from_offset(path.c_str(), offset, nbyte, ptr) ==
+	     0) {
+	    std::cout << "buffer=" << ptr << std::endl;
 	    put(name, tags, path, ptr, nbyte);
 	  }
-	  catch (const Poco::FileNotFoundException& ex) {
-	    std::cerr << "Caught Poco::FileNotFoundException for '" << path << "': " << ex.displayText() << std::endl;
-	    return -1;;
-	  } catch (const Poco::OpenFileException& ex) {
-	    std::cerr << "Caught Poco::OpenFileException for '" << path << "': " << ex.displayText() << std::endl;
-	    return -1;;
-	  } catch (const Poco::IOException& ex) {
-	    std::cerr << "Caught Poco::IOException for '" << path << "': " << ex.displayText() << std::endl;
-	    return -1;;
-	  } catch (const Poco::Exception& ex) {
-	    std::cerr << "Caught a general Poco::Exception for '" << path << "': " << ex.displayText() << std::endl;
-	    return -1;;
-	  } catch (const std::exception& ex) {
-	    std::cerr << "Caught a standard C++ exception for '" << path << "': " << ex.what() << std::endl;
-	    return -1;;
+	  else {
+	    return -1;
 	  }
-#endif  // POCO
-#ifdef USE_HERMES
-	  unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char),
-							 nbyte);
-	  read_exact_bytes_from_offset(path.c_str(), offset, nbyte, buffer);
-	  std::cout << "buffer=" << buffer << std::endl;
-
-	  put(name, tags, path, buffer, nbyte);
-#endif
 	}
 
         if (key == "dest") {
           std::string dest = it->second.as<std::string>();
 #ifdef USE_POCO
 	  try {
-       	    std::cout << "name=" << name << std::endl;	    
 	    Poco::File file(name);
 	    if (!file.exists()) {
-	      throw Poco::FileNotFoundException("File not found: " + name + ". Run FileMapperWriter first.");
+	      throw Poco::FileNotFoundException("Shared memory file not found: " + name + ".");
 	    }
             Poco::SharedMemory shm2(file, Poco::SharedMemory::AM_READ);
-	    std::cout << "Consumer read: '" <<  shm2.begin() << "' from shared memory."
+	    std::cout << "read: '" <<  shm2.begin() << "' from shared memory."
 		      << std::endl;
 	  }
 	  catch (Poco::Exception& e) {
@@ -193,7 +150,6 @@ int read_omni(std::string input_file) {
 	    std::cerr << "Standard Exception: " << e.what() << std::endl;
 	    return 1;
 	  }
-
 #endif
 	  
 #ifndef _WIN32
@@ -262,13 +218,12 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
     ssize_t bytes_read;
 
     fd = open(filename, O_RDONLY);
+
     if (fd == -1) {
         perror("Error opening file");
         return -1;
     }
-#ifdef _WIN32
-    return 0;
-#else
+    
     if (lseek(fd, offset, SEEK_SET) == -1) {
         perror("Error seeking file");
         close(fd);
@@ -299,11 +254,13 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
       return 0;
     else
       return 1;
-#endif    
+
 }
 
 int write_omni(std::string output_file) {
-  return 0;  
+
+  return 0;
+
 }
 
 int main(int argc, char* argv[]) {

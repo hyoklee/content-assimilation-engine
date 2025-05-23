@@ -155,5 +155,10 @@ set_tests_properties(path
 add_test(NAME root_seq COMMAND wrp put ../test/root_seq.yml)
 
 add_test(NAME lseek COMMAND wrp put ../test/lseek.yml)
+set_tests_properties(lseek
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
 
 install(TARGETS wrp DESTINATION bin)
