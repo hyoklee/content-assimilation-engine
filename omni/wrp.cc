@@ -89,7 +89,7 @@ int put(std::string name, std::string tags, std::string path,
 int read_exact_bytes_from_offset(const char *filename, off_t offset,
                                  size_t num_bytes, unsigned char *buffer);
 
-int parse_yaml(std::string input_file) {
+int read_omni(std::string input_file) {
   
   std::string name;  
   std::string tags;
@@ -302,9 +302,8 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
 #endif    
 }
 
-int write_yaml(std::string output_file) {
-  
-  
+int write_omni(std::string output_file) {
+  return 0;  
 }
 
 int main(int argc, char* argv[]) {
@@ -324,7 +323,7 @@ int main(int argc, char* argv[]) {
         }
         std::string name = argv[2];
         std::cout << "input: " << name << std::endl;
-        return parse_yaml(name);
+        return read_omni(name);
 	
     } else if (command == "get") {
         if (argc < 3) {
@@ -334,7 +333,7 @@ int main(int argc, char* argv[]) {
         }
         std::string name = argv[2];
         std::cout << "output: " << name << std::endl;
-	return write_yaml(name);
+	return write_omni(name);
 	
     } else if (command == "ls") {
       std::cout << "connecting runtime" << std::endl;
