@@ -13,13 +13,22 @@ jobs:
         uses: actions/checkout@v4
       - name: install
         run: |
-          vcpkg install yaml-cpp
+          vcpkg install poco yaml-cpp
+          vcpkg integrate install
       - name: test
         run: |
-          vcpkg integrate install
           cd omni
           mkdir build
           cd build
           cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="win" -DBUILDNAME="omni/r" ..
+          ctest -C Release -D Experimental
+          cd ../..
+        shell: cmd
+      - name: poco
+        run: |
+          cd omni
+          mkdir poco
+          cd poco
+          cmake -DPOCO=ON -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="win" -DBUILDNAME="omni/r/poco" ..
           ctest -C Release -D Experimental
         shell: cmd

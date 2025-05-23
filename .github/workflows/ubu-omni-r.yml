@@ -11,11 +11,19 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
     - name: install
-      run: sudo apt-get install -y libyaml-cpp-dev
+      run: sudo apt-get install -y libpoco-dev libyaml-cpp-dev
     - name: test
       run: |
           cd omni
           mkdir build
           cd build
           cmake  -DSITE:STRING="ubu" -DBUILDNAME="omni/r" ..
+          ctest -C Release -D Experimental
+          cd ../..
+    - name: poco
+      run: |
+          cd omni
+          mkdir build
+          cd build
+          cmake -DPOCO=ON  -DSITE:STRING="ubu" -DBUILDNAME="omni/r" ..
           ctest -C Release -D Experimental

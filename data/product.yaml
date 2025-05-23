@@ -1,7 +1,7 @@
 # Inlined from /metadata-ingestion/examples/data_product/dataproduct.yaml
 id: musinski_afrl_am_package_v2.1
 domain: Material Science
-display_name: Air Force Research Lab Material Science Challege
+display_name: Air Force Research Lab Material Science Challenge
 description: |-
   This data product is pulled from Globus
 
