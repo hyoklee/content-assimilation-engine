@@ -25,5 +25,5 @@ jobs:
           cd omni
           mkdir poco
           cd poco
-          cmake -DPOCO=ON  -DSITE:STRING="ubu" -DBUILDNAME="omni/r" ..
+          cmake -DPOCO=ON  -DSITE:STRING="ubu" -DBUILDNAME="omni/r/poco" ..
           ctest -C Release -D Experimental

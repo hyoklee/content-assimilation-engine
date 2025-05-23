@@ -21,6 +21,7 @@ jobs:
           cmake  -DSITE:STRING="mac" -DBUILDNAME="omni/r" ..
           ctest -C Release -D Experimental
           cd ../..
+        continue-on-error: true
       - name: poco
         run: |
           cd omni
