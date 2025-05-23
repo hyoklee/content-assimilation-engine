@@ -1,9 +1,9 @@
 # Inlined from /metadata-ingestion/examples/data_product/dataproduct.yaml
-id: pet_of_the_week
-domain: Marketing
-display_name: Pet of the Week Campaign
+id: musinski_afrl_am_package_v2.1
+domain: Material Science
+display_name: Air Force Research Lab Material Science Challege
 description: |-
-  This campaign includes Pet of the Week data.
+  This data product is pulled from Globus
 
 # List of assets that belong to this Data Product
 # assets:
@@ -19,8 +19,9 @@ owners:
 
 # Tags associated with this Data Product
 tags:
-  - urn:li:tag:adoption
-  - urn:li:tag:weekly
+  - urn:li:tag:ai
+  - urn:li:tag:material sicence
+  - urn:li:tag:utah
 # Glossary Terms associated with this Data Product
 terms:
   - urn:li:glossaryTerm:ClientsAndAccounts.AccountBalance
