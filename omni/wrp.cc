@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 #include <yaml-cpp/yaml.h>
-#include <openssl/sha.h>
 
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
