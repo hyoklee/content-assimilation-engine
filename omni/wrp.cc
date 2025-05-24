@@ -11,7 +11,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
- #include <cstring>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -31,12 +31,15 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #ifdef USE_POCO
+#include <thread>
+#include <chrono>
+#include <iomanip>
 #include "Poco/File.h"
 #include "Poco/FileStream.h"
 #include "Poco/SharedMemory.h"
 #include "Poco/Exception.h"
-#include <thread>
-#include <chrono>
+#include "Poco/SHA2Engine.h"
+#include "Poco/DigestEngine.h"
 #endif
 
 int read_exact_bytes_from_offset(const char *filename, off_t offset,
@@ -263,36 +266,41 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
 }
 
 #ifdef USE_POCO
-std::string sha256_file(const std::string& filename) {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
-        return "";
+std::string sha256_file(const std::string& filePath) {
+    try {
+        // Open the file
+        Poco::FileInputStream fis(filePath);
+        
+        // Create SHA256 engine
+        Poco::SHA2Engine sha256(Poco::SHA2Engine::SHA_256);
+        
+        // Buffer for reading file
+        const size_t bufferSize = 8192;
+        char buffer[bufferSize];
+        
+        // Read file and update digest
+        while (!fis.eof()) {
+            fis.read(buffer, bufferSize);
+            std::streamsize bytesRead = fis.gcount();
+            if (bytesRead > 0) {
+                sha256.update(buffer, static_cast<unsigned>(bytesRead));
+            }
+        }
+        
+        // Get the final digest
+        const Poco::DigestEngine::Digest& digest = sha256.digest();
+        
+        // Convert to hexadecimal string
+        std::stringstream ss;
+        for (unsigned char b : digest) {
+            ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(b);
+        }
+        
+        return ss.str();
     }
-
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-
-    std::vector<char> buffer(4096);
-    while (file.read(buffer.data(), buffer.size())) {
-        SHA256_Update(&sha256,
-		      reinterpret_cast<const unsigned char*>(buffer.data()),
-		      file.gcount());
+    catch (const Poco::Exception& ex) {
+        throw std::runtime_error("Error calculating SHA256: " + ex.displayText());
     }
-    if (file.gcount() > 0) {
-        SHA256_Update(&sha256,
-		      reinterpret_cast<const unsigned char*>(buffer.data()),
-		      file.gcount());
-    }
-
-    SHA256_Final(hash, &sha256);
-
-    std::stringstream ss;
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
-    }
-    return ss.str();
 }
 #endif
 

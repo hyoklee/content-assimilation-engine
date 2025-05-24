@@ -18,8 +18,8 @@ include_directories(
 option(POCO "Enable POCO support" OFF)
 if(POCO)
 add_definitions(-DUSE_POCO)
-find_package(Poco REQUIRED COMPONENTS Foundation)
-find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
+find_package(Poco REQUIRED COMPONENTS Crypto Foundation)
+# find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
 endif()
 
 option(HERMES "Enable HERMES support" OFF)
@@ -74,7 +74,7 @@ if(AWS)
 endif()
 
 if(POCO)
-  target_link_libraries(wrp OpenSSL::Crypto Poco::Foundation)
+  target_link_libraries(wrp Poco::Crypto Poco::Foundation)
 endif()
 
 
