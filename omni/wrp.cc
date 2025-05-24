@@ -7,14 +7,18 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <cstring>
+#include <string.h>
+#include <cassert>
+#include <cstdlib>
+#include <filesystem>
+ #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <yaml-cpp/yaml.h>
+#include <openssl/sha.h>
 
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
@@ -231,7 +235,8 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
     }
 
     while (total_bytes_read < num_bytes) {
-        bytes_read = read(fd, buffer + total_bytes_read, num_bytes - total_bytes_read);
+        bytes_read = read(fd, buffer + total_bytes_read,
+			  num_bytes - total_bytes_read);
         if (bytes_read == -1) {
             perror("Error reading file");
             close(fd);
@@ -257,11 +262,80 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
 
 }
 
-int write_omni(std::string output_file) {
+#ifdef USE_POCO
+std::string sha256_file(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open file " << filename << std::endl;
+        return "";
+    }
 
-  return 0;
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
 
+    std::vector<char> buffer(4096);
+    while (file.read(buffer.data(), buffer.size())) {
+        SHA256_Update(&sha256,
+		      reinterpret_cast<const unsigned char*>(buffer.data()),
+		      file.gcount());
+    }
+    if (file.gcount() > 0) {
+        SHA256_Update(&sha256,
+		      reinterpret_cast<const unsigned char*>(buffer.data()),
+		      file.gcount());
+    }
+
+    SHA256_Final(hash, &sha256);
+
+    std::stringstream ss;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    }
+    return ss.str();
 }
+#endif
+
+int write_omni(std::string buf) {
+
+#ifdef USE_POCO
+  std::string h = sha256_file(buf);
+#endif 
+  std::ofstream of(buf+".omni.yaml");
+  of << "# OMNI" << std::endl;  
+  of << "name: " << buf << std::endl;
+
+#ifdef USE_POCO  
+  if (!h.empty()) {
+    of << "hash: " << h << std::endl;
+  }
+#endif
+  of.close();
+  
+  return 0;
+  
+}
+
+int make_blackhole(){
+  
+  std::cout << "checking IOWarp runtime...";
+  if (std::filesystem::exists(".blackhole") == true) {
+     std::cout << "...yes" << std::endl;
+  }
+  else {
+    std::cout << "...no" << std::endl;
+    std::cout << "launching a new IOWarp runtime....";
+    if (std::filesystem::create_directory(".blackhole")) {
+      std::cout << "...done" << std::endl;
+      return 0;
+    } else {
+      std::cerr << "Error: failed to create .blackhole" << std::endl;
+      return -1;
+    }
+  }
+  return 0;
+}
+
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -274,17 +348,20 @@ int main(int argc, char* argv[]) {
 
     if (command == "put") {
         if (argc < 3) {
-            std::cerr << "Usage: " << argv[0] << " put <input.omni>"
+            std::cerr << "Usage: " << argv[0] << " put <omni.yaml>"
 		      << std::endl;
             return 1;
         }
+	if (make_blackhole() != 0) {
+	  return 1;
+	}
         std::string name = argv[2];
         std::cout << "input: " << name << std::endl;
         return read_omni(name);
 	
     } else if (command == "get") {
         if (argc < 3) {
-            std::cerr << "Usage: " << argv[0] << " get <output.omni>"
+            std::cerr << "Usage: " << argv[0] << " get <buf>"
 		      << std::endl;
             return 1;
         }

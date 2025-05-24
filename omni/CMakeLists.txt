@@ -15,15 +15,14 @@ include_directories(
         .
 )
 
-
 option(POCO "Enable POCO support" OFF)
 if(POCO)
 add_definitions(-DUSE_POCO)
 find_package(Poco REQUIRED COMPONENTS Foundation)
+find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
 endif()
 
 option(HERMES "Enable HERMES support" OFF)
-
 if(HERMES)
 add_definitions(-DUSE_HERMES)
 find_package(Hermes)
@@ -53,34 +52,29 @@ include_directories(
 	${YAML_CPP_INCLUDE_DIR}
         .
 )
-
 endif()
 
 
 option(AWS "Enable AWS SDK support" OFF)
-
 if(AWS)
-  # AWS SDK for C++
   find_package(AWSSDK REQUIRED COMPONENTS s3)
   include_directories(${AWSSDK_INCLUDE_DIR})  
 endif()
 
 add_executable(wrp wrp.cc)
 
+target_link_libraries(wrp yaml-cpp::yaml-cpp)
 
 if(HERMES)
-  target_link_libraries(wrp yaml-cpp::yaml-cpp hermes::hermes_core_client)
-else()
-  target_link_libraries(wrp yaml-cpp::yaml-cpp)
+  target_link_libraries(wrp hermes::hermes_core_client)
 endif()
 
 if(AWS)
-  # Link AWS SDK for C++
   target_link_libraries(wrp aws-cpp-sdk-s3)
 endif()
 
 if(POCO)
-  target_link_libraries(wrp yaml-cpp::yaml-cpp Poco::Foundation)
+  target_link_libraries(wrp OpenSSL::Crypto Poco::Foundation)
 endif()
 
 
@@ -92,7 +86,7 @@ endif()
 
 add_test(NAME put COMMAND wrp put ../test/posix.yml)
 
-add_test(NAME get COMMAND wrp get ../test/output.yml)
+add_test(NAME get COMMAND wrp get cae)
 
 add_test(NAME ls COMMAND wrp ls)
 
