@@ -15,6 +15,13 @@ include_directories(
         .
 )
 
+option(AWS "Enable AWS SDK support" OFF)
+if(AWS)
+  find_package(AWSSDK REQUIRED COMPONENTS core s3)
+  add_definitions(-DUSE_AWS)    
+  include_directories(${AWSSDK_INCLUDE_DIR})
+endif()
+
 option(POCO "Enable POCO support" OFF)
 if(POCO)
 add_definitions(-DUSE_POCO)
@@ -55,11 +62,6 @@ include_directories(
 endif()
 
 
-option(AWS "Enable AWS SDK support" OFF)
-if(AWS)
-  find_package(AWSSDK REQUIRED COMPONENTS s3)
-  include_directories(${AWSSDK_INCLUDE_DIR})  
-endif()
 
 add_executable(wrp wrp.cc)
 
@@ -70,8 +72,10 @@ if(HERMES)
 endif()
 
 if(AWS)
-  target_link_libraries(wrp aws-cpp-sdk-s3)
+#   target_link_libraries(wrp aws-cpp-sdk-s3)
+  target_link_libraries(wrp ${AWSSDK_LINK_LIBRARIES})
 endif()
+
 
 if(POCO)
   target_link_libraries(wrp Poco::Crypto Poco::Foundation)

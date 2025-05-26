@@ -30,20 +30,46 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #ifdef USE_POCO
-#include <thread>
 #include <chrono>
 #include <iomanip>
+#include <thread>
+#include "Poco/DigestEngine.h"
+#include "Poco/Exception.h"
 #include "Poco/File.h"
 #include "Poco/FileStream.h"
-#include "Poco/SharedMemory.h"
-#include "Poco/Exception.h"
+#include "Poco/Path.h"
+#include "Poco/Pipe.h"
+#include "Poco/PipeStream.h"
+#include "Poco/Process.h"
 #include "Poco/SHA2Engine.h"
-#include "Poco/DigestEngine.h"
+#include "Poco/SharedMemory.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/TemporaryFile.h"
+#endif
+
+#ifdef USE_AWS
+#include <aws/core/Aws.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
+#include <aws/core/utils/memory/stl/AWSStringStream.h>
+#include <aws/core/utils/StringUtils.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/CreateBucketRequest.h>
+#include <aws/s3/model/PutObjectRequest.h>
 #endif
 
 int read_exact_bytes_from_offset(const char *filename, off_t offset,
                                  size_t num_bytes, unsigned char *buffer);
 
+int write_meta(std::string name, std::string tags) {
+  std::filesystem::path file_path = ".blackhole/ls";
+  std::ofstream outfile(file_path, std::ios::out | std::ios::app);
+  if (outfile.is_open()) {
+    outfile << name << ":";
+    outfile << tags << std::endl;
+    outfile.close();  
+  }
+  return 0;
+}
 int put(std::string name, std::string tags, std::string path,
 	unsigned char* buffer, int nbyte) {
 
@@ -86,9 +112,161 @@ int put(std::string name, std::string tags, std::string path,
     return -1;
   }
 #endif
-  return 0;
+  return write_meta(name, tags);  
 }
 
+int run_lambda(std::string lambda, char* ptr, std::string name) {
+#ifdef USE_POCO  
+    try {
+        std::string command = lambda;
+        Poco::Process::Args args;
+        args.push_back(name+".out");
+	// args.push_back("poco_arg1");
+        // args.push_back("poco argument with spaces");
+
+        Poco::Pipe outPipe; // For stdout
+        Poco::Pipe errPipe; // For stderr
+        Poco::ProcessHandle ph = Poco::Process::launch(
+            command,
+            args,
+            0,          // inPipe (stdin of child process)
+            &outPipe,   // outPipe (stdout of child process)
+            &errPipe    // errPipe (stderr of child process)
+        );
+
+        // Create input streams to read from the pipes
+        Poco::PipeInputStream istr(outPipe); // Stream for stdout
+        Poco::PipeInputStream estr(errPipe); // Stream for stderr
+
+        std::string stdout_output;
+        std::string stderr_output;
+
+        // Read stdout
+        Poco::StreamCopier::copyToString(istr, stdout_output);
+        // Read stderr
+        Poco::StreamCopier::copyToString(estr, stderr_output);
+
+        // Wait for the process to complete and get its exit code
+        int exitCode = ph.wait();
+
+        std::cout << "\n--- Lambda Script Output (Poco) ---\n";
+        std::cout << "STDOUT:\n" << stdout_output;
+        std::cout << "STDERR:\n" << stderr_output;
+        std::cout << "-----------------------------------\n";
+        std::cout << "Lambda script exited with status: " << exitCode
+		  << std::endl;
+
+    } catch (Poco::SystemException& exc) {
+        std::cerr << "Poco SystemException: " << exc.displayText() << std::endl;
+        return 1;
+    } catch (Poco::Exception& exc) {
+        std::cerr << "Poco Exception: " << exc.displayText() << std::endl;
+        return 1;
+    } catch (std::exception& exc) {
+        std::cerr << "Standard Exception: " << exc.what() << std::endl;
+        return 1;
+    }
+#endif    
+    return 0;  
+}
+  
+#ifdef USE_AWS
+int write_s3(std::string dest, char* ptr) {
+  
+  Aws::SDKOptions options;
+  options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+
+  const Aws::String prefix = "s3://";
+  Aws::InitAPI(options);	  
+  if (dest.find(prefix) != 0) {
+    std::cerr << "Error: Not a valid S3 URL (missing 's3://' prefix)."
+	      << std::endl;
+    return -1;
+  }
+  Aws::String path = dest.substr(prefix.length());
+  // Find the first '/' to separate bucket and key
+  size_t first_slash = path.find('/');
+  if (first_slash == Aws::String::npos) {
+    std::cerr << "Invalid S3 URI: No path separator found"
+	      << std::endl;
+    return -1;
+  }
+
+  Aws::String bucket_name = path.substr(0, first_slash);
+  Aws::String object_key = path.substr(first_slash + 1);
+
+  if (bucket_name.empty())   {
+    std::cerr << "Invalid S3 URI: Bucket name is empty" << std::endl;
+    return -1;
+  }
+  if (object_key.empty())    {
+    std::cerr << "Invalid S3 URI: Object key is empty" << std::endl;
+    return -1;
+  }
+
+  Aws::Client::ClientConfiguration clientConfig;
+  // clientConfig.endpointOverride = "localhost:4566"; // LocalStack endpoint without http://
+  clientConfig.endpointOverride = "http://localhost:4566"; // LocalStack endpoint without http://
+  clientConfig.scheme = Aws::Http::Scheme::HTTP;    // LocalStack usually runs on HTTP
+  clientConfig.region = "us-east-1";               // Or any region, LocalStack is region-agnostic locally
+  clientConfig.verifySSL = false;	
+  // IMPORTANT: For LocalStack, you often need to force path style for S3
+  clientConfig.useDualStack = false; // Disable dual stack for local endpoints; Gemini
+  // clientConfig.forcePathStyle = true; // Perplexity
+  // clientConfig.enableEndpointDiscovery = false; // Disable endpoint discovery for local endpoints
+  //        clientConfig.useFips = false; // Disable FIPS for local endpoints
+
+  // For LocalStack, dummy credentials are usually sufficient
+  Aws::Auth::AWSCredentials credentials("test", "test");
+  
+  // Create an S3 client
+  //	Aws::S3::S3Client s3_client(credentials, clientConfig);
+  Aws::S3::S3Client s3_client(clientConfig, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, false);
+  Aws::S3::Model::CreateBucketRequest createBucketRequest;
+  createBucketRequest.SetBucket(bucket_name);
+  // Important: For LocalStack S3, often requires an ACL or specific configuration
+  // depending on LocalStack version.
+  // createBucketRequest.SetACL(Aws::S3::Model::BucketCannedACL::public_read_write);
+
+  std::cout << "Creating bucket: " << bucket_name << std::endl;
+  auto createBucketOutcome = s3_client.CreateBucket(createBucketRequest);
+  if (createBucketOutcome.IsSuccess()) {
+    std::cout << "Bucket created successfully!" << std::endl;
+  } else {
+    std::cerr << "Error creating bucket: " << createBucketOutcome.GetError().GetMessage() << std::endl;
+  }
+	
+  // Create a PutObject request
+  Aws::S3::Model::PutObjectRequest put_request;
+  put_request.SetBucket(bucket_name);
+  put_request.SetKey(object_key);
+
+  // Create a stream for the data
+  auto input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
+  *input_data << ptr;
+  put_request.SetBody(input_data);
+
+  // Optionally, set content type
+  put_request.SetContentType("text/plain");
+
+  // Execute the PutObject request
+  auto put_object_outcome = s3_client.PutObject(put_request);
+
+  if (put_object_outcome.IsSuccess())
+    {
+      std::cout << "Successfully uploaded object to " << bucket_name << "/" << object_key << std::endl;
+    }
+  else
+    {
+      std::cout << "Error while uploading object: " 
+		<< put_object_outcome.GetError().GetMessage() << std::endl;
+      return -1;
+    }
+  Aws::ShutdownAPI(options);  
+  return 0;
+  
+}
+#endif	  
 
 int read_omni(std::string input_file) {
   
@@ -105,12 +283,18 @@ int read_omni(std::string input_file) {
   }
 
   try {
+    
     YAML::Node root = YAML::Load(ifs);
 
+      
     if (root.IsMap()) {
+
       for (YAML::const_iterator it = root.begin(); it != root.end(); ++it) {
-        std::string key = it->first.as<std::string>();
+	
 	int nbyte = 0;
+	bool run = false;	
+        std::string lambda;
+        std::string key = it->first.as<std::string>();
 	if(key == "name") {
 	  name = it->second.as<std::string>();
 	}
@@ -137,8 +321,14 @@ int read_omni(std::string input_file) {
 	  }
 	}
 
+        if (key == "run") {
+          run = true;
+          lambda = it->second.as<std::string>();
+	}
+	
         if (key == "dest") {
           std::string dest = it->second.as<std::string>();
+          std::cout << "dest=" << dest << std::endl;	  
 #ifdef USE_POCO
 	  try {
 	    Poco::File file(name);
@@ -148,6 +338,14 @@ int read_omni(std::string input_file) {
             Poco::SharedMemory shm2(file, Poco::SharedMemory::AM_READ);
 	    std::cout << "read: '" <<  shm2.begin() << "' from shared memory."
 		      << std::endl;
+
+	    if(run) {
+	      run_lambda(lambda, shm2.begin(), name);
+	    }
+
+#ifdef USE_AWS	    
+	    write_s3(dest, shm2.begin());
+#endif	    
 	  }
 	  catch (Poco::Exception& e) {
 	    std::cerr << "Poco Exception: " << e.displayText() << std::endl;
@@ -157,10 +355,10 @@ int read_omni(std::string input_file) {
 	    return 1;
 	  }
 #endif
-	  
+
+
 #ifndef _WIN32
-          std::cout << "dest=" << dest << std::endl;
-#ifdef USE_HERMES
+#ifdef USE_HERMES	  	  
           std::cout << "calling get" << dest << std::endl;
           // get(name, dest, nbyte);
 #endif
@@ -312,7 +510,9 @@ int write_omni(std::string buf) {
   of << "# OMNI" << std::endl;  
   of << "name: " << buf << std::endl;
 
-#ifdef USE_POCO  
+#ifdef USE_POCO
+  Poco::Path path(buf);
+  of << "path: " << path.makeAbsolute().toString() << std::endl;
   if (!h.empty()) {
     of << "hash: " << h << std::endl;
   }
@@ -323,7 +523,7 @@ int write_omni(std::string buf) {
   
 }
 
-int make_blackhole(){
+int set_blackhole(){
   
   std::cout << "checking IOWarp runtime...";
   if (std::filesystem::exists(".blackhole") == true) {
@@ -343,6 +543,33 @@ int make_blackhole(){
   return 0;
 }
 
+int list() {
+
+  const std::string filename = ".blackhole/ls";
+  
+  std::ifstream inputFile(filename);
+
+  if (!inputFile.is_open()) {
+    std::cerr
+      << "Error: Could not open the file \"" << filename << "\"" << std::endl;
+    return 1;
+  }
+
+  std::string line;
+  while (std::getline(inputFile, line)) {
+    std::cout << line << std::endl;
+  }
+
+  if (inputFile.bad()) {
+    std::cerr
+      << "Error: An unrecoverable error occurred while reading the file."
+      << std::endl;
+    return 1;
+  }
+  inputFile.close();
+
+  return 0; // Indicate success
+}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -359,16 +586,17 @@ int main(int argc, char* argv[]) {
 		      << std::endl;
             return 1;
         }
-	if (make_blackhole() != 0) {
+	if (set_blackhole() != 0) {
 	  return 1;
 	}
+	
         std::string name = argv[2];
         std::cout << "input: " << name << std::endl;
         return read_omni(name);
 	
     } else if (command == "get") {
         if (argc < 3) {
-            std::cerr << "Usage: " << argv[0] << " get <buf>"
+            std::cerr << "Usage: " << argv[0] << " get <buffer_name>"
 		      << std::endl;
             return 1;
         }
@@ -378,6 +606,8 @@ int main(int argc, char* argv[]) {
 	
     } else if (command == "ls") {
       std::cout << "connecting runtime" << std::endl;
+      return list();
+      
     }
     else {
         std::cerr << "Invalid command: " << command << std::endl;

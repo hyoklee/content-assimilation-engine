@@ -20,4 +20,7 @@ offset: 39
 # pread, read()
 nbyte: 30
 
+# lambda script
+run: "echo"
+
 dest: "s3://mybucket/test.bin"
