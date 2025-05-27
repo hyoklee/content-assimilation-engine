@@ -100,7 +100,7 @@ int put(std::string name, std::string tags, std::string path,
 	    
     char* data = static_cast<char*>(shm.begin());
     std::memcpy(data, (const char *)buffer, nbyte);
-    std::cout << "wrote: '" << shm.begin() << "' to shared memory."
+    std::cout << "wrote '" << shm.begin() << "' to '" << name << "' buffer."
 	      << std::endl;
 
 
@@ -171,12 +171,9 @@ int run_lambda(std::string lambda, std::string name, std::string dest) {
         std::string stdout_output;
         std::string stderr_output;
 
-        // Read stdout
         Poco::StreamCopier::copyToString(istr, stdout_output);
-        // Read stderr
         Poco::StreamCopier::copyToString(estr, stderr_output);
 
-        // Wait for the process to complete and get its exit code
         int exitCode = ph.wait();
 
         std::cout << "\n--- Lambda Script Output (Poco) ---\n";
@@ -360,7 +357,8 @@ int read_omni(std::string input_file) {
 	      throw Poco::FileNotFoundException("Shared memory file not found: " + name + ".");
 	    }
             Poco::SharedMemory shm2(file, Poco::SharedMemory::AM_READ);
-	    std::cout << "read: '" <<  shm2.begin() << "' from shared memory."
+	    std::cout << "read '" <<  shm2.begin() << "' from '" << name
+		      << "' buffer."
 		      << std::endl;
 
 	    if(run) {
@@ -522,11 +520,12 @@ std::string sha256_file(const std::string& filePath) {
 #endif
 
 int write_omni(std::string buf) {
-
+  std::string ofile = buf+".omni.yaml";
+  std::cout << "writing output " << ofile << "...";
 #ifdef USE_POCO
   std::string h = sha256_file(buf);
 #endif 
-  std::ofstream of(buf+".omni.yaml");
+  std::ofstream of(ofile);
   of << "# OMNI" << std::endl;  
   of << "name: " << buf << std::endl;
 
@@ -538,7 +537,7 @@ int write_omni(std::string buf) {
   }
 #endif
   of.close();
-  
+  std::cout << "done" << std::endl;
   return 0;
   
 }
@@ -547,16 +546,16 @@ int set_blackhole(){
   
   std::cout << "checking IOWarp runtime...";
   if (std::filesystem::exists(".blackhole") == true) {
-     std::cout << "...yes" << std::endl;
+     std::cout << "yes" << std::endl;
   }
   else {
-    std::cout << "...no" << std::endl;
-    std::cout << "launching a new IOWarp runtime....";
+    std::cout << "no" << std::endl;
+    std::cout << "launching a new IOWarp runtime...";
     if (std::filesystem::create_directory(".blackhole")) {
-      std::cout << "...done" << std::endl;
+      std::cout << "done" << std::endl;
       return 0;
     } else {
-      std::cerr << "Error: failed to create .blackhole" << std::endl;
+      std::cerr << "Error: failed to create .blackhole directory" << std::endl;
       return -1;
     }
   }
@@ -588,7 +587,7 @@ int list() {
   }
   inputFile.close();
 
-  return 0; // Indicate success
+  return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -616,12 +615,11 @@ int main(int argc, char* argv[]) {
 	
     } else if (command == "get") {
         if (argc < 3) {
-            std::cerr << "Usage: " << argv[0] << " get <buffer_name>"
+            std::cerr << "Usage: " << argv[0] << " get <buffer>"
 		      << std::endl;
             return 1;
         }
         std::string name = argv[2];
-        std::cout << "output: " << name << std::endl;
 	return write_omni(name);
 	
     } else if (command == "ls") {
