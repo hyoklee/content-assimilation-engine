@@ -21,6 +21,7 @@ offset: 39
 nbyte: 30
 
 # lambda script
-run: "echo"
+# run: "../test/lambda.bat"
+run: "../test/lambda.sh"
 
-dest: "s3://mybucket/test.bin"
+dest: "s3://iowarp/cae.parquet"

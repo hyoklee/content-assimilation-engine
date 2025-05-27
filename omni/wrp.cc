@@ -100,7 +100,7 @@ int put(std::string name, std::string tags, std::string path,
 	    
     char* data = static_cast<char*>(shm.begin());
     std::memcpy(data, (const char *)buffer, nbyte);
-    std::cout << "Producer wrote: '" << shm.begin() << "' to shared memory."
+    std::cout << "wrote: '" << shm.begin() << "' to shared memory."
 	      << std::endl;
 
 
@@ -115,28 +115,58 @@ int put(std::string name, std::string tags, std::string path,
   return write_meta(name, tags);  
 }
 
-int run_lambda(std::string lambda, char* ptr, std::string name) {
-#ifdef USE_POCO  
-    try {
-        std::string command = lambda;
-        Poco::Process::Args args;
-        args.push_back(name+".out");
-	// args.push_back("poco_arg1");
-        // args.push_back("poco argument with spaces");
+#ifdef _WIN32
+std::string get_ext(const std::string& filename) {
+    std::filesystem::path p(filename);
+    std::string extension  =  p.extension().string();
+    // Convert extension to lowercase for case-insensitive comparison
+    for (char &c : extension) {
+      c = std::tolower(c);
+    }
+    return extension;
+}
+#endif
 
-        Poco::Pipe outPipe; // For stdout
-        Poco::Pipe errPipe; // For stderr
+int run_lambda(std::string lambda, std::string name, std::string dest) {
+#ifdef _WIN32
+  std::string extension = get_ext(lambda);
+  if (extension != ".bat") {
+    std::cout << "Extension must be .bat on Windows." << std::endl;
+    return 0;
+  }
+#endif
+
+#ifdef USE_POCO  
+  try {
+#ifdef _WIN32      
+    std::string command = "cmd.exe";
+#else
+    std::string command = lambda;
+#endif	
+    Poco::Process::Args args;
+#ifdef _WIN32	
+	args.push_back("/C");
+	Poco::Path pocoPath(lambda);
+	std::string wpath = pocoPath.toString(Poco::Path::PATH_WINDOWS);
+	std::cout << "Windows Path: " <<  wpath << std::endl;
+	args.push_back(wpath);
+#endif
+	args.push_back(name);
+	args.push_back(dest);
+	
+        Poco::Pipe outPipe;
+        Poco::Pipe errPipe;
         Poco::ProcessHandle ph = Poco::Process::launch(
             command,
             args,
-            0,          // inPipe (stdin of child process)
-            &outPipe,   // outPipe (stdout of child process)
-            &errPipe    // errPipe (stderr of child process)
+            0,
+            &outPipe,
+            &errPipe 
         );
 
-        // Create input streams to read from the pipes
-        Poco::PipeInputStream istr(outPipe); // Stream for stdout
-        Poco::PipeInputStream estr(errPipe); // Stream for stderr
+
+        Poco::PipeInputStream istr(outPipe);
+        Poco::PipeInputStream estr(errPipe);
 
         std::string stdout_output;
         std::string stderr_output;
@@ -205,35 +235,27 @@ int write_s3(std::string dest, char* ptr) {
   }
 
   Aws::Client::ClientConfiguration clientConfig;
-  // clientConfig.endpointOverride = "localhost:4566"; // LocalStack endpoint without http://
-  clientConfig.endpointOverride = "http://localhost:4566"; // LocalStack endpoint without http://
-  clientConfig.scheme = Aws::Http::Scheme::HTTP;    // LocalStack usually runs on HTTP
-  clientConfig.region = "us-east-1";               // Or any region, LocalStack is region-agnostic locally
+  clientConfig.endpointOverride = "localhost:4566";
+  clientConfig.scheme = Aws::Http::Scheme::HTTP;
+  clientConfig.region = "us-east-1";
   clientConfig.verifySSL = false;	
-  // IMPORTANT: For LocalStack, you often need to force path style for S3
-  clientConfig.useDualStack = false; // Disable dual stack for local endpoints; Gemini
-  // clientConfig.forcePathStyle = true; // Perplexity
-  // clientConfig.enableEndpointDiscovery = false; // Disable endpoint discovery for local endpoints
-  //        clientConfig.useFips = false; // Disable FIPS for local endpoints
+  clientConfig.useDualStack = false;
 
-  // For LocalStack, dummy credentials are usually sufficient
   Aws::Auth::AWSCredentials credentials("test", "test");
-  
-  // Create an S3 client
-  //	Aws::S3::S3Client s3_client(credentials, clientConfig);
-  Aws::S3::S3Client s3_client(clientConfig, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, false);
+
+  Aws::S3::S3Client
+    s3_client(clientConfig,
+	      Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, false);
   Aws::S3::Model::CreateBucketRequest createBucketRequest;
   createBucketRequest.SetBucket(bucket_name);
-  // Important: For LocalStack S3, often requires an ACL or specific configuration
-  // depending on LocalStack version.
-  // createBucketRequest.SetACL(Aws::S3::Model::BucketCannedACL::public_read_write);
 
   std::cout << "Creating bucket: " << bucket_name << std::endl;
   auto createBucketOutcome = s3_client.CreateBucket(createBucketRequest);
   if (createBucketOutcome.IsSuccess()) {
     std::cout << "Bucket created successfully!" << std::endl;
   } else {
-    std::cerr << "Error creating bucket: " << createBucketOutcome.GetError().GetMessage() << std::endl;
+    std::cerr << "Error creating bucket: "
+	      <<  createBucketOutcome.GetError().GetMessage() << std::endl;
   }
 	
   // Create a PutObject request
@@ -254,7 +276,8 @@ int write_s3(std::string dest, char* ptr) {
 
   if (put_object_outcome.IsSuccess())
     {
-      std::cout << "Successfully uploaded object to " << bucket_name << "/" << object_key << std::endl;
+      std::cout << "Successfully uploaded object to " << bucket_name
+		<< "/" << object_key << std::endl;
     }
   else
     {
@@ -273,6 +296,8 @@ int read_omni(std::string input_file) {
   std::string name;  
   std::string tags;
   std::string path;
+  bool run = false;	
+  std::string lambda;
   
   std::ifstream ifs(input_file);
   int offset;
@@ -288,12 +313,11 @@ int read_omni(std::string input_file) {
 
       
     if (root.IsMap()) {
+      
 
       for (YAML::const_iterator it = root.begin(); it != root.end(); ++it) {
 	
 	int nbyte = 0;
-	bool run = false;	
-        std::string lambda;
         std::string key = it->first.as<std::string>();
 	if(key == "name") {
 	  name = it->second.as<std::string>();
@@ -340,7 +364,7 @@ int read_omni(std::string input_file) {
 		      << std::endl;
 
 	    if(run) {
-	      run_lambda(lambda, shm2.begin(), name);
+	      run_lambda(lambda, name, dest);
 	    }
 
 #ifdef USE_AWS	    
@@ -465,17 +489,13 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
 #ifdef USE_POCO
 std::string sha256_file(const std::string& filePath) {
     try {
-        // Open the file
         Poco::FileInputStream fis(filePath);
         
-        // Create SHA256 engine
         Poco::SHA2Engine sha256(Poco::SHA2Engine::SHA_256);
         
-        // Buffer for reading file
         const size_t bufferSize = 8192;
         char buffer[bufferSize];
         
-        // Read file and update digest
         while (!fis.eof()) {
             fis.read(buffer, bufferSize);
             std::streamsize bytesRead = fis.gcount();
@@ -484,19 +504,19 @@ std::string sha256_file(const std::string& filePath) {
             }
         }
         
-        // Get the final digest
         const Poco::DigestEngine::Digest& digest = sha256.digest();
         
-        // Convert to hexadecimal string
         std::stringstream ss;
         for (unsigned char b : digest) {
-            ss << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(b);
+            ss << std::hex << std::setfill('0') << std::setw(2)
+	       << static_cast<int>(b);
         }
         
         return ss.str();
     }
     catch (const Poco::Exception& ex) {
-        throw std::runtime_error("Error calculating SHA256: " + ex.displayText());
+        throw std::runtime_error("Error calculating SHA256: "
+				 + ex.displayText());
     }
 }
 #endif
