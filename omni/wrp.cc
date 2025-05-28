@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
@@ -73,7 +75,6 @@ int write_meta(std::string name, std::string tags) {
 int put(std::string name, std::string tags, std::string path,
 	unsigned char* buffer, int nbyte) {
 
-  std::cout << tags << std::endl;
 #ifdef USE_HERMES
   CHIMAERA_CLIENT_INIT();  
   hermes::Context ctx;
@@ -131,8 +132,9 @@ int run_lambda(std::string lambda, std::string name, std::string dest) {
 #ifdef _WIN32
   std::string extension = get_ext(lambda);
   if (extension != ".bat") {
-    std::cout << "Extension must be .bat on Windows." << std::endl;
-    return 0;
+    std::cout << "Error: lambda script extension must be '.bat' on Windows"
+	      << std::endl;
+    return 1;
   }
 #endif
 
@@ -148,7 +150,6 @@ int run_lambda(std::string lambda, std::string name, std::string dest) {
 	args.push_back("/C");
 	Poco::Path pocoPath(lambda);
 	std::string wpath = pocoPath.toString(Poco::Path::PATH_WINDOWS);
-	std::cout << "Windows Path: " <<  wpath << std::endl;
 	args.push_back(wpath);
 #endif
 	args.push_back(name);
@@ -176,7 +177,7 @@ int run_lambda(std::string lambda, std::string name, std::string dest) {
 
         int exitCode = ph.wait();
 
-        std::cout << "\n--- Lambda Script Output (Poco) ---\n";
+        std::cout << "\n--- Lambda script output ---\n";
         std::cout << "STDOUT:\n" << stdout_output;
         std::cout << "STDERR:\n" << stderr_output;
         std::cout << "-----------------------------------\n";
@@ -184,19 +185,58 @@ int run_lambda(std::string lambda, std::string name, std::string dest) {
 		  << std::endl;
 
     } catch (Poco::SystemException& exc) {
-        std::cerr << "Poco SystemException: " << exc.displayText() << std::endl;
+        std::cerr << "Error: poco system exception - "
+		  << exc.displayText() << std::endl;
         return 1;
     } catch (Poco::Exception& exc) {
-        std::cerr << "Poco Exception: " << exc.displayText() << std::endl;
+        std::cerr << "Error: poco exception - "
+		  << exc.displayText() << std::endl;
         return 1;
     } catch (std::exception& exc) {
-        std::cerr << "Standard Exception: " << exc.what() << std::endl;
+        std::cerr << "Error: standard exception - "
+		  << exc.what() << std::endl;
         return 1;
     }
 #endif    
     return 0;  
 }
-  
+
+std::string get_file_name(const std::string& uri) {
+
+    size_t lastSlashPos = uri.find_last_of('/');
+
+    if (lastSlashPos == std::string::npos) {
+        size_t protocolEnd = uri.find("://");
+        if (protocolEnd != std::string::npos) {
+            return "";
+        }
+        std::string filename = uri;
+        size_t queryPos = filename.find('?');
+        if (queryPos != std::string::npos) {
+            filename = filename.substr(0, queryPos);
+        }
+        size_t fragmentPos = filename.find('#');
+        if (fragmentPos != std::string::npos) {
+            filename = filename.substr(0, fragmentPos);
+        }
+        return filename;
+    }
+
+    std::string filenameWithParams = uri.substr(lastSlashPos + 1);
+
+    size_t queryPos = filenameWithParams.find('?');
+    if (queryPos != std::string::npos) {
+        filenameWithParams = filenameWithParams.substr(0, queryPos);
+    }
+
+    size_t fragmentPos = filenameWithParams.find('#');
+    if (fragmentPos != std::string::npos) {
+        filenameWithParams = filenameWithParams.substr(0, fragmentPos);
+    }
+
+    return filenameWithParams;
+}
+
 #ifdef USE_AWS
 int write_s3(std::string dest, char* ptr) {
   
@@ -206,7 +246,7 @@ int write_s3(std::string dest, char* ptr) {
   const Aws::String prefix = "s3://";
   Aws::InitAPI(options);	  
   if (dest.find(prefix) != 0) {
-    std::cerr << "Error: Not a valid S3 URL (missing 's3://' prefix)."
+    std::cerr << "Error: not a valid S3 URL (missing 's3://' prefix)"
 	      << std::endl;
     return -1;
   }
@@ -214,7 +254,7 @@ int write_s3(std::string dest, char* ptr) {
   // Find the first '/' to separate bucket and key
   size_t first_slash = path.find('/');
   if (first_slash == Aws::String::npos) {
-    std::cerr << "Invalid S3 URI: No path separator found"
+    std::cerr << "Error: invalid S3 URI (no path separator found)"
 	      << std::endl;
     return -1;
   }
@@ -223,11 +263,11 @@ int write_s3(std::string dest, char* ptr) {
   Aws::String object_key = path.substr(first_slash + 1);
 
   if (bucket_name.empty())   {
-    std::cerr << "Invalid S3 URI: Bucket name is empty" << std::endl;
+    std::cerr << "Error: bucket name is empty" << std::endl;
     return -1;
   }
   if (object_key.empty())    {
-    std::cerr << "Invalid S3 URI: Object key is empty" << std::endl;
+    std::cerr << "Error: object key is empty" << std::endl;
     return -1;
   }
 
@@ -260,13 +300,30 @@ int write_s3(std::string dest, char* ptr) {
   put_request.SetBucket(bucket_name);
   put_request.SetKey(object_key);
 
-  // Create a stream for the data
-  auto input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
-  *input_data << ptr;
-  put_request.SetBody(input_data);
+  if (ptr == NULL) {
+    std::string filePath = get_file_name(dest);
+    std::shared_ptr<Aws::FStream> inputData =
+      Aws::MakeShared<Aws::FStream>("SampleAllocationTag",
+				    filePath.c_str(),
+				    std::ios_base::in | std::ios_base::binary);
+    if (!*inputData)
+    {
+        std::cerr << "Error: Unable to open file " << filePath << std::endl;
+        return false;
+    }
+    put_request.SetBody(inputData);
 
-  // Optionally, set content type
-  put_request.SetContentType("text/plain");
+  }
+  else {
+    auto input_data =
+      Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
+    *input_data << ptr;
+    put_request.SetBody(input_data);
+  }
+
+  // TODO: Set content type based on mime input in OMNI.
+  // put_request.SetContentType("text/plain");
+  put_request.SetContentType("application/octet-stream");
 
   // Execute the PutObject request
   auto put_object_outcome = s3_client.PutObject(put_request);
@@ -278,7 +335,7 @@ int write_s3(std::string dest, char* ptr) {
     }
   else
     {
-      std::cout << "Error while uploading object: " 
+      std::cout << "Error: uploading object - " 
 		<< put_object_outcome.GetError().GetMessage() << std::endl;
       return -1;
     }
@@ -293,14 +350,15 @@ int read_omni(std::string input_file) {
   std::string name;  
   std::string tags;
   std::string path;
-  bool run = false;	
+  bool run = false;
+  int res = -1;
   std::string lambda;
   
   std::ifstream ifs(input_file);
   int offset;
 
   if (!ifs.is_open()) {
-    std::cerr << "Error: Could not open file " << input_file << std::endl;
+    std::cerr << "Error: could not open file " << input_file << std::endl;
     return 1;
   }
 
@@ -334,7 +392,9 @@ int read_omni(std::string input_file) {
 	      reinterpret_cast<unsigned char*>(buffer.data());		  
 	  if(read_exact_bytes_from_offset(path.c_str(), offset, nbyte, ptr) ==
 	     0) {
+#ifdef DEBUG	    
 	    std::cout << "buffer=" << ptr << std::endl;
+#endif	    
 	    put(name, tags, path, ptr, nbyte);
 	  }
 	  else {
@@ -349,31 +409,46 @@ int read_omni(std::string input_file) {
 	
         if (key == "dest") {
           std::string dest = it->second.as<std::string>();
-          std::cout << "dest=" << dest << std::endl;	  
+
 #ifdef USE_POCO
 	  try {
-	    Poco::File file(name);
-	    if (!file.exists()) {
-	      throw Poco::FileNotFoundException("Shared memory file not found: " + name + ".");
-	    }
-            Poco::SharedMemory shm2(file, Poco::SharedMemory::AM_READ);
-	    std::cout << "read '" <<  shm2.begin() << "' from '" << name
-		      << "' buffer."
-		      << std::endl;
-
 	    if(run) {
-	      run_lambda(lambda, name, dest);
+	      res = run_lambda(lambda, name, dest);
 	    }
-
-#ifdef USE_AWS	    
-	    write_s3(dest, shm2.begin());
-#endif	    
+	    else {
+#ifdef USE_AWS
+	      Poco::File file(name);
+	      if (!file.exists()) {
+		throw Poco::FileNotFoundException("Error: buffer '"
+						  + name
+						  + "' not found");
+	      }
+	      Poco::SharedMemory shm_r(file, Poco::SharedMemory::AM_READ);
+	      std::cout << "read '" <<  shm_r.begin() << "' from '" << name
+			<< "' buffer."
+			<< std::endl;
+	    
+	      write_s3(dest, shm_r.begin());
+#endif	      
+	    }
+	    if(res == 0) {
+#ifdef USE_AWS
+	      write_s3(dest, NULL);
+#endif
+	    }
+	    else {
+	      std::cerr << "Error: lambda failed to generate '"
+			<< dest << "'"
+			<< std::endl;
+	    }
 	  }
 	  catch (Poco::Exception& e) {
-	    std::cerr << "Poco Exception: " << e.displayText() << std::endl;
+	    std::cerr << "Error: poco exception - "
+		      << e.displayText() << std::endl;
 	    return 1;
 	  } catch (std::exception& e) {
-	    std::cerr << "Standard Exception: " << e.what() << std::endl;
+	    std::cerr << "Error: standard exception - "
+		      << e.what() << std::endl;
 	    return 1;
 	  }
 #endif
@@ -389,13 +464,19 @@ int read_omni(std::string input_file) {
 	
         if(it->second.IsScalar()){
           std::string value = it->second.as<std::string>();
+#ifdef DEBUG	  
           std::cout << key << ": " << value << std::endl;
+#endif	  
         } else if (it->second.IsSequence()){
+#ifdef DEBUG	  
           std::cout << key << ": " << std::endl;
+#endif	  
           for(size_t i = 0; i < it->second.size(); ++i){
             if(it->second[i].IsScalar()){
+#ifdef DEBUG	      
               std::cout << " - " << it->second[i].as<std::string>()
 			<< std::endl;
+#endif	      
 	      if(key == "tags") {
 		tags += it->second[i].as<std::string>();
 		if (i < it->second.size() - 1) {
@@ -407,14 +488,18 @@ int read_omni(std::string input_file) {
 	    
           }
         } else if (it->second.IsMap()){
+#ifdef DEBUG	  
              std::cout << key << ": " << std::endl;
+#endif	     
              for (YAML::const_iterator inner_it = it->second.begin();
 		  inner_it != it->second.end(); ++inner_it) {
                 std::string inner_key = inner_it->first.as<std::string>();
                 if(inner_it->second.IsScalar()){
                   std::string inner_value = inner_it->second.as<std::string>();
+#ifdef DEBUG		  
                   std::cout << "  " << inner_key << ": " << inner_value
 			    << std::endl;
+#endif		  
                 }
              }
         }  // for
@@ -430,7 +515,7 @@ int read_omni(std::string input_file) {
     }
    
   } catch (YAML::ParserException& e) {
-    std::cerr << "Error parsing YAML: " << e.what() << std::endl;
+    std::cerr << "Error: parsing YAML - " << e.what() << std::endl;
     return 1;
   }
   return 0;
@@ -513,7 +598,7 @@ std::string sha256_file(const std::string& filePath) {
         return ss.str();
     }
     catch (const Poco::Exception& ex) {
-        throw std::runtime_error("Error calculating SHA256: "
+        throw std::runtime_error("Error: calculating SHA256 - "
 				 + ex.displayText());
     }
 }
@@ -610,7 +695,6 @@ int main(int argc, char* argv[]) {
 	}
 	
         std::string name = argv[2];
-        std::cout << "input: " << name << std::endl;
         return read_omni(name);
 	
     } else if (command == "get") {
@@ -628,7 +712,7 @@ int main(int argc, char* argv[]) {
       
     }
     else {
-        std::cerr << "Invalid command: " << command << std::endl;
+        std::cerr << "Error: invalid command - " << command << std::endl;
         return 1;
     }
 
