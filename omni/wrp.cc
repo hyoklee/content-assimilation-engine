@@ -72,16 +72,20 @@ int write_meta(std::string name, std::string tags) {
   }
   return 0;
 }
+
 int put(std::string name, std::string tags, std::string path,
 	unsigned char* buffer, int nbyte) {
 
 #ifdef USE_HERMES
-  CHIMAERA_CLIENT_INIT();  
+  HERMES_INIT();
+
   hermes::Context ctx;
   hermes::Bucket bkt(name);
   hermes::Blob blob(nbyte);
   memcpy(blob.data(), buffer, blob.size());
   hermes::BlobId blob_id = bkt.Put(path, blob, ctx);
+  std::cout << "wrote '" << buffer << "' to '" << name << "' buffer."
+	      << std::endl;  
 #endif
 #ifdef USE_POCO
   const std::size_t sharedMemorySize = nbyte+1;
