@@ -29,6 +29,7 @@ typedef SSIZE_T ssize_t;
 
 #ifdef USE_HERMES
 #include <hermes/hermes.h>
+#include <hermes/data_stager/stager_factory.h>
 #endif
 
 #ifdef USE_POCO
@@ -73,10 +74,10 @@ int write_meta(std::string name, std::string tags) {
   return 0;
 }
 
-int put(std::string name, std::string tags, std::string path,
-	unsigned char* buffer, int nbyte) {
-
 #ifdef USE_HERMES
+int put_hermes(std::string name, std::string tags, std::string path,
+	       unsigned char* buffer, int nbyte) {
+  
   HERMES_INIT();
 
   hermes::Context ctx;
@@ -85,7 +86,39 @@ int put(std::string name, std::string tags, std::string path,
   memcpy(blob.data(), buffer, blob.size());
   hermes::BlobId blob_id = bkt.Put(path, blob, ctx);
   std::cout << "wrote '" << buffer << "' to '" << name << "' buffer."
-	      << std::endl;  
+	      << std::endl;
+  return 0;
+  
+}
+
+int get_hermes(std::string name, std::string path) {
+
+  auto bkt = HERMES->GetBucket(name);
+  hermes::BlobId blob_id = bkt.GetBlobId(path);
+  hermes::Blob blob2;
+  hermes::Context ctx;  
+  bkt.Get(blob_id, blob2, ctx);
+  std::cout << "read '" << blob2.data() << "' from '" << name << "' buffer."
+	      << std::endl;
+
+  // Create a stageable bucket
+  hermes::Context ctx_s = hermes::BinaryFileStager::BuildContext(30);
+  hermes::Bucket bkt_s(name, ctx_s, 30);
+  hermes::Blob blob3(30);
+  memcpy(blob3.data(), blob2.data(), blob2.size());
+  bkt_s.Put(path, blob3, ctx_s);
+  CHI_ADMIN->Flush(HSHM_MCTX, chi::DomainQuery::GetGlobalBcast());  
+  return 0;
+
+}
+
+#endif
+
+int put(std::string name, std::string tags, std::string path,
+	unsigned char* buffer, int nbyte) {
+
+#ifdef USE_HERMES
+  put_hermes(name, tags, path, buffer, nbyte);
 #endif
 #ifdef USE_POCO
   const std::size_t sharedMemorySize = nbyte+1;
@@ -460,8 +493,7 @@ int read_omni(std::string input_file) {
 
 #ifndef _WIN32
 #ifdef USE_HERMES	  	  
-          std::cout << "calling get" << dest << std::endl;
-          // get(name, dest, nbyte);
+          get_hermes(name, path);
 #endif
 #endif
 	}
