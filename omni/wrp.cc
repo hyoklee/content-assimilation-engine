@@ -125,22 +125,33 @@ int put(std::string name, std::string tags, std::string path,
 
   try {
     Poco::File file(name);
+    std::cout << "checking existing buffer '" << name << "'...";
     if (file.exists()) {
-      file.remove();
+      std::cout << "yes" << std::endl;
+      return 0;
     }
+    std::cout << "no" << std::endl;
+
+    std::cout << "creating a new buffer '" << name << "' with '"
+	      << tags << "' tags...";
     file.createFile();
     std::ofstream ofs(name, std::ios::binary);
     ofs.seekp(nbyte);
     ofs.put('\0');
     ofs.close();
-    
+    std::cout << "done" << std::endl;
+
+    std::cout << "putting " << nbyte << " bytes into '"
+	      <<  name << "' buffer...";
     Poco::SharedMemory shm(file, Poco::SharedMemory::AM_WRITE);
 	    
     char* data = static_cast<char*>(shm.begin());
     std::memcpy(data, (const char *)buffer, nbyte);
+    std::cout << "done" << std::endl;
+#ifdef DEBUG    
     std::cout << "wrote '" << shm.begin() << "' to '" << name << "' buffer."
 	      << std::endl;
-
+#endif
 
   } catch (Poco::Exception& e) {
     std::cerr << "Poco Exception: " << e.displayText() << std::endl;
