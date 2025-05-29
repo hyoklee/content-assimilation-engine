@@ -67,7 +67,7 @@ int write_meta(std::string name, std::string tags) {
   std::filesystem::path file_path = ".blackhole/ls";
   std::ofstream outfile(file_path, std::ios::out | std::ios::app);
   if (outfile.is_open()) {
-    outfile << name << ":";
+    outfile << name << "|";
     outfile << tags << std::endl;
     outfile.close();  
   }
