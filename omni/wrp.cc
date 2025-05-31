@@ -166,13 +166,14 @@ int put(std::string name, std::string tags, std::string path,
 
 #ifdef _WIN32
 std::string get_ext(const std::string& filename) {
-    std::filesystem::path p(filename);
-    std::string extension  =  p.extension().string();
-    // Convert extension to lowercase for case-insensitive comparison
-    for (char &c : extension) {
-      c = std::tolower(c);
-    }
-    return extension;
+
+  std::filesystem::path p(filename);
+  std::string extension  =  p.extension().string();
+
+  for (char &c : extension) {
+    c = std::tolower(c);
+  }
+  return extension;
 }
 #endif
 
@@ -650,7 +651,38 @@ std::string sha256_file(const std::string& filePath) {
     }
 }
 #endif
+std::string read_tags(std::string buf) {
 
+  const std::string filename = ".blackhole/ls";
+  
+  std::ifstream inputFile(filename);
+
+  if (!inputFile.is_open()) {
+    std::cerr
+      << "Error: Could not open the file \"" << filename << "\"" << std::endl;
+    return "";
+  }
+
+  std::string line;
+  while (std::getline(inputFile, line)) {
+
+    std::stringstream ss(line);
+    std::string firstString;
+    std::string secondString;
+
+    // Get the first part of the string, using '|' as the delimiter
+    if (std::getline(ss, firstString, '|')) {
+      if (firstString == buf) {
+	if (std::getline(ss, secondString, '|')) {
+	  return secondString;
+	}
+      }
+    }    
+  }
+  return "";
+  
+}
+  
 int write_omni(std::string buf) {
   std::string ofile = buf+".omni.yaml";
   std::cout << "writing output " << ofile << "...";
@@ -660,7 +692,8 @@ int write_omni(std::string buf) {
   std::ofstream of(ofile);
   of << "# OMNI" << std::endl;  
   of << "name: " << buf << std::endl;
-
+  std::string tags = read_tags(buf);
+  of << "tags: " << tags << std::endl;
 #ifdef USE_POCO
   Poco::Path path(buf);
   of << "path: " << path.makeAbsolute().toString() << std::endl;
