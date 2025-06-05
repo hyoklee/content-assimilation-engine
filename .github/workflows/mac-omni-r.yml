@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
       - name: install
         run: |
-          brew install dos2unix poco yaml-cpp
+          brew install poco yaml-cpp
       - name: test
         run: |
           cd omni
@@ -24,7 +24,6 @@ jobs:
         continue-on-error: true
       - name: poco
         run: |
-          unix2dos data/A46_xx.csv          
           cd omni
           mkdir poco
           cd poco

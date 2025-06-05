@@ -13,7 +13,7 @@ jobs:
     - name: install
       run: |
         sudo apt-get install -y libpoco-dev libyaml-cpp-dev
-        sudo apt-get install -y python3-pip python3-venv dos2unix
+        sudo apt-get install -y python3-pip python3-venv
     - name: test
       run: |
           cd omni
@@ -24,7 +24,6 @@ jobs:
           cd ../..
     - name: poco
       run: |
-          unix2dos data/A46_xx.csv
           cd omni
           mkdir poco
           cd poco
