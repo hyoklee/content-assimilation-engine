@@ -63,6 +63,42 @@ typedef SSIZE_T ssize_t;
 int read_exact_bytes_from_offset(const char *filename, off_t offset,
                                  size_t num_bytes, unsigned char *buffer);
 
+#ifdef USE_POCO
+std::string sha256_file(const std::string& filePath) {
+    try {
+      
+      Poco::FileInputStream fis(filePath);
+        
+      Poco::SHA2Engine sha256(Poco::SHA2Engine::SHA_256);
+        
+      const size_t bufferSize = 8192;
+      char buffer[bufferSize];
+        
+      while (!fis.eof()) {
+	fis.read(buffer, bufferSize);
+	std::streamsize bytesRead = fis.gcount();
+	if (bytesRead > 0) {
+	  sha256.update(buffer, static_cast<unsigned>(bytesRead));
+	}
+      }
+        
+      const Poco::DigestEngine::Digest& digest = sha256.digest();
+        
+      std::stringstream ss;
+      for (unsigned char b : digest) {
+	ss << std::hex << std::setfill('0') << std::setw(2)
+	   << static_cast<int>(b);
+      }
+        
+      return ss.str();
+    }
+    catch (const Poco::Exception& ex) {
+      throw std::runtime_error("Error: calculating SHA256 - "
+			       + ex.displayText());
+    }
+}
+#endif
+
 int write_meta(std::string name, std::string tags) {
   std::filesystem::path file_path = ".blackhole/ls";
   std::ofstream outfile(file_path, std::ios::out | std::ios::app);
@@ -408,6 +444,9 @@ int read_omni(std::string input_file) {
   std::string name;  
   std::string tags;
   std::string path;
+#ifdef USE_POCO  
+  std::string hash;
+#endif  
   bool run = false;
   int res = -1;
   std::string lambda;
@@ -432,17 +471,44 @@ int read_omni(std::string input_file) {
 	
 	int nbyte = 0;
         std::string key = it->first.as<std::string>();
+
 	if(key == "name") {
 	  name = it->second.as<std::string>();
 	}
 
 	if(key == "path") {
 	  path = it->second.as<std::string>();
+#ifdef USE_POCO	  
+	  Poco::File file(path);
+	  if (!file.exists()) {
+	    std::cerr << "Error: '"
+		      << path
+		      << "' does not exist"
+		      << std::endl;    	
+	    return -1;
+	  }
+#endif      
 	}
+#ifdef USE_POCO
+	if(key == "hash") {
+	  hash = it->second.as<std::string>();
+
+	  std::string h = sha256_file(path);
+	  
+	  if (hash != h){
+	    std::cerr << "Error: hash '"
+		      << hash << "' is not same as actual '"
+		      << h << "'"	      
+		      << std::endl;
+	    return -1;
+	  }
+	}
+#endif	
 	
 	if(key == "offset") {
 	  offset = it->second.as<int>();
 	}
+
 	if(key == "nbyte") {
 	  nbyte = it->second.as<int>();
 	  std::vector<char> buffer(nbyte);
@@ -626,40 +692,7 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
 
 }
 
-#ifdef USE_POCO
-std::string sha256_file(const std::string& filePath) {
-    try {
-        Poco::FileInputStream fis(filePath);
-        
-        Poco::SHA2Engine sha256(Poco::SHA2Engine::SHA_256);
-        
-        const size_t bufferSize = 8192;
-        char buffer[bufferSize];
-        
-        while (!fis.eof()) {
-            fis.read(buffer, bufferSize);
-            std::streamsize bytesRead = fis.gcount();
-            if (bytesRead > 0) {
-                sha256.update(buffer, static_cast<unsigned>(bytesRead));
-            }
-        }
-        
-        const Poco::DigestEngine::Digest& digest = sha256.digest();
-        
-        std::stringstream ss;
-        for (unsigned char b : digest) {
-            ss << std::hex << std::setfill('0') << std::setw(2)
-	       << static_cast<int>(b);
-        }
-        
-        return ss.str();
-    }
-    catch (const Poco::Exception& ex) {
-        throw std::runtime_error("Error: calculating SHA256 - "
-				 + ex.displayText());
-    }
-}
-#endif
+
 std::string read_tags(std::string buf) {
 
   const std::string filename = ".blackhole/ls";

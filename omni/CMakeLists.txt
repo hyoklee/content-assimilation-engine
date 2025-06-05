@@ -159,4 +159,13 @@ set_tests_properties(lseek
     RETURN_VALUE 1
 )
 
+if(POCO)
+add_test(NAME hash COMMAND wrp put ../test/hash.yml)
+set_tests_properties(hash
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+endif()
+
 install(TARGETS wrp DESTINATION bin)
