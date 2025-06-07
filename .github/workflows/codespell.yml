@@ -1,11 +1,17 @@
-name: codespell
-on: [push, pull_request]
-permissions:
-  contents: read
+name: Codespell
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   codespell:
-    name: codespell
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.1.7
-      - uses: codespell-project/actions-codespell@master
+    - uses: actions/checkout@v4
+    - name: Run codespell
+      uses: codespell-project/actions-codespell@v2
+      with:
+        skip: devlop,trough

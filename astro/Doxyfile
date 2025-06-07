@@ -1,6 +1,6 @@
 # Project information
 PROJECT_NAME           = "Content Assimilation Engine"
-PROJECT_NUMBER         = 1.0
+PROJECT_NUMBER         = 0.0.1
 PROJECT_BRIEF         = "Documentation for the Content Assimilation Engine"
 OUTPUT_DIRECTORY      = ../docs
 CREATE_SUBDIRS        = YES
