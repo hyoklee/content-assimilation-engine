@@ -104,6 +104,7 @@ jobs:
         jarvis env build hermes
         jarvis ppl index copy jarvis_hermes.hermes.test_hermes
         jarvis ppl load yaml test_hermes.yaml
+        jarvis ppl env build
         jarvis ppl run
         mkdir -p ~/my_mod_repo/jarvis_example/jarvis_example
         mkdir -p ~/my_mod_repo/jarvis_example/pipelines
