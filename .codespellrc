@@ -1,2 +1,2 @@
 [codespell]
-skip = devlop,trough 
+skip = ./astro/package-lock.json
