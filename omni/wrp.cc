@@ -453,7 +453,8 @@ int write_s3(std::string dest, char* ptr) {
 int download(const std::string& url, const std::string& outputFileName,
 		 long long startByte, long long endByte = -1)
 {
-    std::cout << "download" << std::endl;
+  
+#ifdef USE_POCO    
     try {
       std::string currentUrl = url;
       const std::string caCertFile = "../cacert.pem"; 
@@ -538,7 +539,8 @@ int download(const std::string& url, const std::string& outputFileName,
 
 	} else {
 	  // Non-success, non-redirect status
-	  std::cerr << "Error: HTTP request failed with status code " << status << std::endl;
+	  std::cerr << "Error: HTTP request failed with status code "
+		    << status << std::endl;
 	  std::string errorBody;
 	  Poco::StreamCopier::copyToString(rs, errorBody);
 	  std::cerr << "Response Body: " << errorBody << std::endl;
@@ -563,6 +565,7 @@ int download(const std::string& url, const std::string& outputFileName,
     } catch (...) {
       std::cerr << "Unknown Error occurred." << std::endl;
     }
+#endif    
     return 0;
 }
 
