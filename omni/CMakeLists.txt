@@ -25,7 +25,7 @@ endif()
 option(POCO "Enable POCO support" OFF)
 if(POCO)
 add_definitions(-DUSE_POCO)
-find_package(Poco REQUIRED COMPONENTS Crypto Foundation)
+find_package(Poco REQUIRED COMPONENTS Crypto Foundation Net NetSSL)
 # find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
 endif()
 
@@ -78,7 +78,7 @@ endif()
 
 
 if(POCO)
-  target_link_libraries(wrp Poco::Crypto Poco::Foundation)
+  target_link_libraries(wrp Poco::Crypto Poco::Foundation Poco::Net Poco::NetSSL)
 endif()
 
 
@@ -166,6 +166,9 @@ set_tests_properties(hash
     WILL_FAIL "TRUE"
     RETURN_VALUE 1
 )
+
+add_test(NAME http COMMAND wrp put ../test/http.yml)
+add_test(NAME redi COMMAND wrp put ../test/redi.yml)
 endif()
 
 install(TARGETS wrp DESTINATION bin)

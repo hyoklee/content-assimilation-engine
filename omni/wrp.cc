@@ -1,10 +1,10 @@
+#include <errno.h>
 #include <fcntl.h>
 #ifdef _WIN32
 #include <io.h>
 #else
 #include <unistd.h>
 #endif
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,8 +12,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
-#include <filesystem>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -40,6 +40,14 @@ typedef SSIZE_T ssize_t;
 #include "Poco/Exception.h"
 #include "Poco/File.h"
 #include "Poco/FileStream.h"
+#include "Poco/Net/Context.h"
+#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPSClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+#include "Poco/Net/NetException.h"
+#include "Poco/Net/SSLManager.h"
+#include "Poco/NullStream.h"
 #include "Poco/Path.h"
 #include "Poco/Pipe.h"
 #include "Poco/PipeStream.h"
@@ -48,6 +56,7 @@ typedef SSIZE_T ssize_t;
 #include "Poco/SharedMemory.h"
 #include "Poco/StreamCopier.h"
 #include "Poco/TemporaryFile.h"
+#include "Poco/URI.h"
 #endif
 
 #ifdef USE_AWS
@@ -59,6 +68,8 @@ typedef SSIZE_T ssize_t;
 #include <aws/s3/model/CreateBucketRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
 #endif
+
+#include "OMNI.h"
 
 int read_exact_bytes_from_offset(const char *filename, off_t offset,
                                  size_t num_bytes, unsigned char *buffer);
@@ -439,12 +450,129 @@ int write_s3(std::string dest, char* ptr) {
 }
 #endif	  
 
+int download(const std::string& url, const std::string& outputFileName,
+		 long long startByte, long long endByte = -1)
+{
+    std::cout << "download" << std::endl;
+    try {
+      std::string currentUrl = url;
+      const std::string caCertFile = "../cacert.pem"; 
+
+      Poco::Net::Context::Ptr context
+	= new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+				 "", 
+				 "", "",
+				 Poco::Net::Context::VERIFY_NONE, // STRICT
+				 9, true, caCertFile);	
+
+      int redirectCount = 0;
+      int maxRedirects = 20; // Match Chrome & Firefox
+      bool redirected = true;
+
+      while (redirected && redirectCount <= maxRedirects) {
+	  
+	redirected = false;
+	redirectCount++;
+	Poco::URI uri(currentUrl);
+	    
+	std::unique_ptr<Poco::Net::HTTPClientSession> session;
+
+	if (uri.getScheme() == "https") {
+	  session = std::make_unique<Poco::Net::HTTPSClientSession>
+	    (uri.getHost(), uri.getPort() == 0 ? 443 : uri.getPort(),
+	     context);
+	} else {
+	  session = std::make_unique<Poco::Net::HTTPClientSession>
+	    (uri.getHost(), uri.getPort());
+	}
+
+	Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET,
+				       uri.getPathAndQuery(),
+				       Poco::Net::HTTPMessage::HTTP_1_1);
+	request.set("User-Agent", "POCO HTTP Redirect Client/1.0");
+	Poco::Net::HTTPResponse response;
+
+	int status = 0;
+
+	std::cout << "Downloading from: " << url << std::endl;
+
+	session->sendRequest(request);
+	std::istream& rs = session->receiveResponse(response);	  
+	status = response.getStatus();
+	std::cout << "Status: " << status << " - " << response.getReason()
+		  << std::endl;
+
+
+	if (status == Poco::Net::HTTPResponse::HTTP_MOVED_PERMANENTLY ||
+	    status == Poco::Net::HTTPResponse::HTTP_FOUND ||
+	    status == Poco::Net::HTTPResponse::HTTP_SEE_OTHER ||
+	    status == Poco::Net::HTTPResponse::HTTP_TEMPORARY_REDIRECT ||
+	    status == Poco::Net::HTTPResponse::HTTP_PERMANENT_REDIRECT)
+	  {
+	    if (response.has("Location")) {
+	      currentUrl = response.get("Location");
+	      std::cout << "Redirected to: " << currentUrl << std::endl;
+	      redirected = true;  
+	      // Consume any remaining data in the current response stream
+	      Poco::StreamCopier::copyStream(rs, Poco::NullOutputStream());
+	    } else {
+	      std::cerr << "Redirect status (" << status
+			<< ") received but no Location header found."
+			<< std::endl;
+	      return -1;
+	    }
+	  } else if (status == Poco::Net::HTTPResponse::HTTP_OK) {
+	  // Success! Download the content
+	  std::ofstream os(outputFileName, std::ios::binary);
+	  if (os.is_open()) {
+	    Poco::StreamCopier::copyStream(rs, os);
+	    os.close();
+	    std::cout << "File downloaded successfully to: "
+		      << outputFileName << std::endl;
+	    return 0;
+	  } else {
+	    std::cerr << "Error: Could not open file for writing: "
+		      << outputFileName << std::endl;
+	    return -1;
+	  }
+
+	} else {
+	  // Non-success, non-redirect status
+	  std::cerr << "Error: HTTP request failed with status code " << status << std::endl;
+	  std::string errorBody;
+	  Poco::StreamCopier::copyToString(rs, errorBody);
+	  std::cerr << "Response Body: " << errorBody << std::endl;
+	  return -1;
+	}
+	    
+      } // while
+	
+      if (redirectCount > maxRedirects) {
+	std::cerr << "Error: Maximum redirect limit (" << maxRedirects
+		  << ") exceeded." << std::endl;
+      }
+	
+    } catch (const Poco::Net::NetException& e) {
+      std::cerr << "Network Error: " << e.displayText() << std::endl;
+    } catch (const Poco::IOException& e) {
+      std::cerr << "IO Error: " << e.displayText() << std::endl;
+    } catch (const Poco::Exception& e) {
+      std::cerr << "POCO Error: " << e.displayText() << std::endl;
+    } catch (const std::exception& e) {
+      std::cerr << "Standard Error: " << e.what() << std::endl;
+    } catch (...) {
+      std::cerr << "Unknown Error occurred." << std::endl;
+    }
+    return 0;
+}
+
 int read_omni(std::string input_file) {
   
   std::string name;  
   std::string tags;
   std::string path;
-#ifdef USE_POCO  
+#ifdef USE_POCO
+  std::string uri;    
   std::string hash;
 #endif  
   bool run = false;
@@ -487,13 +615,27 @@ int read_omni(std::string input_file) {
 		      << std::endl;    	
 	    return -1;
 	  }
-#endif      
+#endif
 	}
+	
 #ifdef USE_POCO
+	if(key == "uri") {
+	  uri = it->second.as<std::string>();
+	  if (!uri.empty()){
+	    if(download(uri, name, 0, -1) != 0)
+	      std::cerr << "Error: downloading '"  << uri
+			<< "' failed "
+			<< std::endl;
+	  }
+	}
+
 	if(key == "hash") {
 	  hash = it->second.as<std::string>();
-
-	  std::string h = sha256_file(path);
+	  std::string h;	  
+	  if(!path.empty())
+	    h = sha256_file(path);
+	  if(!uri.empty())
+	    h = sha256_file(name);
 	  
 	  if (hash != h){
 	    std::cerr << "Error: hash '"
@@ -513,16 +655,21 @@ int read_omni(std::string input_file) {
 	  nbyte = it->second.as<int>();
 	  std::vector<char> buffer(nbyte);
           unsigned char* ptr =
-	      reinterpret_cast<unsigned char*>(buffer.data());		  
-	  if(read_exact_bytes_from_offset(path.c_str(), offset, nbyte, ptr) ==
-	     0) {
+	      reinterpret_cast<unsigned char*>(buffer.data());
+	  if(!path.empty()) {
 #ifdef DEBUG	    
-	    std::cout << "buffer=" << ptr << std::endl;
+	    std::cout << "path=" << path <<  std::endl;
 #endif	    
-	    put(name, tags, path, ptr, nbyte);
-	  }
-	  else {
-	    return -1;
+	    if(read_exact_bytes_from_offset(path.c_str(), offset, nbyte, ptr) ==
+	       0) {
+#ifdef DEBUG	    
+	      std::cout << "buffer=" << ptr << std::endl;
+#endif	    
+	      put(name, tags, path, ptr, nbyte);
+	    }
+	    else {
+	      return -1;
+	    }
 	  }
 	}
 
@@ -532,8 +679,8 @@ int read_omni(std::string input_file) {
 	}
 	
         if (key == "dest") {
-          std::string dest = it->second.as<std::string>();
 
+          std::string dest = it->second.as<std::string>();
 #ifdef USE_POCO
 	  try {
 	    if(run) {
@@ -654,14 +801,14 @@ int read_exact_bytes_from_offset(const char *filename, off_t offset,
     fd = open(filename, O_RDONLY);
 
     if (fd == -1) {
-        perror("Error opening file");
-        return -1;
+      std::cerr << "Error: opening file" << filename << std::endl;
+      return -1;
     }
     
     if (lseek(fd, offset, SEEK_SET) == -1) {
-        perror("Error seeking file");
-        close(fd);
-        return -1;
+      std::cerr << "Error: seeking file" << filename << std::endl;
+      close(fd);
+      return -1;
     }
 
     while (total_bytes_read < num_bytes) {

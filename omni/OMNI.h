@@ -6,17 +6,17 @@ namespace CAE {
   public:
     OMNI() = default;
     ~OMNI() = default;
-    void Put() {
+    int Put() {
       return 0;
     }
     
-    void List() {
+    int List() {
       return 0;
     }    
     
-    void Get() {
+    int Get() {
       return 0;
     }
-  }
+  };
 
 } // namespace CAE
