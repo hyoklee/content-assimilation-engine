@@ -515,7 +515,8 @@ int download(const std::string& url, const std::string& outputFileName,
 	      std::cout << "Redirected to: " << currentUrl << std::endl;
 	      redirected = true;  
 	      // Consume any remaining data in the current response stream
-	      Poco::StreamCopier::copyStream(rs, Poco::NullOutputStream());
+	      Poco::NullOutputStream nullStream;
+	      Poco::StreamCopier::copyStream(rs, nullStream);
 	    } else {
 	      std::cerr << "Redirect status (" << status
 			<< ") received but no Location header found."
