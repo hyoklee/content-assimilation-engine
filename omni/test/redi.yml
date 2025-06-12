@@ -16,8 +16,3 @@ hash: 2f8cde944f1fea90c99f7b5f26045c811864e6199940c1d6d043062405637d19
 # bytes
 size: 700398
 
-# range-get
-offset: 39
-nbyte: 30
-
-dest: "redi.h5"

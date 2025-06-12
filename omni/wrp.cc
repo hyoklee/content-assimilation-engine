@@ -491,6 +491,23 @@ int download(const std::string& url, const std::string& outputFileName,
 				       uri.getPathAndQuery(),
 				       Poco::Net::HTTPMessage::HTTP_1_1);
 	request.set("User-Agent", "POCO HTTP Redirect Client/1.0");
+
+
+        // Set the Range header
+	if (startByte >= 0) {
+	  std::string rangeHeaderValue;
+	  if (endByte == -1) { // Request bytes from startByte to end of file
+            rangeHeaderValue = "bytes=" +
+	      std::to_string(startByte) + "-";
+	  } else { // Request a specific range
+            rangeHeaderValue = "bytes=" +
+	      std::to_string(startByte) + "-"
+	      + std::to_string(endByte);
+	  }
+	  request.set("Range", rangeHeaderValue);
+	  std::cout << "Requesting Range: " << rangeHeaderValue << std::endl;
+	}
+
 	Poco::Net::HTTPResponse response;
 
 	int status = 0;
@@ -523,7 +540,27 @@ int download(const std::string& url, const std::string& outputFileName,
 			<< std::endl;
 	      return -1;
 	    }
-	  } else if (status == Poco::Net::HTTPResponse::HTTP_OK) {
+	  }
+	else if (status == Poco::Net::HTTPResponse::HTTP_PARTIAL_CONTENT) {
+	  std::cout << "Received Partial Content (206)." << std::endl;
+	  if (response.has("Content-Range")) {
+	    std::string contentRange = response.get("Content-Range");
+	    std::cout << "Content-Range: " << contentRange << std::endl;
+	  } else {
+	    std::cout << "Warning: 206 status but no Content-Range header." << std::endl;
+	  }
+
+	  std::ofstream os(outputFileName, std::ios::binary);
+	  if (os.is_open()) {
+	    Poco::StreamCopier::copyStream(rs, os);
+	    os.close();
+	    std::cout << "Partial content downloaded successfully to: " << outputFileName << std::endl;
+	  } else {
+	    std::cerr << "Error: Could not open file for writing: " << outputFileName << std::endl;
+	  }	  
+	  
+	}
+	else if (status == Poco::Net::HTTPResponse::HTTP_OK) {
 	  // Success! Download the content
 	  std::ofstream os(outputFileName, std::ios::binary);
 	  if (os.is_open()) {
@@ -578,13 +615,17 @@ int read_omni(std::string input_file) {
 #ifdef USE_POCO
   std::string uri;    
   std::string hash;
-#endif  
+#endif
+
+  int offset = -1;  
+  int nbyte = -1;
+  
   bool run = false;
   int res = -1;
   std::string lambda;
   
   std::ifstream ifs(input_file);
-  int offset;
+
 
   if (!ifs.is_open()) {
     std::cerr << "Error: could not open file " << input_file << std::endl;
@@ -601,7 +642,7 @@ int read_omni(std::string input_file) {
 
       for (YAML::const_iterator it = root.begin(); it != root.end(); ++it) {
 	
-	int nbyte = 0;
+
         std::string key = it->first.as<std::string>();
 
 	if(key == "name") {
@@ -625,29 +666,10 @@ int read_omni(std::string input_file) {
 #ifdef USE_POCO
 	if(key == "uri") {
 	  uri = it->second.as<std::string>();
-	  if (!uri.empty()){
-	    if(download(uri, name, 0, -1) != 0)
-	      std::cerr << "Error: downloading '"  << uri
-			<< "' failed "
-			<< std::endl;
-	  }
 	}
 
 	if(key == "hash") {
 	  hash = it->second.as<std::string>();
-	  std::string h;	  
-	  if(!path.empty())
-	    h = sha256_file(path);
-	  if(!uri.empty())
-	    h = sha256_file(name);
-	  
-	  if (hash != h){
-	    std::cerr << "Error: hash '"
-		      << hash << "' is not same as actual '"
-		      << h << "'"	      
-		      << std::endl;
-	    return -1;
-	  }
 	}
 #endif	
 	
@@ -776,8 +798,9 @@ int read_omni(std::string input_file) {
 #endif		  
                 }
              }
-        }  // for
-      } // if 
+        }  
+      } // for
+      
     } else if (root.IsSequence()) {
       for(size_t i = 0; i < root.size(); ++i){
         if(root[i].IsScalar()){
@@ -792,6 +815,42 @@ int read_omni(std::string input_file) {
     std::cerr << "Error: parsing YAML - " << e.what() << std::endl;
     return 1;
   }
+  
+#if USE_POCO
+  if (!uri.empty()){
+    long long start = -1;
+    long long end = -1;    
+    if(offset >=0) {
+      start = (long long)offset;
+    }
+    if(nbyte >=0) {
+      end = (long long) (offset + nbyte);
+    }
+    
+    if(download(uri, name, start, end) != 0)
+      std::cerr << "Error: downloading '"  << uri
+		<< "' failed "
+		<< std::endl;
+  }
+  
+  if (!hash.empty()){
+    std::string h;	  
+    if(!path.empty())
+      h = sha256_file(path);
+    if(!uri.empty())
+      h = sha256_file(name);
+	  
+    if (hash != h){
+      std::cerr << "Error: hash '"
+		<< hash << "' is not same as actual '"
+		<< h << "'"	      
+		<< std::endl;
+      return -1;
+    }
+  }
+  
+#endif
+	  
   return 0;
 }
 

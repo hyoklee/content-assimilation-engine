@@ -169,6 +169,7 @@ set_tests_properties(hash
 
 add_test(NAME http COMMAND wrp put ../test/http.yml)
 add_test(NAME redi COMMAND wrp put ../test/redi.yml)
+add_test(NAME rget COMMAND wrp put ../test/rget.yml)
 endif()
 
 install(TARGETS wrp DESTINATION bin)
