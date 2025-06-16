@@ -623,6 +623,7 @@ int read_omni(std::string input_file) {
   bool run = false;
   int res = -1;
   std::string lambda;
+  std::string dest;
   
   std::ifstream ifs(input_file);
 
@@ -705,52 +706,7 @@ int read_omni(std::string input_file) {
 	}
 	
         if (key == "dest") {
-
-          std::string dest = it->second.as<std::string>();
-#ifdef USE_POCO
-	  try {
-	    if(run) {
-	      res = run_lambda(lambda, name, dest);
-	    }
-	    else {
-#ifdef USE_AWS
-	      Poco::File file(name);
-	      if (!file.exists()) {
-		throw Poco::FileNotFoundException("Error: buffer '"
-						  + name
-						  + "' not found");
-	      }
-	      Poco::SharedMemory shm_r(file, Poco::SharedMemory::AM_READ);
-	      std::cout << "read '" <<  shm_r.begin() << "' from '" << name
-			<< "' buffer."
-			<< std::endl;
-	    
-	      write_s3(dest, shm_r.begin());
-#endif	      
-	    }
-	    if(res == 0) {
-#ifdef USE_AWS
-	      write_s3(dest, NULL);
-#endif
-	    }
-	    else {
-	      std::cerr << "Error: lambda failed to generate '"
-			<< dest << "'"
-			<< std::endl;
-	    }
-	  }
-	  catch (Poco::Exception& e) {
-	    std::cerr << "Error: poco exception - "
-		      << e.displayText() << std::endl;
-	    return 1;
-	  } catch (std::exception& e) {
-	    std::cerr << "Error: standard exception - "
-		      << e.what() << std::endl;
-	    return 1;
-	  }
-#endif
-
-
+          dest = it->second.as<std::string>();
 #ifndef _WIN32
 #ifdef USE_HERMES	  	  
           get_hermes(name, path);
@@ -846,6 +802,51 @@ int read_omni(std::string input_file) {
 		<< h << "'"	      
 		<< std::endl;
       return -1;
+    }
+
+    if (!dest.empty()) {
+#ifdef USE_POCO
+	  try {
+	    if(run) {
+	      res = run_lambda(lambda, name, dest);
+	    }
+	    else {
+#ifdef USE_AWS
+	      Poco::File file(name);
+	      if (!file.exists()) {
+		throw Poco::FileNotFoundException("Error: buffer '"
+						  + name
+						  + "' not found");
+	      }
+	      Poco::SharedMemory shm_r(file, Poco::SharedMemory::AM_READ);
+	      std::cout << "read '" <<  shm_r.begin() << "' from '" << name
+			<< "' buffer."
+			<< std::endl;
+	    
+	      write_s3(dest, shm_r.begin());
+#endif	      
+	    }
+	    if(res == 0) {
+#ifdef USE_AWS
+	      write_s3(dest, NULL);
+#endif
+	    }
+	    else {
+	      std::cerr << "Error: lambda failed to generate '"
+			<< dest << "'"
+			<< std::endl;
+	    }
+	  }
+	  catch (Poco::Exception& e) {
+	    std::cerr << "Error: poco exception - "
+		      << e.displayText() << std::endl;
+	    return 1;
+	  } catch (std::exception& e) {
+	    std::cerr << "Error: standard exception - "
+		      << e.what() << std::endl;
+	    return 1;
+	  }
+#endif
     }
   }
   
