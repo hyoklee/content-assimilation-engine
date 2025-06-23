@@ -81,12 +81,13 @@ if(POCO)
   target_link_libraries(wrp Poco::Crypto Poco::Foundation Poco::Net Poco::NetSSL)
 endif()
 
-
+option(COV "Enable COVERAGE support" OFF)
+if(COV)
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   target_compile_options(wrp PRIVATE -coverage)
   target_link_options(wrp PRIVATE -coverage)
 endif()  
-
+endif()
 
 add_test(NAME put COMMAND wrp put ../test/posix.yml)
 
