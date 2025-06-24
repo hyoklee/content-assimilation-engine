@@ -21,7 +21,6 @@ jobs:
           cmake  -DSITE:STRING="mac" -DBUILDNAME="omni/r" ..
           ctest -C Release -D Experimental
           cd ../..
-        continue-on-error: true
       - name: poco
         run: |
           cd omni
@@ -29,4 +28,4 @@ jobs:
           cd poco
           cmake -DPOCO=ON -DSITE:STRING="mac" -DBUILDNAME="omni/r/poco" ..
           ctest -C Release -D Experimental
-        continue-on-error: true
+
