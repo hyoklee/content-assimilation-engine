@@ -34,8 +34,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: omni-0.0.0-py312_0.tar.bz2
-          path: /Users/runner/miniconda3/envs/test/conda-bld/osx-x86_64/omni-0.0.0-hcb8d3e5_0.conda
+          path: /Users/runner/miniconda3/envs/test/conda-bld/osx-64/omni-0.0.0-ha5a8b8e_0.conda
 
       - name: release
         run: |
-          anaconda -t  "${{ secrets.ANACONDA_TOKEN }}" upload  /Users/runner/miniconda3/envs/test/conda-bld/osx-x86_64/omni-0.0.0-hcb8d3e5_0.conda
+          anaconda -t  "${{ secrets.ANACONDA_TOKEN }}" upload /Users/runner/miniconda3/envs/test/conda-bld/osx-64/omni-0.0.0-ha5a8b8e_0.conda
