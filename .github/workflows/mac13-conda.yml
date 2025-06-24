@@ -22,8 +22,9 @@ jobs:
           channels: conda-forge
       - name: build-conda
         run: |
-          env
           export CMAKE_PREFIX_PATH=$CONDA_PREFIX
+          export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
+          env
           cd omni
           conda install -y conda-build
           conda install -y conda-verify
