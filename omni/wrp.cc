@@ -113,6 +113,7 @@ std::string sha256_file(const std::string& filePath) {
 int write_meta(std::string name, std::string tags) {
 
   std::string file_path = ".blackhole/ls";
+
   std::ofstream outfile(file_path, std::ios::out | std::ios::app);
   if (outfile.is_open()) {
     outfile << name << "|";

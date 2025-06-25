@@ -1,13 +1,11 @@
 acryl-datahub
-aws-sdk-cpp
 boto3
 globus-cli
 libtorrentx
 pandas
 pelicanfs
-poco
 pyarrow
 pydap
 python-irodsclient
-yaml-cpp
+scikit-build-core
 ydata_profiling
