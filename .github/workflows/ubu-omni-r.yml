@@ -22,7 +22,7 @@ jobs:
           cd omni
           mkdir build
           cd build
-          cmake  -DSITE:STRING=${{ matrix.os }} -DBUILDNAME="omni/r" ..
+          cmake  -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r" ..
           ctest -C Release -D Experimental
           cd ../..
     - name: poco
@@ -30,5 +30,5 @@ jobs:
           cd omni
           mkdir poco
           cd poco
-          cmake -DPOCO=ON  -DSITE:STRING=${{ matrix.os }} -DBUILDNAME="omni/r/poco" ..
+          cmake -DPOCO=ON  -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r/poco" ..
           ctest -C Release -D Experimental

@@ -3,10 +3,10 @@ name: Python Pip Commands Across OSes
 on:
   push:
     branches:
-      - main
+      - main-
   pull_request:
     branches:
-      - main
+      - main-
 
 jobs:
   build-and-test:
