@@ -65,7 +65,7 @@ endif()
 
 add_executable(wrp wrp.cc)
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.28")
+if(TARGET yaml-cpp::yaml-cpp)
   target_link_libraries(wrp yaml-cpp::yaml-cpp)  
 else()
   target_link_libraries(wrp yaml-cpp)
