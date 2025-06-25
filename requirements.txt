@@ -1,7 +1,7 @@
 acryl-datahub
 boto3
 globus-cli
-libtorrentx
+libtorrentx ; python_version > "3.8"
 pandas
 pelicanfs
 pyarrow
