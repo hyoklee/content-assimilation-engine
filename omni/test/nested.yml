@@ -1,4 +1,7 @@
 # A map with nested maps
+name: nested
+tags:
+  - address
 address:
   street: "123 Main St"
   city: "Anytown"

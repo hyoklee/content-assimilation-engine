@@ -140,8 +140,18 @@ add_test(NAME nested COMMAND wrp put ../test/nested.yml)
 add_test(NAME empty COMMAND wrp put ../test/empty.yml)
 
 add_test(NAME root COMMAND wrp put ../test/root.yml)
+set_tests_properties(root
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
 
 add_test(NAME scalar COMMAND wrp put ../test/scalar.yml)
+set_tests_properties(scalar
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
 
 add_test(NAME invalid_yml COMMAND wrp put ../test/invalid.yml)
 set_tests_properties(invalid_yml
@@ -156,7 +166,13 @@ set_tests_properties(path
     WILL_FAIL "TRUE"
     RETURN_VALUE 1
 )
+
 add_test(NAME root_seq COMMAND wrp put ../test/root_seq.yml)
+set_tests_properties(root_seq
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
 
 add_test(NAME lseek COMMAND wrp put ../test/lseek.yml)
 set_tests_properties(lseek
@@ -176,6 +192,7 @@ set_tests_properties(hash
 add_test(NAME http COMMAND wrp put ../test/http.yml)
 add_test(NAME redi COMMAND wrp put ../test/redi.yml)
 add_test(NAME rget COMMAND wrp put ../test/rget.yml)
+add_test(NAME globus COMMAND wrp put ../test/globus.yml)
 endif()
 
 install(TARGETS wrp DESTINATION bin)

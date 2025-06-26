@@ -6,10 +6,3 @@ REM ctest -D Experimental -C Release
 ctest -T Build
 ctest -C Release -T  Test
 cd ..
-
-
-
-
-
-
-

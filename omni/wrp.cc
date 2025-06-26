@@ -609,11 +609,55 @@ int download(const std::string& url, const std::string& outputFileName,
     return 0;
 }
 
+int download_globus(std::string id, std::string path,
+		    std::string did, std::string dpath)
+{
+  if (id.empty()) {
+    std::cerr << "Error: Globus source uuid is empty." << std::endl;
+    return 1;
+  }
+
+  if (path.empty()) {
+    std::cerr << "Error: Globus source path is empty." << std::endl;
+    return 1;
+  }
+
+  if (did.empty()) {
+    std::cerr << "Error: Globus destination uuid is empty." << std::endl;
+    return 1;
+  }
+
+  if (dpath.empty()) {
+    std::cerr << "Error: Globus destination path is empty." << std::endl;
+    return 1;
+  }
+  
+  return 0;
+  
+}
+
+bool is_valid(std::string name, std::string tags) {
+  if (name.empty()) {
+    std::cerr << "Error: 'name' key is missing." << std::endl;    
+    return false;
+  }
+  if (tags.empty()) {
+    std::cerr << "Error: 'tags' key is missing." << std::endl;    
+    return false;
+  }
+  return true;
+}
+
 int read_omni(std::string input_file) {
   
   std::string name;  
   std::string tags;
+  std::string transfer;
+  std::string id;
+  std::string did;
   std::string path;
+  std::string dpath;  
+  
 #ifdef USE_POCO
   std::string uri;    
   std::string hash;
@@ -651,19 +695,37 @@ int read_omni(std::string input_file) {
 	if(key == "name") {
 	  name = it->second.as<std::string>();
 	}
+	
+	if(key == "transfer") {
+	  transfer = it->second.as<std::string>();
+	}
+
+	if(key == "id") {
+	  id = it->second.as<std::string>();
+	}	
 
 	if(key == "path") {
 	  path = it->second.as<std::string>();
-#ifdef USE_POCO	  
-	  Poco::File file(path);
-	  if (!file.exists()) {
-	    std::cerr << "Error: '"
-		      << path
-		      << "' does not exist"
-		      << std::endl;    	
-	    return -1;
+	  
+#ifdef USE_POCO
+          if (transfer != "globus") {
+	    Poco::File file(path);
+	    if (!file.exists()) {
+	      std::cerr << "Error: '"
+			<< path
+			<< "' does not exist"
+			<< std::endl;    	
+	      return -1;
+	    }
 	  }
 #endif
+	}
+	if(key == "did") {
+	  did = it->second.as<std::string>();
+	}	
+
+	if(key == "dpath") {
+	  dpath = it->second.as<std::string>();
 	}
 	
 #ifdef USE_POCO
@@ -772,6 +834,14 @@ int read_omni(std::string input_file) {
   } catch (YAML::ParserException& e) {
     std::cerr << "Error: parsing YAML - " << e.what() << std::endl;
     return 1;
+  }
+  
+  if(!is_valid(name, tags)) {
+    return 1;
+  }
+
+  if(transfer == "globus") {
+    return download_globus(id, path, did, dpath);
   }
   
 #if USE_POCO
