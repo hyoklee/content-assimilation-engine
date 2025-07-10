@@ -10,19 +10,19 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_BALANCED_MAPPER_H
-#define HERMES_BALANCED_MAPPER_H
+#ifndef CAE_BALANCED_MAPPER_H
+#define CAE_BALANCED_MAPPER_H
 
 #include <vector>
 
 #include "abstract_mapper.h"
 
-namespace hermes::adapter {
+namespace cae {
 /**
  * Implement balanced mapping
  */
 class BalancedMapper : public AbstractMapper {
- public:
+public:
   /** Virtual destructor */
   virtual ~BalancedMapper() = default;
 
@@ -44,6 +44,6 @@ class BalancedMapper : public AbstractMapper {
     }
   }
 };
-}  // namespace hermes::adapter
+} // namespace cae
 
-#endif  // HERMES_BALANCED_MAPPER_H
+#endif // CAE_BALANCED_MAPPER_H

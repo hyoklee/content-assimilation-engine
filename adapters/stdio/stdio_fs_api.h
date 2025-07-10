@@ -10,30 +10,30 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_STDIO_NATIVE_H_
-#define HERMES_ADAPTER_STDIO_NATIVE_H_
+#ifndef CAE_ADAPTER_STDIO_NATIVE_H_
+#define CAE_ADAPTER_STDIO_NATIVE_H_
 
 #include <memory>
 
-#include "hermes_adapters/filesystem/filesystem.h"
-#include "hermes_adapters/filesystem/filesystem_mdm.h"
-#include "hermes_adapters/posix/posix_fs_api.h"
+#include "adapters/filesystem/filesystem.h"
+#include "adapters/filesystem/filesystem_mdm.h"
+#include "adapters/posix/posix_fs_api.h"
 #include "stdio_api.h"
 
-namespace hermes::adapter {
+namespace cae {
 
 /** A class to represent POSIX IO file system */
-class StdioFs : public hermes::adapter::Filesystem {
- public:
-  HERMES_STDIO_API_T real_api_; /**< pointer to real APIs */
+class StdioFs : public cae ::Filesystem {
+public:
+  CAE_STDIO_API_T real_api_; /**< pointer to real APIs */
 
- public:
-  StdioFs() : Filesystem(AdapterType::kStdio) { real_api_ = HERMES_STDIO_API; }
+public:
+  StdioFs() : Filesystem(AdapterType::kStdio) { real_api_ = CAE_STDIO_API; }
 
   /** Close an existing stream and then open with new path */
   FILE *Reopen(const std::string &user_path, const char *mode,
                AdapterStat &stat) {
-    auto real_api_ = HERMES_STDIO_API;
+    auto real_api_ = CAE_STDIO_API;
     FILE *ret;
     ret = real_api_->freopen(user_path.c_str(), mode, stat.fh_);
     if (!ret) {
@@ -47,8 +47,8 @@ class StdioFs : public hermes::adapter::Filesystem {
 
   /** fdopen */
   FILE *FdOpen(const std::string &mode, std::shared_ptr<AdapterStat> &stat) {
-    auto real_api_ = HERMES_STDIO_API;
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto real_api_ = CAE_STDIO_API;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     stat->fh_ = real_api_->fdopen(stat->fd_, mode.c_str());
     stat->mode_str_ = mode;
     File f;
@@ -70,9 +70,9 @@ class StdioFs : public hermes::adapter::Filesystem {
     if (!fp || !HERMES->IsInitialized()) {
       return false;
     }
-    hermes::adapter::File f;
+    cae ::File f;
     f.hermes_fh_ = fp;
-    stat = HERMES_FS_METADATA_MANAGER->Find(f);
+    stat = CAE_FS_METADATA_MANAGER->Find(f);
     return stat != nullptr;
   }
 
@@ -93,19 +93,28 @@ class StdioFs : public hermes::adapter::Filesystem {
     return filename;
   }
 
- public:
+public:
   /** Allocate an fd for the file f */
   void RealOpen(File &f, AdapterStat &stat, const std::string &path) override {
     if (stat.mode_str_.find('w') != std::string::npos) {
-      stat.hflags_.SetBits(HERMES_FS_TRUNC);
-      stat.hflags_.SetBits(HERMES_FS_CREATE);
+      stat.hflags_.SetBits(CAE_FS_TRUNC);
+      stat.hflags_.SetBits(CAE_FS_CREATE);
     }
     if (stat.mode_str_.find('a') != std::string::npos) {
-      stat.hflags_.SetBits(HERMES_FS_APPEND);
-      stat.hflags_.SetBits(HERMES_FS_CREATE);
+      stat.hflags_.SetBits(CAE_FS_APPEND);
+      stat.hflags_.SetBits(CAE_FS_CREATE);
+    }
+    if (stat.mode_str_.find('r') != std::string::npos) {
+      stat.hflags_.SetBits(CAE_FS_READ);
+    }
+    if (stat.mode_str_.find('w') != std::string::npos) {
+      stat.hflags_.SetBits(CAE_FS_WRITE);
+    }
+    if (stat.mode_str_.find('+') != std::string::npos) {
+      stat.hflags_.SetBits(CAE_FS_READ | CAE_FS_WRITE);
     }
 
-    if (stat.hflags_.Any(HERMES_FS_CREATE)) {
+    if (stat.hflags_.Any(CAE_FS_CREATE)) {
       if (stat.adapter_mode_ != AdapterMode::kScratch) {
         stat.fh_ = real_api_->fopen(path.c_str(), stat.mode_str_.c_str());
       }
@@ -114,7 +123,7 @@ class StdioFs : public hermes::adapter::Filesystem {
     }
 
     if (stat.fh_ != nullptr) {
-      stat.hflags_.SetBits(HERMES_FS_EXISTS);
+      stat.hflags_.SetBits(CAE_FS_EXISTS);
     }
     if (stat.fh_ == nullptr && stat.adapter_mode_ != AdapterMode::kScratch) {
       f.status_ = false;
@@ -183,7 +192,7 @@ class StdioFs : public hermes::adapter::Filesystem {
   }
 
   /** Write blob to backend */
-  void WriteBlob(const std::string &bkt_name, const Blob &full_blob,
+  void WriteBlob(const std::string &bkt_name, const hermes::Blob &full_blob,
                  const FsIoOptions &opts, IoStatus &status) override {
     status.success_ = true;
     HILOG(kDebug,
@@ -207,7 +216,7 @@ class StdioFs : public hermes::adapter::Filesystem {
   }
 
   /** Read blob from the backend */
-  void ReadBlob(const std::string &bkt_name, Blob &full_blob,
+  void ReadBlob(const std::string &bkt_name, hermes::Blob &full_blob,
                 const FsIoOptions &opts, IoStatus &status) override {
     status.success_ = true;
     HILOG(kDebug,
@@ -237,10 +246,9 @@ class StdioFs : public hermes::adapter::Filesystem {
 };
 
 /** Simplify access to the stateless StdioFs Singleton */
-#define HERMES_STDIO_FS \
-  hshm::Singleton<::hermes::adapter::StdioFs>::GetInstance()
-#define HERMES_STDIO_FS_T hermes::adapter::StdioFs *
+#define CAE_STDIO_FS hshm::Singleton<::cae ::StdioFs>::GetInstance()
+#define CAE_STDIO_FS_T cae ::StdioFs *
 
-}  // namespace hermes::adapter
+} // namespace cae
 
-#endif  // HERMES_ADAPTER_STDIO_NATIVE_H_
+#endif // CAE_ADAPTER_STDIO_NATIVE_H_

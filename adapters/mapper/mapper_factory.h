@@ -10,36 +10,36 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_FACTORY_H
-#define HERMES_ADAPTER_FACTORY_H
+#ifndef CAE_ADAPTER_FACTORY_H
+#define CAE_ADAPTER_FACTORY_H
 
 #include "abstract_mapper.h"
 #include "balanced_mapper.h"
 #include "hermes_shm/util/singleton.h"
 
-namespace hermes::adapter {
+namespace cae {
 /**
  A class to represent mapper factory pattern
 */
 class MapperFactory {
- public:
+public:
   /**
    * Return the instance of mapper given a type. Uses factory pattern.
    *
    * @param[in] type type of mapper to be used by the POSIX adapter.
    * @return Instance of mapper given a type.
    */
-  static AbstractMapper* Get(const MapperType& type) {
+  static AbstractMapper *Get(const MapperType &type) {
     switch (type) {
-      case MapperType::kBalancedMapper: {
-        return hshm::Singleton<BalancedMapper>::GetInstance();
-      }
-      default: {
-        // TODO(llogan): @error_handling Mapper not implemented
-      }
+    case MapperType::kBalancedMapper: {
+      return hshm::Singleton<BalancedMapper>::GetInstance();
+    }
+    default: {
+      // TODO(llogan): @error_handling Mapper not implemented
+    }
     }
     return NULL;
   }
 };
-}  // namespace hermes::adapter
-#endif  // HERMES_ADAPTER_FACTORY_H
+} // namespace cae
+#endif // CAE_ADAPTER_FACTORY_H

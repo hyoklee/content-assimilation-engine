@@ -1,198 +1,97 @@
-cmake_minimum_required(VERSION 3.22)
-project(OMNI)
+# Content Assimilation Engine (CAE) - OMNI Module
+# Note: This CMakeLists.txt is designed to be included from the main project
 
-include(CTest)
-enable_testing()
+# Check if we have the necessary dependencies available from the parent project
+if(NOT TARGET MPI::MPI_CXX)
+    message(STATUS "MPI not found in parent project, attempting to find it")
+    find_package(MPI REQUIRED)
+endif()
 
-set(CMAKE_CXX_STANDARD 17)
-
+# Check for yaml-cpp
 find_package(yaml-cpp REQUIRED)
-  
-include_directories(
-        ${CMAKE_BINARY_DIR}
-        ${CMAKE_SOURCE_DIR}
-	${YAML_CPP_INCLUDE_DIR}
-        .
-)
-
-option(AWS "Enable AWS SDK support" OFF)
-if(AWS)
-  find_package(AWSSDK REQUIRED COMPONENTS core s3)
-  add_definitions(-DUSE_AWS)    
-  include_directories(${AWSSDK_INCLUDE_DIR})
-endif()
-
-option(POCO "Enable POCO support" OFF)
-if(POCO)
-add_definitions(-DUSE_POCO)
-find_package(Poco REQUIRED COMPONENTS Crypto Foundation Net NetSSL)
-# find_package(OpenSSL REQUIRED COMPONENTS Crypto QUIET)
-endif()
-
-option(HERMES "Enable HERMES support" OFF)
-if(HERMES)
-add_definitions(-DUSE_HERMES)
-find_package(Hermes)
-
-find_package(cereal)
-message(STATUS "found cereal at ${cereal_DIR}")
-set(CDIR  ${cereal_DIR}/../../../include)
-message(${CDIR})
-
-find_package(Thallium REQUIRED)
-set(TDIR  ${Thallium_DIR}/../../../include)
-message(${TDIR})
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(Margo REQUIRED margo)
-message(STATUS "Margo_INCLUDE_DIRS: ${Margo_INCLUDE_DIRS}")
-
-include_directories(
-        ${CMAKE_BINARY_DIR}
-        ${CMAKE_SOURCE_DIR}
-        ${HERMES_SRC_DIR}
-        ${HERMES_ADAPTER_DIR}
-        ${HERMES_IO_CLIENT_DIR}
-        ${TDIR}
-        ${Margo_INCLUDE_DIRS}
-        ${CDIR}
-	${YAML_CPP_INCLUDE_DIR}
-        .
-)
-endif()
-
-
-
-add_executable(wrp wrp.cc)
-
-if(TARGET yaml-cpp::yaml-cpp)
-  target_link_libraries(wrp yaml-cpp::yaml-cpp)  
+if (${YAML_CPP_LIBRARIES})
+    set(YAML_CPP_LIBS ${YAML_CPP_LIBRARIES})
+elseif(TARGET yaml-cpp::yaml-cpp)
+        set(YAML_CPP_LIBS yaml-cpp::yaml-cpp)
 else()
-  target_link_libraries(wrp yaml-cpp)
+  set(YAML_CPP_LIBS yaml-cpp)
 endif()
 
+message(STATUS "Building OMNI module with yaml-cpp")
 
-if(HERMES)
-  target_link_libraries(wrp hermes::hermes_core_client)
-endif()
+# Include directories
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-if(AWS)
-#   target_link_libraries(wrp aws-cpp-sdk-s3)
-  target_link_libraries(wrp ${AWSSDK_LINK_LIBRARIES})
-endif()
-
-
-if(POCO)
-  target_link_libraries(wrp Poco::Crypto Poco::Foundation Poco::Net Poco::NetSSL)
-endif()
-
-option(COV "Enable COVERAGE support" OFF)
-if(COV)
-if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  target_compile_options(wrp PRIVATE -coverage)
-  target_link_options(wrp PRIVATE -coverage)
-endif()  
-endif()
-
-add_test(NAME put COMMAND wrp put ../test/posix.yml)
-
-add_test(NAME get COMMAND wrp get cae)
-
-add_test(NAME ls COMMAND wrp ls)
-
-add_test(NAME invalid COMMAND wrp invalid)
-set_tests_properties(invalid
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+# Source files for the factory and repository implementations
+set(OMNI_FACTORY_SOURCES
+    format/format_factory.cc
+    repo/repo_factory.cc
 )
 
-add_test(NAME no_cmd COMMAND wrp)
-set_tests_properties(no_cmd
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+# Create a static library for OMNI components
+add_library(omni_lib STATIC ${OMNI_FACTORY_SOURCES})
+target_link_libraries(omni_lib MPI::MPI_CXX ${YAML_CPP_LIBS})
+target_include_directories(omni_lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Main YAML parser and job orchestrator (wrp binary)
+add_executable(wrp wrp.cc)
+target_link_libraries(wrp omni_lib MPI::MPI_CXX ${YAML_CPP_LIBS})
+target_include_directories(wrp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# MPI binary format processor (wrp_binary_format_mpi binary)
+add_executable(wrp_binary_format_mpi wrp_binary_format_mpi.cc)
+target_link_libraries(wrp_binary_format_mpi MPI::MPI_CXX)
+target_include_directories(wrp_binary_format_mpi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Set output directory for binaries to match the main project
+set_target_properties(wrp wrp_binary_format_mpi PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 
-add_test(NAME put_only COMMAND wrp put)
-set_tests_properties(put_only
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+# Install targets
+install(TARGETS wrp wrp_binary_format_mpi
+    RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
 )
 
-add_test(NAME get_only COMMAND wrp get)
-set_tests_properties(get_only
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+install(TARGETS omni_lib
+    ARCHIVE DESTINATION ${CAE_INSTALL_LIB_DIR}
 )
 
-add_test(NAME not_found COMMAND wrp put not_found)
-set_tests_properties(not_found
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+# Install header files with new structure
+install(FILES 
+    format/format_client.h
+    format/format_factory.h
+    format/binary_file_omni.h
+    DESTINATION ${CAE_INSTALL_INCLUDE_DIR}/omni/format
 )
 
-add_test(NAME nested COMMAND wrp put ../test/nested.yml)
-
-add_test(NAME empty COMMAND wrp put ../test/empty.yml)
-
-add_test(NAME root COMMAND wrp put ../test/root.yml)
-set_tests_properties(root
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+install(FILES 
+    repo/repo_client.h
+    repo/repo_factory.h
+    repo/filesystem_repo_omni.h
+    DESTINATION ${CAE_INSTALL_INCLUDE_DIR}/omni/repo
 )
 
-add_test(NAME scalar COMMAND wrp put ../test/scalar.yml)
-set_tests_properties(scalar
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+# Install configuration examples
+install(DIRECTORY config/
+    DESTINATION ${CAE_INSTALL_DATA_DIR}/omni/config
+    FILES_MATCHING PATTERN "*.yaml"
 )
 
-add_test(NAME invalid_yml COMMAND wrp put ../test/invalid.yml)
-set_tests_properties(invalid_yml
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
+# Install documentation
+install(FILES README.md
+    DESTINATION ${CAE_INSTALL_DATA_DIR}/omni
 )
 
-add_test(NAME path COMMAND wrp put ../test/path.yml)
-set_tests_properties(path
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
-)
+# Configure and install configuration files
+configure_file(config/quick_test.yaml ${CMAKE_BINARY_DIR}/omni/config/quick_test.yaml COPYONLY)
+configure_file(config/demo_job.yaml ${CMAKE_BINARY_DIR}/omni/config/demo_job.yaml COPYONLY)
+configure_file(config/example_job.yaml ${CMAKE_BINARY_DIR}/omni/config/example_job.yaml COPYONLY)
 
-add_test(NAME root_seq COMMAND wrp put ../test/root_seq.yml)
-set_tests_properties(root_seq
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
-)
+# Install test script with executable permissions
+install(PROGRAMS config/run_all_tests.sh
+        DESTINATION ${CMAKE_BINARY_DIR}/omni/config/
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                   GROUP_READ GROUP_EXECUTE
+                   WORLD_READ WORLD_EXECUTE) 
 
-add_test(NAME lseek COMMAND wrp put ../test/lseek.yml)
-set_tests_properties(lseek
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
-)
-
-if(POCO)
-add_test(NAME hash COMMAND wrp put ../test/hash.yml)
-set_tests_properties(hash
-    PROPERTIES
-    WILL_FAIL "TRUE"
-    RETURN_VALUE 1
-)
-
-add_test(NAME http COMMAND wrp put ../test/http.yml)
-add_test(NAME redi COMMAND wrp put ../test/redi.yml)
-add_test(NAME rget COMMAND wrp put ../test/rget.yml)
-add_test(NAME globus COMMAND wrp put ../test/globus.yml)
-endif()
-
-install(TARGETS wrp DESTINATION bin)

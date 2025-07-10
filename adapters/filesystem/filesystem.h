@@ -10,8 +10,8 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_FILESYSTEM_FILESYSTEM_H_
-#define HERMES_ADAPTER_FILESYSTEM_FILESYSTEM_H_
+#ifndef CAE_ADAPTER_FILESYSTEM_FILESYSTEM_H_
+#define CAE_ADAPTER_FILESYSTEM_FILESYSTEM_H_
 
 #ifndef O_TMPFILE
 #define O_TMPFILE 0x0
@@ -25,15 +25,16 @@
 #include <set>
 #include <string>
 
+#include "adapters/adapter_types.h"
+#include "adapters/mapper/mapper_factory.h"
+#include "config/config_manager.h"
 #include "filesystem_io_client.h"
 #include "filesystem_mdm.h"
 #include "hermes/bucket.h"
 #include "hermes/data_stager/binary_stager.h"
 #include "hermes/hermes.h"
-#include "hermes_adapters/adapter_types.h"
-#include "hermes_adapters/mapper/mapper_factory.h"
 
-namespace hermes::adapter {
+namespace cae {
 
 /** The maximum length of a posix path */
 static inline const int kMaxPathLen = 4096;
@@ -48,17 +49,17 @@ enum class SeekMode {
 
 /** A class to represent file system */
 class Filesystem : public FilesystemIoClient {
- public:
+public:
   AdapterType type_;
 
- public:
+public:
   /** Constructor */
   explicit Filesystem(AdapterType type) : type_(type) {}
 
   /** open \a path */
   File Open(AdapterStat &stat, const std::string &path) {
     File f;
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     if (stat.adapter_mode_ == AdapterMode::kNone) {
       stat.adapter_mode_ = mdm->GetAdapterMode(path);
     }
@@ -72,8 +73,8 @@ class Filesystem : public FilesystemIoClient {
 
   /** open \a f File in \a path */
   void Open(AdapterStat &stat, File &f, const std::string &path) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
-    Context ctx;
+    auto mdm = CAE_FS_METADATA_MANAGER;
+    hermes::Context ctx;
     ctx.flags_.SetBits(HERMES_SHOULD_STAGE);
 
     std::shared_ptr<AdapterStat> exists = mdm->Find(f);
@@ -84,9 +85,9 @@ class Filesystem : public FilesystemIoClient {
       chi::string path_shm(stat.path_);
       // Verify the bucket exists if not in CREATE mode
       if (stat.adapter_mode_ == AdapterMode::kScratch &&
-          !stat.hflags_.Any(HERMES_FS_EXISTS) &&
-          !stat.hflags_.Any(HERMES_FS_CREATE)) {
-        TagId bkt_id = HERMES->GetTagId(HSHM_MCTX, stat.path_);
+          !stat.hflags_.Any(CAE_FS_EXISTS) &&
+          !stat.hflags_.Any(CAE_FS_CREATE)) {
+        hermes::TagId bkt_id = HERMES->GetTagId(HSHM_MCTX, stat.path_);
         if (bkt_id.IsNull()) {
           f.status_ = false;
           return;
@@ -98,7 +99,7 @@ class Filesystem : public FilesystemIoClient {
       ctx.bkt_params_ =
           hermes::BinaryFileStager::BuildFileParams(stat.page_size_);
       // Get or create the bucket
-      if (stat.hflags_.Any(HERMES_FS_TRUNC)) {
+      if (stat.hflags_.Any(CAE_FS_TRUNC)) {
         // The file was opened with TRUNCATION
         stat.bkt_id_ = hermes::Bucket(stat.path_, ctx, 0, HERMES_SHOULD_STAGE);
         stat.bkt_id_.Clear();
@@ -111,7 +112,7 @@ class Filesystem : public FilesystemIoClient {
       HILOG(kDebug, "BKT vs file size: {} {}", stat.bkt_id_.GetSize(),
             stat.file_size_);
       // Update file position pointer
-      if (stat.hflags_.Any(HERMES_FS_APPEND)) {
+      if (stat.hflags_.Any(CAE_FS_APPEND)) {
         stat.st_ptr_ = std::numeric_limits<size_t>::max();
       } else {
         stat.st_ptr_ = 0;
@@ -136,19 +137,19 @@ class Filesystem : public FilesystemIoClient {
     std::string filename = bkt.GetName();
     bool is_append = stat.st_ptr_ == std::numeric_limits<size_t>::max();
 
-    HILOG(kDebug,
-          "Write called for filename: {}"
-          " on offset: {}"
-          " from position: {}"
-          " and size: {}"
-          " and adapter mode: {}",
-          filename, off, stat.st_ptr_, total_size,
-          AdapterModeConv::str(stat.adapter_mode_));
+    // HILOG(kInfo,
+    //       "Write called for filename: {}"
+    //       " on offset: {}"
+    //       " from position: {}"
+    //       " and size: {}"
+    //       " and adapter mode: {}",
+    //       filename, off, stat.st_ptr_, total_size,
+    //       AdapterModeConv::str(stat.adapter_mode_));
     if (stat.adapter_mode_ == AdapterMode::kBypass) {
       // Bypass mode is handled differently
       opts.backend_size_ = total_size;
       opts.backend_off_ = off;
-      Blob blob_wrap((char *)ptr, total_size);
+      hermes::Blob blob_wrap((char *)ptr, total_size);
       WriteBlob(bkt.GetName(), blob_wrap, opts, io_status);
       if (!io_status.success_) {
         HILOG(kDebug, "Failed to write blob of size {} to backend",
@@ -160,12 +161,12 @@ class Filesystem : public FilesystemIoClient {
       }
       return total_size;
     }
-    Context ctx;
+    hermes::Context ctx;
     ctx.flags_.SetBits(HERMES_SHOULD_STAGE);
 
     if (is_append) {
       // Perform append
-      Blob page((const char *)ptr, total_size);
+      hermes::Blob page((const char *)ptr, total_size);
       bkt.Append(page, stat.page_size_, ctx);
     } else {
       // Fragment I/O request into pages
@@ -176,9 +177,10 @@ class Filesystem : public FilesystemIoClient {
 
       // Perform a PartialPut for each page
       for (const BlobPlacement &p : mapping) {
-        Blob page((const char *)ptr + data_offset, p.blob_size_);
+        hermes::Blob page((const char *)ptr + data_offset, p.blob_size_);
         std::string blob_name(p.CreateBlobName().str());
-        bkt.AsyncPartialPut(blob_name, page, p.blob_off_, ctx);
+        // bkt.AsyncPartialPut(blob_name, page, p.blob_off_, ctx);
+        bkt.PartialPut(blob_name, page, p.blob_off_, ctx);
         data_offset += p.blob_size_;
       }
       if (opts.DoSeek()) {
@@ -197,7 +199,7 @@ class Filesystem : public FilesystemIoClient {
   template <bool ASYNC>
   size_t BaseRead(File &f, AdapterStat &stat, void *ptr, size_t off,
                   size_t total_size, size_t req_id,
-                  std::vector<FullPtr<GetBlobTask>> &tasks, IoStatus &io_status,
+                  std::vector<GetBlobAsyncTask> &tasks, IoStatus &io_status,
                   FsIoOptions opts = FsIoOptions()) {
     (void)f;
     hapi::Bucket &bkt = stat.bkt_id_;
@@ -216,6 +218,13 @@ class Filesystem : public FilesystemIoClient {
       return 0;
     }
 
+    // Read bit must be set
+    if (!stat.hflags_.Any(CAE_FS_READ)) {
+      io_status.size_ = 0;
+      UpdateIoStatus(opts, io_status);
+      return -1;
+    }
+
     // Ensure the amount being read makes sense
     if (total_size == 0) {
       io_status.size_ = 0;
@@ -228,7 +237,7 @@ class Filesystem : public FilesystemIoClient {
         // Bypass mode is handled differently
         opts.backend_size_ = total_size;
         opts.backend_off_ = off;
-        Blob blob_wrap((char *)ptr, total_size);
+        hermes::Blob blob_wrap((char *)ptr, total_size);
         ReadBlob(bkt.GetName(), blob_wrap, opts, io_status);
         if (!io_status.success_) {
           HILOG(kDebug, "Failed to read blob of size {} from backend",
@@ -249,17 +258,20 @@ class Filesystem : public FilesystemIoClient {
     size_t data_offset = 0;
 
     // Perform a PartialPut for each page
-    Context ctx;
+    hermes::Context ctx;
     ctx.flags_.SetBits(HERMES_SHOULD_STAGE);
     for (const BlobPlacement &p : mapping) {
-      Blob page((const char *)ptr + data_offset, p.blob_size_);
+      hermes::Blob page((const char *)ptr + data_offset, p.blob_size_);
       std::string blob_name(p.CreateBlobName().str());
       if constexpr (ASYNC) {
-        FullPtr<GetBlobTask> task =
-            bkt.AsyncPartialGet(blob_name, page, p.blob_off_, ctx);
+        GetBlobAsyncTask task;
+        task.orig_data_ = (char *)ptr + data_offset;
+        task.orig_size_ = p.blob_size_;
+        task.task_ = bkt.AsyncPartialGet(blob_name, page, p.blob_off_, ctx);
         tasks.emplace_back(task);
       } else {
         bkt.PartialGet(blob_name, page, p.blob_off_, ctx);
+        memcpy((char *)ptr + data_offset, page.data(), page.size());
       }
       data_offset += page.size();
       if (page.size() != p.blob_size_) {
@@ -279,7 +291,7 @@ class Filesystem : public FilesystemIoClient {
   size_t Read(File &f, AdapterStat &stat, void *ptr, size_t off,
               size_t total_size, IoStatus &io_status,
               FsIoOptions opts = FsIoOptions()) {
-    std::vector<FullPtr<GetBlobTask>> tasks;
+    std::vector<GetBlobAsyncTask> tasks;
     return BaseRead<false>(f, stat, ptr, off, total_size, 0, tasks, io_status,
                            opts);
   }
@@ -310,7 +322,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** wait for \a req_id request ID */
   size_t Wait(FsAsyncTask *fstask) {
-    for (FullPtr<PutBlobTask> &task : fstask->put_tasks_) {
+    for (hipc::FullPtr<hermes::PutBlobTask> &task : fstask->put_tasks_) {
       task->Wait();
       CHI_CLIENT->DelTask(HSHM_MCTX, task);
     }
@@ -318,10 +330,12 @@ class Filesystem : public FilesystemIoClient {
     // Update I/O status for gets
     if (!fstask->get_tasks_.empty()) {
       size_t get_size = 0;
-      for (FullPtr<GetBlobTask> &task : fstask->get_tasks_) {
-        task->Wait();
-        get_size += task->data_size_;
-        CHI_CLIENT->DelTask(HSHM_MCTX, task);
+      for (GetBlobAsyncTask &task : fstask->get_tasks_) {
+        task.task_->Wait();
+        get_size += task.task_->data_size_;
+        hipc::FullPtr<char> data(task.task_->data_);
+        memcpy(task.orig_data_, data.ptr_, task.orig_size_);
+        CHI_CLIENT->DelTask(HSHM_MCTX, task.task_);
       }
       fstask->io_status_.size_ = get_size;
       UpdateIoStatus(fstask->opts_, fstask->io_status_);
@@ -338,36 +352,36 @@ class Filesystem : public FilesystemIoClient {
 
   /** seek */
   size_t Seek(File &f, AdapterStat &stat, SeekMode whence, off64_t offset) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     switch (whence) {
-      case SeekMode::kSet: {
-        stat.st_ptr_ = offset;
-        break;
+    case SeekMode::kSet: {
+      stat.st_ptr_ = offset;
+      break;
+    }
+    case SeekMode::kCurrent: {
+      if (stat.st_ptr_ != std::numeric_limits<size_t>::max()) {
+        stat.st_ptr_ = (off64_t)stat.st_ptr_ + offset;
+        offset = stat.st_ptr_;
+      } else {
+        stat.st_ptr_ = (off64_t)stat.bkt_id_.GetSize() + offset;
+        offset = stat.st_ptr_;
       }
-      case SeekMode::kCurrent: {
-        if (stat.st_ptr_ != std::numeric_limits<size_t>::max()) {
-          stat.st_ptr_ = (off64_t)stat.st_ptr_ + offset;
-          offset = stat.st_ptr_;
-        } else {
-          stat.st_ptr_ = (off64_t)stat.bkt_id_.GetSize() + offset;
-          offset = stat.st_ptr_;
-        }
-        break;
+      break;
+    }
+    case SeekMode::kEnd: {
+      if (offset == 0) {
+        stat.st_ptr_ = std::numeric_limits<size_t>::max();
+        offset = stat.bkt_id_.GetSize();
+      } else {
+        stat.st_ptr_ = (off64_t)stat.bkt_id_.GetSize() + offset;
+        offset = stat.st_ptr_;
       }
-      case SeekMode::kEnd: {
-        if (offset == 0) {
-          stat.st_ptr_ = std::numeric_limits<size_t>::max();
-          offset = stat.bkt_id_.GetSize();
-        } else {
-          stat.st_ptr_ = (off64_t)stat.bkt_id_.GetSize() + offset;
-          offset = stat.st_ptr_;
-        }
-        break;
-      }
-      default: {
-        HELOG(kError, "Invalid seek mode");
-        return (size_t)-1;
-      }
+      break;
+    }
+    default: {
+      HELOG(kError, "Invalid seek mode");
+      return (size_t)-1;
+    }
     }
     mdm->Update(f, stat);
     return offset;
@@ -395,7 +409,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** sync */
   int Sync(File &f, AdapterStat &stat) {
-    if (HERMES_CLIENT_CONF.flushing_mode_ == FlushingMode::kSync) {
+    if (IOWARP_CAE_CONF->flushing_mode_ == cae::FlushingMode::kSync) {
       // NOTE(llogan): only for the unit tests
       // Please don't enable synchronous flushing
       stat.bkt_id_.Flush();
@@ -415,7 +429,7 @@ class Filesystem : public FilesystemIoClient {
   /** close */
   int Close(File &f, AdapterStat &stat) {
     Sync(f, stat);
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     FilesystemIoClientState fs_ctx(&mdm->fs_mdm_, (void *)&stat);
     HermesClose(f, stat, fs_ctx);
     RealClose(f, stat);
@@ -423,21 +437,22 @@ class Filesystem : public FilesystemIoClient {
     if (stat.amode_ & MPI_MODE_DELETE_ON_CLOSE) {
       Remove(stat.path_);
     }
-    if (HERMES_CLIENT_CONF.flushing_mode_ == FlushingMode::kSync) {
+    if (IOWARP_CAE_CONF->flushing_mode_ == cae::FlushingMode::kSync) {
       // NOTE(llogan): only for the unit tests
       // Please don't enable synchronous flushing
-      stat.bkt_id_.Destroy();
+      // stat.bkt_id_.Destroy();
+      CHI_ADMIN->Flush(HSHM_MCTX, chi::DomainQuery::GetGlobalBcast());
     }
     return 0;
   }
 
   /** remove */
   int Remove(const std::string &pathname) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     int ret = RealRemove(pathname);
     // Destroy the bucket
     std::string canon_path = stdfs::absolute(pathname).string();
-    Bucket bkt = hermes::Bucket(canon_path);
+    hermes::Bucket bkt = hermes::Bucket(canon_path);
     bkt.Destroy();
     // Destroy all file descriptors
     std::list<File> *filesp = mdm->Find(pathname);
@@ -467,7 +482,7 @@ class Filesystem : public FilesystemIoClient {
    * instead of taking an offset as input.
    */
 
- public:
+public:
   /** write */
   size_t Write(File &f, AdapterStat &stat, const void *ptr, size_t total_size,
                IoStatus &io_status, FsIoOptions opts) {
@@ -502,11 +517,11 @@ class Filesystem : public FilesystemIoClient {
    * call the underlying APIs which take AdapterStat as input.
    */
 
- public:
+public:
   /** write */
   size_t Write(File &f, bool &stat_exists, const void *ptr, size_t total_size,
                IoStatus &io_status, FsIoOptions opts = FsIoOptions()) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -519,7 +534,7 @@ class Filesystem : public FilesystemIoClient {
   /** read */
   size_t Read(File &f, bool &stat_exists, void *ptr, size_t total_size,
               IoStatus &io_status, FsIoOptions opts = FsIoOptions()) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -533,7 +548,7 @@ class Filesystem : public FilesystemIoClient {
   size_t Write(File &f, bool &stat_exists, const void *ptr, size_t off,
                size_t total_size, IoStatus &io_status,
                FsIoOptions opts = FsIoOptions()) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -548,7 +563,7 @@ class Filesystem : public FilesystemIoClient {
   size_t Read(File &f, bool &stat_exists, void *ptr, size_t off,
               size_t total_size, IoStatus &io_status,
               FsIoOptions opts = FsIoOptions()) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -562,9 +577,9 @@ class Filesystem : public FilesystemIoClient {
   /** write asynchronously */
   FsAsyncTask *AWrite(File &f, bool &stat_exists, const void *ptr,
                       size_t total_size, size_t req_id,
-                      std::vector<PutBlobTask *> &tasks, IoStatus &io_status,
-                      FsIoOptions opts) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+                      std::vector<hermes::PutBlobTask *> &tasks,
+                      IoStatus &io_status, FsIoOptions opts) {
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -577,7 +592,7 @@ class Filesystem : public FilesystemIoClient {
   /** read asynchronously */
   FsAsyncTask *ARead(File &f, bool &stat_exists, void *ptr, size_t total_size,
                      size_t req_id, IoStatus &io_status, FsIoOptions opts) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -591,7 +606,7 @@ class Filesystem : public FilesystemIoClient {
   FsAsyncTask *AWrite(File &f, bool &stat_exists, const void *ptr, size_t off,
                       size_t total_size, size_t req_id, IoStatus &io_status,
                       FsIoOptions opts) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -606,7 +621,7 @@ class Filesystem : public FilesystemIoClient {
   FsAsyncTask *ARead(File &f, bool &stat_exists, void *ptr, size_t off,
                      size_t total_size, size_t req_id, IoStatus &io_status,
                      FsIoOptions opts) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -619,7 +634,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** seek */
   size_t Seek(File &f, bool &stat_exists, SeekMode whence, size_t offset) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -631,7 +646,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** file sizes */
   size_t GetSize(File &f, bool &stat_exists) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -643,7 +658,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** tell */
   size_t Tell(File &f, bool &stat_exists) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -655,7 +670,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** sync */
   int Sync(File &f, bool &stat_exists) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -667,7 +682,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** truncate */
   int Truncate(File &f, bool &stat_exists, size_t new_size) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -679,7 +694,7 @@ class Filesystem : public FilesystemIoClient {
 
   /** close */
   int Close(File &f, bool &stat_exists) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -689,7 +704,7 @@ class Filesystem : public FilesystemIoClient {
     return Close(f, *stat);
   }
 
- public:
+public:
   /** Whether or not \a path PATH is tracked by Hermes */
   static bool IsPathTracked(const std::string &path) {
     if (!HERMES_CONF->is_initialized_) {
@@ -699,9 +714,9 @@ class Filesystem : public FilesystemIoClient {
       return false;
     }
     std::string abs_path = stdfs::absolute(path).string();
-    auto &paths = HERMES_CLIENT_CONF.path_list_;
+    auto &paths = IOWARP_CAE_CONF->path_list_;
     // Check if path is included or excluded
-    for (config::UserPathInfo &pth : paths) {
+    for (auto &pth : paths) {
       if (pth.Match(abs_path)) {
         if (abs_path == pth.path_ && pth.is_directory_) {
           // Do not include if path is a tracked directory
@@ -715,6 +730,6 @@ class Filesystem : public FilesystemIoClient {
   }
 };
 
-}  // namespace hermes::adapter
+} // namespace cae
 
-#endif  // HERMES_ADAPTER_FILESYSTEM_FILESYSTEM_H_
+#endif // CAE_ADAPTER_FILESYSTEM_FILESYSTEM_H_

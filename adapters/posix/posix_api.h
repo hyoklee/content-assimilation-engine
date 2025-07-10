@@ -10,8 +10,8 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_POSIX_H
-#define HERMES_ADAPTER_POSIX_H
+#ifndef CAE_ADAPTER_POSIX_H
+#define CAE_ADAPTER_POSIX_H
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -94,21 +94,21 @@ typedef int (*ftruncate_t)(int fd, off_t length);
 typedef int (*ftruncate64_t)(int fd, off64_t length);
 }
 
-namespace hermes::adapter {
+namespace cae {
 
 template <typename PosixT>
 using PreloadProgress = hshm::PreloadProgress<PosixT>;
 using hshm::RealApi;
 
-/** Used for compatibility with older kernel versions */
+/** Used for compatability with older kernel versions */
 static int fxstat_to_fstat(int fd, struct stat *stbuf);
 
 /** Pointers to the real posix API */
 class PosixApi : public RealApi {
- public:
+public:
   bool is_loaded_ = false;
 
- public:
+public:
   /** open */
   open_t open = nullptr;
   /** open64 */
@@ -254,22 +254,21 @@ class PosixApi : public RealApi {
   }
 };
 
-}  // namespace hermes::adapter
+} // namespace cae
 
 // Singleton macros
 #include "hermes_shm/util/singleton.h"
 
-#define HERMES_POSIX_API \
-  hshm::Singleton<::hermes::adapter::PosixApi>::GetInstance()
-#define HERMES_POSIX_API_T hermes::adapter::PosixApi *
+#define CAE_POSIX_API hshm::Singleton<::cae ::PosixApi>::GetInstance()
+#define CAE_POSIX_API_T cae ::PosixApi *
 
-namespace hermes::adapter {
-/** Used for compatibility with older kernel versions */
+namespace cae {
+/** Used for compatability with older kernel versions */
 static int fxstat_to_fstat(int fd, struct stat *stbuf) {
 #ifdef _STAT_VER
-  return HERMES_POSIX_API->__fxstat(_STAT_VER, fd, stbuf);
+  return CAE_POSIX_API->__fxstat(_STAT_VER, fd, stbuf);
 #endif
 }
-}  // namespace hermes::adapter
+} // namespace cae
 
-#endif  // HERMES_ADAPTER_POSIX_H
+#endif // CAE_ADAPTER_POSIX_H

@@ -10,15 +10,15 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_ADAPTER_CONSTANTS_H_
-#define HERMES_ADAPTER_ADAPTER_CONSTANTS_H_
+#ifndef CAE_ADAPTER_ADAPTER_CONSTANTS_H_
+#define CAE_ADAPTER_ADAPTER_CONSTANTS_H_
 
 #include "mapper/abstract_mapper.h"
 
-namespace hermes::adapter {
+namespace cae {
 
 static inline const MapperType kMapperType = MapperType::kBalancedMapper;
 
 }
 
-#endif  // HERMES_ADAPTER_ADAPTER_CONSTANTS_H_
+#endif // CAE_ADAPTER_ADAPTER_CONSTANTS_H_

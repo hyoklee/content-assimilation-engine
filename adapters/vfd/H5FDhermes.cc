@@ -37,7 +37,7 @@
 /* HDF5 header for dynamic plugin loading */
 #include "H5FDhermes.h" /* Hermes file driver     */
 #include "H5PLextern.h"
-#include "hermes_adapters/posix/posix_fs_api.h"
+#include "adapters/posix/posix_fs_api.h"
 
 /**
  * Make this adapter use Hermes.
@@ -46,7 +46,7 @@
 #define USE_HERMES
 
 /* The driver identification number, initialized at runtime */
-static hid_t H5FD_HERMES_g = H5I_INVALID_HID;
+static hid_t H5FD_CAE_g = H5I_INVALID_HID;
 
 /* Identifiers for HDF5's error API */
 hid_t H5FDhermes_err_stack_g = H5I_INVALID_HID;
@@ -57,16 +57,16 @@ hid_t H5FDhermes_err_class_g = H5I_INVALID_HID;
 #define OP_READ 1
 #define OP_WRITE 2
 
-using hermes::adapter::AdapterStat;
-using hermes::adapter::File;
-using hermes::adapter::IoStatus;
+using cae ::AdapterStat;
+using cae ::File;
+using cae ::IoStatus;
 
 /* POSIX I/O mode used as the third parameter to open/_open
  * when creating a new file (O_CREAT is set). */
 #if defined(H5_HAVE_WIN32_API)
-#define H5FD_HERMES_POSIX_CREATE_MODE_RW (_S_IREAD | _S_IWRITE)
+#define H5FD_CAE_POSIX_CREATE_MODE_RW (_S_IREAD | _S_IWRITE)
 #else
-#define H5FD_HERMES_POSIX_CREATE_MODE_RW 0666
+#define H5FD_CAE_POSIX_CREATE_MODE_RW 0666
 #endif
 
 #define MAXADDR (((haddr_t)1 << (8 * sizeof(off_t) - 1)) - 1)
@@ -112,8 +112,8 @@ static herr_t H5FD__hermes_write(H5FD_t *_file, H5FD_mem_t type, hid_t fapl_id,
 
 static const H5FD_class_t H5FD_hermes_g = {
     H5FD_CLASS_VERSION,   /* struct version       */
-    H5FD_HERMES_VALUE,    /* value                */
-    H5FD_HERMES_NAME,     /* name                 */
+    H5FD_CAE_VALUE,       /* value                */
+    H5FD_CAE_NAME,        /* name                 */
     MAXADDR,              /* maxaddr              */
     H5F_CLOSE_STRONG,     /* fc_degree            */
     H5FD__hermes_term,    /* terminate            */
@@ -167,12 +167,12 @@ static const H5FD_class_t H5FD_hermes_g = {
 hid_t H5FD_hermes_init(void) {
   hid_t ret_value = H5I_INVALID_HID; /* Return value */
 
-  if (H5I_VFL != H5Iget_type(H5FD_HERMES_g)) {
-    H5FD_HERMES_g = H5FDregister(&H5FD_hermes_g);
+  if (H5I_VFL != H5Iget_type(H5FD_CAE_g)) {
+    H5FD_CAE_g = H5FDregister(&H5FD_hermes_g);
   }
 
   /* Set return value */
-  ret_value = H5FD_HERMES_g;
+  ret_value = H5FD_CAE_g;
   return ret_value;
 } /* end H5FD_hermes_init() */
 
@@ -204,7 +204,7 @@ static herr_t H5FD__hermes_term(void) {
   }
 
   /* Reset VFL ID */
-  H5FD_HERMES_g = H5I_INVALID_HID;
+  H5FD_CAE_g = H5I_INVALID_HID;
 
   // TODO(llogan): Probably should add back at some point.
   // HERMES->Finalize();
@@ -223,7 +223,7 @@ static herr_t H5FD__hermes_term(void) {
  */
 static H5FD_t *H5FD__hermes_open(const char *name, unsigned flags,
                                  hid_t fapl_id, haddr_t maxaddr) {
-  TRANSPARENT_HERMES();
+  cae::IOWARP_CAE_INIT();
   H5FD_hermes_t *file = NULL; /* hermes VFD info          */
   int fd = -1;
   int o_flags = 0;
@@ -241,11 +241,11 @@ static H5FD_t *H5FD__hermes_open(const char *name, unsigned flags,
   }
 
 #ifdef USE_HERMES
-  auto fs_api = HERMES_POSIX_FS;
+  auto fs_api = CAE_POSIX_FS;
   bool stat_exists;
   AdapterStat stat;
   stat.flags_ = o_flags;
-  stat.st_mode_ = H5FD_HERMES_POSIX_CREATE_MODE_RW;
+  stat.st_mode_ = H5FD_CAE_POSIX_CREATE_MODE_RW;
   File f = fs_api->Open(stat, name);
   fd = f.hermes_fd_;
   HILOG(kDebug, "");
@@ -295,7 +295,7 @@ static herr_t H5FD__hermes_close(H5FD_t *_file) {
   herr_t ret_value = SUCCEED; /* Return value */
   assert(file);
 #ifdef USE_HERMES
-  auto fs_api = HERMES_POSIX_FS;
+  auto fs_api = CAE_POSIX_FS;
   File f;
   f.hermes_fd_ = file->fd;
   bool stat_exists;
@@ -347,7 +347,7 @@ static herr_t H5FD__hermes_query(const H5FD_t *_file,
                                  unsigned long *flags /* out */) {
   /* Set the VFL feature flags that this driver supports */
   /* Notice: the Mirror VFD Writer currently uses only the hermes driver as
-   * the underlying driver -- as such, the Mirror VFD implementation copies
+   * the underying driver -- as such, the Mirror VFD implementation copies
    * these feature flags as its own. Any modifications made here must be
    * reflected in H5FDmirror.c
    * -- JOS 2020-01-13
@@ -454,7 +454,7 @@ static herr_t H5FD__hermes_read(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id,
 
 #ifdef USE_HERMES
   bool stat_exists;
-  auto fs_api = HERMES_POSIX_FS;
+  auto fs_api = CAE_POSIX_FS;
   File f;
   f.hermes_fd_ = file->fd;
   IoStatus io_status;
@@ -492,7 +492,7 @@ static herr_t H5FD__hermes_write(H5FD_t *_file, H5FD_mem_t type, hid_t dxpl_id,
   herr_t ret_value = SUCCEED;
 #ifdef USE_HERMES
   bool stat_exists;
-  auto fs_api = HERMES_POSIX_FS;
+  auto fs_api = CAE_POSIX_FS;
   File f;
   f.hermes_fd_ = file->fd;
   IoStatus io_status;
@@ -514,10 +514,4 @@ H5PL_type_t H5PLget_plugin_type(void) { return H5PL_TYPE_VFD; }
 
 const void *H5PLget_plugin_info(void) { return &H5FD_hermes_g; }
 
-/** Initialize Hermes */
-/*static __attribute__((constructor(101))) void init_hermes_in_vfd(void) {
-  std::cout << "IN VFD" << std::endl;
-  TRANSPARENT_HERMES;
-}*/
-
-}  // extern C
+} // extern C

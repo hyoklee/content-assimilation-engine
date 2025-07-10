@@ -21,36 +21,38 @@ bool posix_intercepted = true;
 
 #include <filesystem>
 
+#include "adapters/filesystem/filesystem.h"
 #include "hermes/hermes_types.h"
-#include "hermes_adapters/filesystem/filesystem.h"
 #include "hermes_shm/util/logging.h"
 #include "hermes_shm/util/singleton.h"
 #include "posix_fs_api.h"
 
-using hermes::adapter::AdapterStat;
-using hermes::adapter::File;
-using hermes::adapter::FsIoOptions;
-using hermes::adapter::IoStatus;
-using hermes::adapter::MetadataManager;
-using hermes::adapter::SeekMode;
+using cae ::AdapterStat;
+using cae ::File;
+using cae ::FsIoOptions;
+using cae ::IoStatus;
+using cae ::MetadataManager;
+using cae ::SeekMode;
 
 namespace stdfs = std::filesystem;
 
 extern "C" {
 
 // static __attribute__((constructor(101))) void init_posix(void) {
-//   HERMES_POSIX_API;
-//   HERMES_POSIX_FS;
-//   TRANSPARENT_HERMES();;
+//   CAE_POSIX_API;
+//   CAE_POSIX_FS;
+//   cae::IOWARP_CAE_INIT();;
 // }
 
 /**
  * POSIX
  */
-int HERMES_DECL(open)(const char *path, int flags, ...) {
+#define CAE_DECL(name) name
+
+int CAE_DECL(open)(const char *path, int flags, ...) {
   int mode = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (flags & O_CREAT || flags & O_TMPFILE) {
     va_list arg;
     va_start(arg, flags);
@@ -58,7 +60,7 @@ int HERMES_DECL(open)(const char *path, int flags, ...) {
     va_end(arg);
   }
   if (real_api->IsInterceptorLoaded()) {
-    TRANSPARENT_HERMES();
+    cae::IOWARP_CAE_INIT();
   }
   if (real_api->IsInterceptorLoaded() && fs_api->IsPathTracked(path)) {
     HILOG(kDebug,
@@ -82,10 +84,10 @@ int HERMES_DECL(open)(const char *path, int flags, ...) {
   return fd;
 }
 
-int HERMES_DECL(open64)(const char *path, int flags, ...) {
+int CAE_DECL(open64)(const char *path, int flags, ...) {
   int mode = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (flags & O_CREAT || flags & O_TMPFILE) {
     va_list arg;
     va_start(arg, flags);
@@ -93,7 +95,7 @@ int HERMES_DECL(open64)(const char *path, int flags, ...) {
     va_end(arg);
   }
   if (real_api->IsInterceptorLoaded()) {
-    TRANSPARENT_HERMES();
+    cae::IOWARP_CAE_INIT();
   }
   if (real_api->IsInterceptorLoaded() && fs_api->IsPathTracked(path)) {
     HILOG(kDebug,
@@ -115,11 +117,11 @@ int HERMES_DECL(open64)(const char *path, int flags, ...) {
   return fd;
 }
 
-int HERMES_DECL(__open_2)(const char *path, int oflag) {
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+int CAE_DECL(__open_2)(const char *path, int oflag) {
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (real_api->IsInterceptorLoaded()) {
-    TRANSPARENT_HERMES();
+    cae::IOWARP_CAE_INIT();
   }
   if (real_api->IsInterceptorLoaded() && fs_api->IsPathTracked(path)) {
     HILOG(kDebug,
@@ -135,12 +137,12 @@ int HERMES_DECL(__open_2)(const char *path, int oflag) {
   return real_api->__open_2(path, oflag);
 }
 
-int HERMES_DECL(creat)(const char *path, mode_t mode) {
+int CAE_DECL(creat)(const char *path, mode_t mode) {
   std::string path_str(path);
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (real_api->IsInterceptorLoaded()) {
-    TRANSPARENT_HERMES();
+    cae::IOWARP_CAE_INIT();
   }
   if (real_api->IsInterceptorLoaded() && fs_api->IsPathTracked(path)) {
     HILOG(kDebug,
@@ -156,12 +158,12 @@ int HERMES_DECL(creat)(const char *path, mode_t mode) {
   return real_api->creat(path, mode);
 }
 
-int HERMES_DECL(creat64)(const char *path, mode_t mode) {
+int CAE_DECL(creat64)(const char *path, mode_t mode) {
   std::string path_str(path);
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (real_api->IsInterceptorLoaded()) {
-    TRANSPARENT_HERMES();
+    cae::IOWARP_CAE_INIT();
   }
   if (real_api->IsInterceptorLoaded() && fs_api->IsPathTracked(path)) {
     HILOG(kDebug,
@@ -177,102 +179,107 @@ int HERMES_DECL(creat64)(const char *path, mode_t mode) {
   return real_api->creat64(path, mode);
 }
 
-ssize_t HERMES_DECL(read)(int fd, void *buf, size_t count) {
+ssize_t CAE_DECL(read)(int fd, void *buf, size_t count) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercept read.");
     File f;
     f.hermes_fd_ = fd;
     IoStatus io_status;
     size_t ret = fs_api->Read(f, stat_exists, buf, count, io_status);
-    if (stat_exists) return ret;
+    if (stat_exists)
+      return ret;
   }
   return real_api->read(fd, buf, count);
 }
 
-ssize_t HERMES_DECL(write)(int fd, const void *buf, size_t count) {
+ssize_t CAE_DECL(write)(int fd, const void *buf, size_t count) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercept write.");
     File f;
     f.hermes_fd_ = fd;
     IoStatus io_status;
     size_t ret = fs_api->Write(f, stat_exists, buf, count, io_status);
-    if (stat_exists) return ret;
+    if (stat_exists)
+      return ret;
   }
   return real_api->write(fd, buf, count);
 }
 
-ssize_t HERMES_DECL(pread)(int fd, void *buf, size_t count, off_t offset) {
+ssize_t CAE_DECL(pread)(int fd, void *buf, size_t count, off_t offset) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercept pread.");
     File f;
     f.hermes_fd_ = fd;
     IoStatus io_status;
     size_t ret = fs_api->Read(f, stat_exists, buf, offset, count, io_status);
-    if (stat_exists) return ret;
+    if (stat_exists)
+      return ret;
   }
   return real_api->pread(fd, buf, count, offset);
 }
 
-ssize_t HERMES_DECL(pwrite)(int fd, const void *buf, size_t count,
-                            off_t offset) {
+ssize_t CAE_DECL(pwrite)(int fd, const void *buf, size_t count, off_t offset) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
     IoStatus io_status;
     HILOG(kDebug, "Intercept pwrite.");
     size_t ret = fs_api->Write(f, stat_exists, buf, offset, count, io_status);
-    if (stat_exists) return ret;
+    if (stat_exists)
+      return ret;
   }
   return real_api->pwrite(fd, buf, count, offset);
 }
 
-ssize_t HERMES_DECL(pread64)(int fd, void *buf, size_t count, off64_t offset) {
+ssize_t CAE_DECL(pread64)(int fd, void *buf, size_t count, off64_t offset) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
     IoStatus io_status;
     HILOG(kDebug, "Intercept pread64.");
     size_t ret = fs_api->Read(f, stat_exists, buf, offset, count, io_status);
-    if (stat_exists) return ret;
+    if (stat_exists)
+      return ret;
   }
   return real_api->pread64(fd, buf, count, offset);
 }
 
-ssize_t HERMES_DECL(pwrite64)(int fd, const void *buf, size_t count,
-                              off64_t offset) {
+ssize_t CAE_DECL(pwrite64)(int fd, const void *buf, size_t count,
+                           off64_t offset) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
     IoStatus io_status;
     HILOG(kDebug, "Intercept pwrite64.");
     size_t ret = fs_api->Write(f, stat_exists, buf, offset, count, io_status);
-    if (stat_exists) return ret;
+    if (stat_exists)
+      return ret;
   }
   return real_api->pwrite64(fd, buf, count, offset);
 }
 
-off_t HERMES_DECL(lseek)(int fd, off_t offset, int whence) {
+off_t CAE_DECL(lseek)(int fd, off_t offset, int whence) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
@@ -282,10 +289,10 @@ off_t HERMES_DECL(lseek)(int fd, off_t offset, int whence) {
   return real_api->lseek(fd, offset, whence);
 }
 
-off64_t HERMES_DECL(lseek64)(int fd, off64_t offset, int whence) {
+off64_t CAE_DECL(lseek64)(int fd, off64_t offset, int whence) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
@@ -295,10 +302,10 @@ off64_t HERMES_DECL(lseek64)(int fd, off64_t offset, int whence) {
   return real_api->lseek64(fd, offset, whence);
 }
 
-int HERMES_DECL(__fxstat)(int __ver, int fd, struct stat *buf) {
+int CAE_DECL(__fxstat)(int __ver, int fd, struct stat *buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercepted __fxstat.");
     File f;
@@ -310,11 +317,11 @@ int HERMES_DECL(__fxstat)(int __ver, int fd, struct stat *buf) {
   return result;
 }
 
-int HERMES_DECL(__fxstatat)(int __ver, int __fildes, const char *__filename,
-                            struct stat *__stat_buf, int __flag) {
+int CAE_DECL(__fxstatat)(int __ver, int __fildes, const char *__filename,
+                         struct stat *__stat_buf, int __flag) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(__filename)) {
     HILOG(kDebug, "Intercepted __fxstatat.");
     result = fs_api->Stat(__filename, __stat_buf);
@@ -325,11 +332,11 @@ int HERMES_DECL(__fxstatat)(int __ver, int __fildes, const char *__filename,
   return result;
 }
 
-int HERMES_DECL(__xstat)(int __ver, const char *__filename,
-                         struct stat *__stat_buf) {
+int CAE_DECL(__xstat)(int __ver, const char *__filename,
+                      struct stat *__stat_buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(__filename)) {
     // HILOG(kDebug, "Intercepted __xstat for file {}.", __filename);
     result = fs_api->Stat(__filename, __stat_buf);
@@ -339,11 +346,11 @@ int HERMES_DECL(__xstat)(int __ver, const char *__filename,
   return result;
 }
 
-int HERMES_DECL(__lxstat)(int __ver, const char *__filename,
-                          struct stat *__stat_buf) {
+int CAE_DECL(__lxstat)(int __ver, const char *__filename,
+                       struct stat *__stat_buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(__filename)) {
     HILOG(kDebug, "Intercepted __lxstat.");
     result = fs_api->Stat(__filename, __stat_buf);
@@ -353,10 +360,10 @@ int HERMES_DECL(__lxstat)(int __ver, const char *__filename,
   return result;
 }
 
-int HERMES_DECL(fstat)(int fd, struct stat *buf) {
+int CAE_DECL(fstat)(int fd, struct stat *buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercepted fstat.");
     File f;
@@ -368,10 +375,10 @@ int HERMES_DECL(fstat)(int fd, struct stat *buf) {
   return result;
 }
 
-int HERMES_DECL(stat)(const char *pathname, struct stat *buf) {
+int CAE_DECL(stat)(const char *pathname, struct stat *buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(pathname)) {
     HILOG(kDebug, "Intercepted stat.");
     result = fs_api->Stat(pathname, buf);
@@ -381,10 +388,10 @@ int HERMES_DECL(stat)(const char *pathname, struct stat *buf) {
   return result;
 }
 
-int HERMES_DECL(__fxstat64)(int __ver, int fd, struct stat64 *buf) {
+int CAE_DECL(__fxstat64)(int __ver, int fd, struct stat64 *buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercepted __fxstat.");
     File f;
@@ -396,11 +403,11 @@ int HERMES_DECL(__fxstat64)(int __ver, int fd, struct stat64 *buf) {
   return result;
 }
 
-int HERMES_DECL(__fxstatat64)(int __ver, int __fildes, const char *__filename,
-                              struct stat64 *__stat_buf, int __flag) {
+int CAE_DECL(__fxstatat64)(int __ver, int __fildes, const char *__filename,
+                           struct stat64 *__stat_buf, int __flag) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(__filename)) {
     HILOG(kDebug, "Intercepted __fxstatat.");
     result = fs_api->Stat(__filename, __stat_buf);
@@ -411,11 +418,11 @@ int HERMES_DECL(__fxstatat64)(int __ver, int __fildes, const char *__filename,
   return result;
 }
 
-int HERMES_DECL(__xstat64)(int __ver, const char *__filename,
-                           struct stat64 *__stat_buf) {
+int CAE_DECL(__xstat64)(int __ver, const char *__filename,
+                        struct stat64 *__stat_buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(__filename)) {
     HILOG(kDebug, "Intercepted __xstat.");
     result = fs_api->Stat(__filename, __stat_buf);
@@ -425,11 +432,11 @@ int HERMES_DECL(__xstat64)(int __ver, const char *__filename,
   return result;
 }
 
-int HERMES_DECL(__lxstat64)(int __ver, const char *__filename,
-                            struct stat64 *__stat_buf) {
+int CAE_DECL(__lxstat64)(int __ver, const char *__filename,
+                         struct stat64 *__stat_buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(__filename)) {
     HILOG(kDebug, "Intercepted __lxstat.");
     result = fs_api->Stat(__filename, __stat_buf);
@@ -439,10 +446,10 @@ int HERMES_DECL(__lxstat64)(int __ver, const char *__filename,
   return result;
 }
 
-int HERMES_DECL(fstat64)(int fd, struct stat64 *buf) {
+int CAE_DECL(fstat64)(int fd, struct stat64 *buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercepted fstat.");
     File f;
@@ -454,10 +461,10 @@ int HERMES_DECL(fstat64)(int fd, struct stat64 *buf) {
   return result;
 }
 
-int HERMES_DECL(stat64)(const char *pathname, struct stat64 *buf) {
+int CAE_DECL(stat64)(const char *pathname, struct stat64 *buf) {
   int result = 0;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(pathname)) {
     HILOG(kDebug, "Intercepted stat.");
     result = fs_api->Stat(pathname, buf);
@@ -467,10 +474,10 @@ int HERMES_DECL(stat64)(const char *pathname, struct stat64 *buf) {
   return result;
 }
 
-int HERMES_DECL(fsync)(int fd) {
+int CAE_DECL(fsync)(int fd) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
@@ -480,10 +487,10 @@ int HERMES_DECL(fsync)(int fd) {
   return real_api->fsync(fd);
 }
 
-int HERMES_DECL(ftruncate)(int fd, off_t length) {
+int CAE_DECL(ftruncate)(int fd, off_t length) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
@@ -493,10 +500,10 @@ int HERMES_DECL(ftruncate)(int fd, off_t length) {
   return real_api->ftruncate(fd, length);
 }
 
-int HERMES_DECL(ftruncate64)(int fd, off64_t length) {
+int CAE_DECL(ftruncate64)(int fd, off64_t length) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     File f;
     f.hermes_fd_ = fd;
@@ -506,10 +513,10 @@ int HERMES_DECL(ftruncate64)(int fd, off64_t length) {
   return real_api->ftruncate64(fd, length);
 }
 
-int HERMES_DECL(close)(int fd) {
+int CAE_DECL(close)(int fd) {
   bool stat_exists;
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercepted close({}).", fd);
     File f;
@@ -519,9 +526,9 @@ int HERMES_DECL(close)(int fd) {
   return real_api->close(fd);
 }
 
-int HERMES_DECL(flock)(int fd, int operation) {
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+int CAE_DECL(flock)(int fd, int operation) {
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsFdTracked(fd)) {
     HILOG(kDebug, "Intercepted flock({}).", fd);
     // TODO(llogan): implement?
@@ -530,9 +537,9 @@ int HERMES_DECL(flock)(int fd, int operation) {
   return real_api->flock(fd, operation);
 }
 
-int HERMES_DECL(remove)(const char *pathname) {
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+int CAE_DECL(remove)(const char *pathname) {
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(pathname)) {
     HILOG(kDebug, "Intercepted remove({})", pathname);
     return fs_api->Remove(pathname);
@@ -540,9 +547,9 @@ int HERMES_DECL(remove)(const char *pathname) {
   return real_api->remove(pathname);
 }
 
-int HERMES_DECL(unlink)(const char *pathname) {
-  auto real_api = HERMES_POSIX_API;
-  auto fs_api = HERMES_POSIX_FS;
+int CAE_DECL(unlink)(const char *pathname) {
+  auto real_api = CAE_POSIX_API;
+  auto fs_api = CAE_POSIX_FS;
   if (fs_api->IsPathTracked(pathname)) {
     HILOG(kDebug, "Intercepted unlink({})", pathname);
     return fs_api->Remove(pathname);
@@ -550,4 +557,4 @@ int HERMES_DECL(unlink)(const char *pathname) {
   return real_api->unlink(pathname);
 }
 
-}  // extern C
+} // extern C

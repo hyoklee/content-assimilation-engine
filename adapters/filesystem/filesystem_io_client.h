@@ -10,8 +10,8 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_FILESYSTEM_FILESYSTEM_IO_CLIENT_H_
-#define HERMES_ADAPTER_FILESYSTEM_FILESYSTEM_IO_CLIENT_H_
+#ifndef CAE_ADAPTER_FILESYSTEM_FILESYSTEM_IO_CLIENT_H_
+#define CAE_ADAPTER_FILESYSTEM_FILESYSTEM_IO_CLIENT_H_
 
 #include <mpi.h>
 
@@ -19,28 +19,32 @@
 #include <future>
 #include <limits>
 
+#include "adapters/mapper/balanced_mapper.h"
 #include "hermes/bucket.h"
 #include "hermes/hermes.h"
-#include "hermes_adapters/mapper/balanced_mapper.h"
 
 namespace stdfs = std::filesystem;
 
-namespace hermes::adapter {
+namespace cae {
 
 /** Put or get data directly from I/O client */
-#define HERMES_IO_CLIENT_BYPASS BIT_OPT(uint32_t, 0)
+#define CAE_IO_CLIENT_BYPASS BIT_OPT(uint32_t, 0)
 /** Only put or get data from a Hermes buffer; no fallback to I/O client */
-#define HERMES_IO_CLIENT_NO_FALLBACK BIT_OPT(uint32_t, 1)
+#define CAE_IO_CLIENT_NO_FALLBACK BIT_OPT(uint32_t, 1)
 /** Whether to perform seek */
-#define HERMES_FS_SEEK BIT_OPT(uint32_t, 2)
+#define CAE_FS_SEEK BIT_OPT(uint32_t, 2)
 /** Whether to perform create */
-#define HERMES_FS_CREATE BIT_OPT(uint32_t, 3)
+#define CAE_FS_CREATE BIT_OPT(uint32_t, 3)
 /** Whether in append mode */
-#define HERMES_FS_APPEND BIT_OPT(uint32_t, 4)
+#define CAE_FS_APPEND BIT_OPT(uint32_t, 4)
 /** Whether to perform truncate */
-#define HERMES_FS_TRUNC BIT_OPT(uint32_t, 5)
+#define CAE_FS_TRUNC BIT_OPT(uint32_t, 5)
 /** Whether the file was found on-disk */
-#define HERMES_FS_EXISTS BIT_OPT(uint32_t, 6)
+#define CAE_FS_EXISTS BIT_OPT(uint32_t, 6)
+/** Whether the file supports reading */
+#define CAE_FS_READ BIT_OPT(uint32_t, 7)
+/** Whether the file supports writing */
+#define CAE_FS_WRITE BIT_OPT(uint32_t, 8)
 
 /** A structure to represent IO status */
 struct IoStatus {
@@ -52,9 +56,7 @@ struct IoStatus {
 
   /** Default constructor */
   IoStatus()
-      : size_(0),
-        mpi_ret_(MPI_SUCCESS),
-        mpi_status_ptr_(&mpi_status_),
+      : size_(0), mpi_ret_(MPI_SUCCESS), mpi_status_ptr_(&mpi_status_),
         success_(true) {}
 
   /** Copy constructor */
@@ -76,38 +78,34 @@ struct IoStatus {
  * For now, nothing additional than the typical FsIoOptions.
  * */
 struct FsIoOptions {
-  bitfield32_t flags_;    /**< various I/O flags */
-  MPI_Datatype mpi_type_; /**< MPI data type */
-  int mpi_count_;         /**< The number of types */
-  int type_size_;         /**< The size of type */
-  size_t backend_off_;    /**< Offset in the backend to begin I/O */
-  size_t backend_size_;   /**< Size of I/O to perform at backend */
+  hshm::bitfield32_t flags_; /**< various I/O flags */
+  MPI_Datatype mpi_type_;    /**< MPI data type */
+  int mpi_count_;            /**< The number of types */
+  int type_size_;            /**< The size of type */
+  size_t backend_off_;       /**< Offset in the backend to begin I/O */
+  size_t backend_size_;      /**< Size of I/O to perform at backend */
 
   /** Default constructor */
   FsIoOptions()
-      : flags_(),
-        mpi_type_(MPI_CHAR),
-        mpi_count_(0),
-        type_size_(1),
-        backend_off_(0),
-        backend_size_(0) {
+      : flags_(), mpi_type_(MPI_CHAR), mpi_count_(0), type_size_(1),
+        backend_off_(0), backend_size_(0) {
     SetSeek();
   }
 
   /** Enable seek for this I/O */
-  void SetSeek() { flags_.SetBits(HERMES_FS_SEEK); }
+  void SetSeek() { flags_.SetBits(CAE_FS_SEEK); }
 
   /** Disable seek for this I/O */
-  void UnsetSeek() { flags_.UnsetBits(HERMES_FS_SEEK); }
+  void UnsetSeek() { flags_.UnsetBits(CAE_FS_SEEK); }
 
   /** Whether or not to perform seek in FS adapter */
-  bool DoSeek() const { return flags_.Any(HERMES_FS_SEEK); }
+  bool DoSeek() const { return flags_.Any(CAE_FS_SEEK); }
 
   /** Marks the file as truncated */
-  void MarkTruncated() { flags_.SetBits(HERMES_FS_TRUNC); }
+  void MarkTruncated() { flags_.SetBits(CAE_FS_TRUNC); }
 
   /** Whether a file is marked truncated */
-  bool IsTruncated() const { return flags_.Any(HERMES_FS_TRUNC); }
+  bool IsTruncated() const { return flags_.Any(CAE_FS_TRUNC); }
 
   /** return IO options with \a mpi_type MPI data type */
   static FsIoOptions DataType(MPI_Datatype mpi_type, bool seek = true) {
@@ -120,10 +118,17 @@ struct FsIoOptions {
   }
 };
 
+/** The get task */
+struct GetBlobAsyncTask {
+  hipc::FullPtr<hermes::GetBlobTask> task_;
+  char *orig_data_;
+  size_t orig_size_;
+};
+
 /** A structure to represent Hermes request */
 struct FsAsyncTask {
-  std::vector<FullPtr<PutBlobTask>> put_tasks_;
-  std::vector<FullPtr<GetBlobTask>> get_tasks_;
+  std::vector<hipc::FullPtr<hermes::PutBlobTask>> put_tasks_;
+  std::vector<GetBlobAsyncTask> get_tasks_;
   IoStatus io_status_;
   FsIoOptions opts_;
 };
@@ -142,12 +147,8 @@ struct File {
 
   /** Default constructor */
   File()
-      : type_(AdapterType::kNone),
-        filename_(),
-        hermes_fd_(-1),
-        hermes_fh_(nullptr),
-        hermes_mpi_fh_(nullptr),
-        status_(true),
+      : type_(AdapterType::kNone), filename_(), hermes_fd_(-1),
+        hermes_fh_(nullptr), hermes_mpi_fh_(nullptr), status_(true),
         mpi_status_(MPI_SUCCESS) {}
 
   /** file constructor that copies \a old file */
@@ -188,19 +189,19 @@ struct File {
 
 /** Any relevant statistics from the I/O client */
 struct AdapterStat {
-  std::string path_;         /**< The URL of this file */
-  int flags_;                /**< open() flags for POSIX */
-  bitfield32_t hflags_;      /**< Flags used by FS adapter */
-  mode_t st_mode_;           /**< protection */
-  uid_t st_uid_;             /**< user ID of owner */
-  gid_t st_gid_;             /**< group ID of owner */
-  size_t st_ptr_;            /**< current ptr of FILE */
-  size_t file_size_;         /**< Size of file at backend at time of open */
-  timespec st_atim_;         /**< time of last access */
-  timespec st_mtim_;         /**< time of last modification */
-  timespec st_ctim_;         /**< time of last status change */
-  std::string mode_str_;     /**< mode used for fopen() */
-  AdapterMode adapter_mode_; /**< Mode used for adapter */
+  std::string path_;          /**< The URL of this file */
+  int flags_;                 /**< open() flags for POSIX */
+  hshm::bitfield32_t hflags_; /**< Flags used by FS adapter */
+  mode_t st_mode_;            /**< protection */
+  uid_t st_uid_;              /**< user ID of owner */
+  gid_t st_gid_;              /**< group ID of owner */
+  size_t st_ptr_;             /**< current ptr of FILE */
+  size_t file_size_;          /**< Size of file at backend at time of open */
+  timespec st_atim_;          /**< time of last access */
+  timespec st_mtim_;          /**< time of last modification */
+  timespec st_ctim_;          /**< time of last status change */
+  std::string mode_str_;      /**< mode used for fopen() */
+  AdapterMode adapter_mode_;  /**< Mode used for adapter */
 
   int fd_;          /**< real file descriptor */
   FILE *fh_;        /**< real STDIO file handler */
@@ -217,20 +218,9 @@ struct AdapterStat {
 
   /** Default constructor */
   AdapterStat()
-      : flags_(0),
-        hflags_(),
-        st_mode_(),
-        st_ptr_(0),
-        file_size_(0),
-        st_atim_(),
-        st_mtim_(),
-        st_ctim_(),
-        adapter_mode_(AdapterMode::kNone),
-        fd_(-1),
-        fh_(nullptr),
-        mpi_fh_(nullptr),
-        amode_(0),
-        comm_(MPI_COMM_SELF),
+      : flags_(0), hflags_(), st_mode_(), st_ptr_(0), file_size_(0), st_atim_(),
+        st_mtim_(), st_ctim_(), adapter_mode_(AdapterMode::kNone), fd_(-1),
+        fh_(nullptr), mpi_fh_(nullptr), amode_(0), comm_(MPI_COMM_SELF),
         atomicity_(false) {}
 
   /** Update to the current time */
@@ -248,7 +238,7 @@ struct AdapterStat {
 };
 
 /**
- * Metadata required by Filesystem I/O clients to perform a HermesOpen
+ * Metadta required by Filesystem I/O clients to perform a HermesOpen
  * */
 struct FsIoClientMetadata {
   int hermes_fd_min_, hermes_fd_max_; /**< Min and max fd values (inclusive)*/
@@ -256,7 +246,7 @@ struct FsIoClientMetadata {
 
   /** Default constructor */
   FsIoClientMetadata() {
-    hermes_fd_min_ = 8192;  // TODO(llogan): don't assume 8192
+    hermes_fd_min_ = 8192; // TODO(llogan): don't assume 8192
     hermes_fd_cur_ = hermes_fd_min_;
     hermes_fd_max_ = std::numeric_limits<int>::max();
   }
@@ -299,7 +289,7 @@ struct FilesystemIoClientState {
  * base class.
  * */
 class FilesystemIoClient {
- public:
+public:
   /** virtual destructor */
   virtual ~FilesystemIoClient() = default;
 
@@ -307,11 +297,12 @@ class FilesystemIoClient {
   virtual size_t GetBackendSize(const chi::string &bkt_name) = 0;
 
   /** Write blob to backend */
-  virtual void WriteBlob(const std::string &bkt_name, const Blob &full_blob,
-                         const FsIoOptions &opts, IoStatus &status) = 0;
+  virtual void WriteBlob(const std::string &bkt_name,
+                         const hermes::Blob &full_blob, const FsIoOptions &opts,
+                         IoStatus &status) = 0;
 
   /** Read blob from the backend */
-  virtual void ReadBlob(const std::string &bkt_name, Blob &full_blob,
+  virtual void ReadBlob(const std::string &bkt_name, hermes::Blob &full_blob,
                         const FsIoOptions &opts, IoStatus &status) = 0;
 
   /** real open */
@@ -347,17 +338,14 @@ class FilesystemIoClient {
   virtual void UpdateIoStatus(const FsIoOptions &opts, IoStatus &status) = 0;
 };
 
-}  // namespace hermes::adapter
+} // namespace cae
 
 namespace std {
 /** A structure to represent hash */
-template <>
-struct hash<::hermes::adapter::File> {
+template <> struct hash<::cae ::File> {
   /** hash creator functor */
-  std::size_t operator()(const hermes::adapter::File &key) const {
-    return key.hash();
-  }
+  std::size_t operator()(const cae ::File &key) const { return key.hash(); }
 };
-}  // namespace std
+} // namespace std
 
-#endif  // HERMES_ADAPTER_FILESYSTEM_FILESYSTEM_IO_CLIENT_H_
+#endif // CAE_ADAPTER_FILESYSTEM_FILESYSTEM_IO_CLIENT_H_

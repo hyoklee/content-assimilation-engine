@@ -10,28 +10,27 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_POSIX_NATIVE_H_
-#define HERMES_ADAPTER_POSIX_NATIVE_H_
+#ifndef CAE_ADAPTER_POSIX_NATIVE_H_
+#define CAE_ADAPTER_POSIX_NATIVE_H_
 
 #include <memory>
 
-#include "hermes_adapters/filesystem/filesystem.h"
-#include "hermes_adapters/filesystem/filesystem_mdm.h"
+#include "adapters/filesystem/filesystem.h"
+#include "adapters/filesystem/filesystem_mdm.h"
 #include "posix_api.h"
 
-namespace hermes::adapter {
+namespace cae {
 
 /** A class to represent POSIX IO file system */
-class PosixFs : public hermes::adapter::Filesystem {
- public:
-  HERMES_POSIX_API_T real_api_; /**< pointer to real APIs */
+class PosixFs : public cae ::Filesystem {
+public:
+  CAE_POSIX_API_T real_api_; /**< pointer to real APIs */
 
- public:
-  PosixFs() : Filesystem(AdapterType::kPosix) { real_api_ = HERMES_POSIX_API; }
+public:
+  PosixFs() : Filesystem(AdapterType::kPosix) { real_api_ = CAE_POSIX_API; }
 
-  template <typename StatT>
-  int Stat(File &f, StatT *buf) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+  template <typename StatT> int Stat(File &f, StatT *buf) {
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto existing = mdm->Find(f);
     if (existing) {
       AdapterStat &astat = *existing;
@@ -59,8 +58,7 @@ class PosixFs : public hermes::adapter::Filesystem {
     }
   }
 
-  template <typename StatT>
-  int Stat(const char *__filename, StatT *buf) {
+  template <typename StatT> int Stat(const char *__filename, StatT *buf) {
     bool stat_exists;
     AdapterStat stat;
     stat.flags_ = O_RDONLY;
@@ -81,9 +79,9 @@ class PosixFs : public hermes::adapter::Filesystem {
     if (!HERMES->IsInitialized() || fd < 8192) {
       return false;
     }
-    hermes::adapter::File f;
+    cae ::File f;
     f.hermes_fd_ = fd;
-    stat = HERMES_FS_METADATA_MANAGER->Find(f);
+    stat = CAE_FS_METADATA_MANAGER->Find(f);
     return stat != nullptr;
   }
 
@@ -93,29 +91,32 @@ class PosixFs : public hermes::adapter::Filesystem {
     return IsFdTracked(fd, stat);
   }
 
-  /** get the file name from \a fd file descriptor */
-  std::string GetFilenameFromFD(int fd) {
-    std::vector<char> proclnk(kMaxPathLen);
-    std::vector<char> filename(kMaxPathLen);
-    snprintf(proclnk.data(), kMaxPathLen - 1, "/proc/self/fd/%d", fd);
-    size_t r = readlink(proclnk.data(), filename.data(), kMaxPathLen);
-    return std::string(filename.data(), r);
-  }
-
- public:
+public:
   /** Allocate an fd for the file f */
   void RealOpen(File &f, AdapterStat &stat, const std::string &path) override {
+    // Check the first two bits for read/write mode
+    switch (stat.flags_ & O_ACCMODE) {
+    case O_RDONLY:
+      stat.hflags_.SetBits(CAE_FS_READ);
+      break;
+    case O_WRONLY:
+      stat.hflags_.SetBits(CAE_FS_WRITE);
+      break;
+    case O_RDWR:
+      stat.hflags_.SetBits(CAE_FS_READ | CAE_FS_WRITE);
+      break;
+    }
     if (stat.flags_ & O_APPEND) {
-      stat.hflags_.SetBits(HERMES_FS_APPEND);
+      stat.hflags_.SetBits(CAE_FS_APPEND);
     }
     if (stat.flags_ & O_CREAT || stat.flags_ & O_TMPFILE) {
-      stat.hflags_.SetBits(HERMES_FS_CREATE);
+      stat.hflags_.SetBits(CAE_FS_CREATE);
     }
     if (stat.flags_ & O_TRUNC) {
-      stat.hflags_.SetBits(HERMES_FS_TRUNC);
+      stat.hflags_.SetBits(CAE_FS_TRUNC);
     }
 
-    if (stat.hflags_.Any(HERMES_FS_CREATE)) {
+    if (stat.hflags_.Any(CAE_FS_CREATE)) {
       if (stat.adapter_mode_ != AdapterMode::kScratch) {
         stat.fd_ = real_api_->open(path.c_str(), stat.flags_, stat.st_mode_);
       }
@@ -124,7 +125,7 @@ class PosixFs : public hermes::adapter::Filesystem {
     }
 
     if (stat.fd_ >= 0) {
-      stat.hflags_.SetBits(HERMES_FS_EXISTS);
+      stat.hflags_.SetBits(CAE_FS_EXISTS);
     }
     if (stat.fd_ < 0 && stat.adapter_mode_ != AdapterMode::kScratch) {
       f.status_ = false;
@@ -192,7 +193,7 @@ class PosixFs : public hermes::adapter::Filesystem {
   }
 
   /** Write blob to backend */
-  void WriteBlob(const std::string &bkt_name, const Blob &full_blob,
+  void WriteBlob(const std::string &bkt_name, const hermes::Blob &full_blob,
                  const FsIoOptions &opts, IoStatus &status) override {
     (void)opts;
     status.success_ = true;
@@ -216,7 +217,7 @@ class PosixFs : public hermes::adapter::Filesystem {
   }
 
   /** Read blob from the backend */
-  void ReadBlob(const std::string &bkt_name, Blob &full_blob,
+  void ReadBlob(const std::string &bkt_name, hermes::Blob &full_blob,
                 const FsIoOptions &opts, IoStatus &status) override {
     (void)opts;
     status.success_ = true;
@@ -246,10 +247,9 @@ class PosixFs : public hermes::adapter::Filesystem {
 };
 
 /** Simplify access to the stateless PosixFs Singleton */
-#define HERMES_POSIX_FS \
-  hshm::Singleton<::hermes::adapter::PosixFs>::GetInstance()
-#define HERMES_POSIX_FS_T hermes::adapter::PosixFs *
+#define CAE_POSIX_FS hshm::Singleton<::cae ::PosixFs>::GetInstance()
+#define CAE_POSIX_FS_T cae ::PosixFs *
 
-}  // namespace hermes::adapter
+} // namespace cae
 
-#endif  // HERMES_ADAPTER_POSIX_NATIVE_H_
+#endif // CAE_ADAPTER_POSIX_NATIVE_H_

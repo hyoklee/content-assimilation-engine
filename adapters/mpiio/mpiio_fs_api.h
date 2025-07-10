@@ -10,41 +10,41 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ADAPTER_MPIIO_MPIIO_FS_API_H_
-#define HERMES_ADAPTER_MPIIO_MPIIO_FS_API_H_
+#ifndef CAE_ADAPTER_MPIIO_MPIIO_FS_API_H_
+#define CAE_ADAPTER_MPIIO_MPIIO_FS_API_H_
 
 #include <memory>
 
-#include "hermes_adapters/filesystem/filesystem.h"
-#include "hermes_adapters/filesystem/filesystem_mdm.h"
+#include "adapters/filesystem/filesystem.h"
+#include "adapters/filesystem/filesystem_mdm.h"
 #include "mpiio_api.h"
 
-namespace hermes::adapter {
+namespace cae {
 
 /** A class to represent MPI IO seek mode conversion */
 class MpiioSeekModeConv {
- public:
+public:
   /** normalize \a mpi_seek MPI seek mode */
   static SeekMode Normalize(int mpi_seek) {
     switch (mpi_seek) {
-      case MPI_SEEK_SET:
-        return SeekMode::kSet;
-      case MPI_SEEK_CUR:
-        return SeekMode::kCurrent;
-      case MPI_SEEK_END:
-        return SeekMode::kEnd;
-      default:
-        return SeekMode::kNone;
+    case MPI_SEEK_SET:
+      return SeekMode::kSet;
+    case MPI_SEEK_CUR:
+      return SeekMode::kCurrent;
+    case MPI_SEEK_END:
+      return SeekMode::kEnd;
+    default:
+      return SeekMode::kNone;
     }
   }
 };
 
 /** A class to represent POSIX IO file system */
 class MpiioFs : public Filesystem {
- public:
-  HERMES_MPIIO_API_T real_api_; /**< pointer to real APIs */
+public:
+  CAE_MPIIO_API_T real_api_; /**< pointer to real APIs */
 
-  MpiioFs() : Filesystem(AdapterType::kMpiio) { real_api_ = HERMES_MPIIO_API; }
+  MpiioFs() : Filesystem(AdapterType::kMpiio) { real_api_ = CAE_MPIIO_API; }
 
   /** Initialize I/O opts using count + datatype */
   static size_t IoSizeFromCount(int count, MPI_Datatype datatype,
@@ -56,7 +56,7 @@ class MpiioFs : public Filesystem {
   }
 
   inline bool IsMpiFpTracked(MPI_File *fh, std::shared_ptr<AdapterStat> &stat) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     if (fh == nullptr) {
       return false;
     }
@@ -82,7 +82,7 @@ class MpiioFs : public Filesystem {
 
   int ARead(File &f, AdapterStat &stat, void *ptr, size_t offset, int count,
             MPI_Datatype datatype, MPI_Request *request, FsIoOptions opts) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     IoStatus io_status;
     size_t total_size = IoSizeFromCount(count, datatype, opts);
     FsAsyncTask *fstask =
@@ -125,7 +125,7 @@ class MpiioFs : public Filesystem {
   int AWrite(File &f, AdapterStat &stat, const void *ptr, size_t offset,
              int count, MPI_Datatype datatype, MPI_Request *request,
              FsIoOptions opts) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     IoStatus io_status;
     size_t total_size = IoSizeFromCount(count, datatype, opts);
     FsAsyncTask *fstask =
@@ -195,7 +195,7 @@ class MpiioFs : public Filesystem {
   }
 
   int Wait(MPI_Request *req, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     FsAsyncTask *fstask = mdm->FindTask(reinterpret_cast<size_t>(req));
     if (fstask) {
       Filesystem::Wait(fstask);
@@ -232,14 +232,12 @@ class MpiioFs : public Filesystem {
                   stat.comm_);
     MPI_Allreduce(&whence, &sum_whence, 1, MPI_INT, MPI_SUM, stat.comm_);
     if (sum_offset / comm_participators != offset) {
-      HELOG(kError,
-            "Same offset should be passed "
-            "across the opened file communicator.");
+      HELOG(kError, "Same offset should be passed "
+                    "across the opened file communicator.");
     }
     if (sum_whence / comm_participators != whence) {
-      HELOG(kError,
-            "Same whence should be passed "
-            "across the opened file communicator.");
+      HELOG(kError, "Same whence should be passed "
+                    "across the opened file communicator.");
     }
     Seek(f, stat, offset, whence);
     return 0;
@@ -291,7 +289,7 @@ class MpiioFs : public Filesystem {
 
   int Read(File &f, bool &stat_exists, void *ptr, size_t offset, int count,
            MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -304,7 +302,7 @@ class MpiioFs : public Filesystem {
 
   int ARead(File &f, bool &stat_exists, void *ptr, size_t offset, int count,
             MPI_Datatype datatype, MPI_Request *request) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -317,7 +315,7 @@ class MpiioFs : public Filesystem {
 
   int ReadAll(File &f, bool &stat_exists, void *ptr, size_t offset, int count,
               MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -330,7 +328,7 @@ class MpiioFs : public Filesystem {
 
   int ReadOrdered(File &f, bool &stat_exists, void *ptr, int count,
                   MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -343,7 +341,7 @@ class MpiioFs : public Filesystem {
 
   int Write(File &f, bool &stat_exists, const void *ptr, size_t offset,
             int count, MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -356,7 +354,7 @@ class MpiioFs : public Filesystem {
 
   int AWrite(File &f, bool &stat_exists, const void *ptr, size_t offset,
              int count, MPI_Datatype datatype, MPI_Request *request) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -369,7 +367,7 @@ class MpiioFs : public Filesystem {
 
   int WriteAll(File &f, bool &stat_exists, const void *ptr, size_t offset,
                int count, MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -382,7 +380,7 @@ class MpiioFs : public Filesystem {
 
   int WriteOrdered(File &f, bool &stat_exists, const void *ptr, int count,
                    MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -395,7 +393,7 @@ class MpiioFs : public Filesystem {
 
   int AWriteOrdered(File &f, bool &stat_exists, const void *ptr, int count,
                     MPI_Datatype datatype, MPI_Request *request) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -408,7 +406,7 @@ class MpiioFs : public Filesystem {
 
   int Read(File &f, bool &stat_exists, void *ptr, int count,
            MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -420,7 +418,7 @@ class MpiioFs : public Filesystem {
 
   int ARead(File &f, bool &stat_exists, void *ptr, int count,
             MPI_Datatype datatype, MPI_Request *request) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -432,7 +430,7 @@ class MpiioFs : public Filesystem {
 
   int ReadAll(File &f, bool &stat_exists, void *ptr, int count,
               MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -444,7 +442,7 @@ class MpiioFs : public Filesystem {
 
   int Write(File &f, bool &stat_exists, const void *ptr, int count,
             MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -456,7 +454,7 @@ class MpiioFs : public Filesystem {
 
   int AWrite(File &f, bool &stat_exists, const void *ptr, int count,
              MPI_Datatype datatype, MPI_Request *request) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -468,7 +466,7 @@ class MpiioFs : public Filesystem {
 
   int WriteAll(File &f, bool &stat_exists, const void *ptr, int count,
                MPI_Datatype datatype, MPI_Status *status) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -479,7 +477,7 @@ class MpiioFs : public Filesystem {
   }
 
   int Seek(File &f, bool &stat_exists, MPI_Offset offset, int whence) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -490,7 +488,7 @@ class MpiioFs : public Filesystem {
   }
 
   int SeekShared(File &f, bool &stat_exists, MPI_Offset offset, int whence) {
-    auto mdm = HERMES_FS_METADATA_MANAGER;
+    auto mdm = CAE_FS_METADATA_MANAGER;
     auto stat = mdm->Find(f);
     if (!stat) {
       stat_exists = false;
@@ -500,20 +498,31 @@ class MpiioFs : public Filesystem {
     return SeekShared(f, *stat, offset, whence);
   }
 
- public:
+public:
   /** Allocate an fd for the file f */
   void RealOpen(File &f, AdapterStat &stat, const std::string &path) override {
     if (stat.amode_ & MPI_MODE_CREATE) {
-      stat.hflags_.SetBits(HERMES_FS_CREATE);
-      stat.hflags_.SetBits(HERMES_FS_TRUNC);
+      stat.hflags_.SetBits(CAE_FS_CREATE);
+      stat.hflags_.SetBits(CAE_FS_TRUNC);
     }
     if (stat.amode_ & MPI_MODE_APPEND) {
-      stat.hflags_.SetBits(HERMES_FS_APPEND);
+      stat.hflags_.SetBits(CAE_FS_APPEND);
+    }
+    // Check MPI access modes
+    if (stat.amode_ & MPI_MODE_RDONLY) {
+      stat.hflags_.SetBits(CAE_FS_READ);
+    }
+    if (stat.amode_ & MPI_MODE_WRONLY) {
+      stat.hflags_.SetBits(CAE_FS_WRITE);
+    }
+    if (stat.amode_ & MPI_MODE_RDWR) {
+      stat.hflags_.SetBits(CAE_FS_READ | CAE_FS_WRITE);
     }
 
     // NOTE(llogan): Allowing scratch mode to create empty files for MPI to
     // satisfy IOR.
-    HILOG(kDebug, "Beginning real MPI open: {}", (void*)real_api_->MPI_File_open);
+    HILOG(kDebug, "Beginning real MPI open: {}",
+          (void *)real_api_->MPI_File_open);
     f.mpi_status_ = real_api_->MPI_File_open(
         stat.comm_, path.c_str(), stat.amode_, stat.info_, &stat.mpi_fh_);
     if (f.mpi_status_ != MPI_SUCCESS) {
@@ -521,7 +530,7 @@ class MpiioFs : public Filesystem {
     }
     HILOG(kDebug, "Finished real MPI open");
 
-    /*if (stat.hflags_.Any(HERMES_FS_CREATE)) {
+    /*if (stat.hflags_.Any(CAE_FS_CREATE)) {
       if (stat.adapter_mode_ != AdapterMode::kScratch) {
         f.mpi_status_ = real_api_->MPI_File_open(
             stat.comm_, path.c_str(), stat.amode_, stat.info_, &stat.mpi_fh_);
@@ -532,7 +541,7 @@ class MpiioFs : public Filesystem {
     }
 
     if (f.mpi_status_ == MPI_SUCCESS) {
-      stat.hflags_.SetBits(HERMES_FS_EXISTS);
+      stat.hflags_.SetBits(CAE_FS_EXISTS);
     }
     if (f.mpi_status_ != MPI_SUCCESS &&
         stat.adapter_mode_ != AdapterMode::kScratch) {
@@ -597,7 +606,7 @@ class MpiioFs : public Filesystem {
   }
 
   /** Write blob to backend */
-  void WriteBlob(const std::string &bkt_name, const Blob &full_blob,
+  void WriteBlob(const std::string &bkt_name, const hermes::Blob &full_blob,
                  const FsIoOptions &opts, IoStatus &status) override {
     status.success_ = true;
     HILOG(kDebug,
@@ -637,7 +646,7 @@ class MpiioFs : public Filesystem {
   }
 
   /** Read blob from the backend */
-  void ReadBlob(const std::string &bkt_name, Blob &full_blob,
+  void ReadBlob(const std::string &bkt_name, hermes::Blob &full_blob,
                 const FsIoOptions &opts, IoStatus &status) override {
     status.success_ = true;
     HILOG(kDebug,
@@ -678,10 +687,10 @@ class MpiioFs : public Filesystem {
 
   /** Update the I/O status after a ReadBlob or WriteBlob */
   void UpdateIoStatus(const FsIoOptions &opts, IoStatus &status) override {
-#ifdef HERMES_OPENMPI
+#ifdef CAE_OPENMPI
     status.mpi_status_ptr_->_cancelled = 0;
     status.mpi_status_ptr_->_ucount = (int)(status.size_ / opts.type_size_);
-#elif defined(HERMES_MPICH)
+#elif defined(CAE_MPICH)
     status.mpi_status_ptr_->count_hi_and_cancelled = 0;
     status.mpi_status_ptr_->count_lo = (int)(status.size_ / opts.type_size_);
 #else
@@ -690,11 +699,10 @@ class MpiioFs : public Filesystem {
   }
 };
 
-}  // namespace hermes::adapter
+} // namespace cae
 
 /** Simplify access to the stateless StdioFs Singleton */
-#define HERMES_MPIIO_FS \
-  hshm::Singleton<::hermes::adapter::MpiioFs>::GetInstance()
-#define HERMES_STDIO_FS_T hermes::adapter::MpiioFs *
+#define CAE_MPIIO_FS hshm::Singleton<::cae ::MpiioFs>::GetInstance()
+#define CAE_STDIO_FS_T cae ::MpiioFs *
 
-#endif  // HERMES_ADAPTER_MPIIO_MPIIO_FS_API_H_
+#endif // CAE_ADAPTER_MPIIO_MPIIO_FS_API_H_

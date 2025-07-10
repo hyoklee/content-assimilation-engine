@@ -10,20 +10,18 @@
  * have access to the file, you may request a copy from help@hdfgroup.org.   *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef HERMES_ABSTRACT_MAPPER_H
-#define HERMES_ABSTRACT_MAPPER_H
+#ifndef CAE_ABSTRACT_MAPPER_H
+#define CAE_ABSTRACT_MAPPER_H
 
 #include "hermes/hermes_types.h"
 
-namespace hermes::adapter {
+namespace cae {
 
 /**
  * Define different types of mappers supported by POSIX Adapter.
  * Also define its construction in the MapperFactory.
  */
-enum class MapperType {
-  kBalancedMapper
-};
+enum class MapperType { kBalancedMapper };
 
 /**
  A structure to represent BLOB placement
@@ -51,7 +49,7 @@ struct BlobPlacement {
   }
 
   /** decode \a blob_name BLOB name to index.  */
-  template<typename StringT>
+  template <typename StringT>
   void DecodeBlobName(const StringT &blob_name, size_t page_size) {
     hipc::LocalDeserialize srl(blob_name);
     srl >> page_;
@@ -66,7 +64,7 @@ typedef std::vector<BlobPlacement> BlobPlacements;
    A class to represent abstract mapper
 */
 class AbstractMapper {
- public:
+public:
   /** Virtual destructor */
   virtual ~AbstractMapper() = default;
 
@@ -82,6 +80,6 @@ class AbstractMapper {
   virtual void map(size_t off, size_t size, size_t page_size,
                    BlobPlacements &ps) = 0;
 };
-}  // namespace hermes::adapter
+} // namespace cae
 
-#endif  // HERMES_ABSTRACT_MAPPER_H
+#endif // CAE_ABSTRACT_MAPPER_H
