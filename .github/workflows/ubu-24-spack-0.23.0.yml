@@ -68,7 +68,7 @@ jobs:
       run: |
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
-        cmake --preset debug
+        cmake -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) --preset debug
         cd build
         ninja
         ninja install
