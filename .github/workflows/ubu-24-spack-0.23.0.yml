@@ -48,6 +48,9 @@ jobs:
         cmake ..  -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example)
         make -j
     - name: test jarvis
+      env:
+        FI_PROVIDER: "sockets"
+        HG_LOG_LEVEL: "debug"
       run: |
         pwd
         . ./spack/share/spack/setup-env.sh
@@ -60,13 +63,16 @@ jobs:
         jarvis repo create compressor app
         tree ~/my_mod_repo/
     - name: test cae
+      env:
+        IOWARP_PREFIX: ${{ github.workspace }}
       run: |
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
-        mkdir build
-        cd build
-        cmake ..
-        make
+        cmake --preset debug
+#        mkdir build
+#        cd build
+#        cmake ..
+#        make
     - name: test engine
       run: |
         pwd
