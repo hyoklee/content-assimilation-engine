@@ -1,3 +1,5 @@
+export CXX=mpicc
+export CXX=mpicxx
 export CMAKE_PREFIX_PATH=$PREFIX
 export CMAKE_INCLUDE_PATH=$PREFIX/include
 mkdir build
