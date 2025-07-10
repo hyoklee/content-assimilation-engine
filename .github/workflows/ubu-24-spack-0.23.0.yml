@@ -33,7 +33,7 @@ jobs:
         spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
-        spack install iowarp+posix+vfd ^cmake@3.31.5 ^ninja@1.12.1
+        spack install iowarp+posix+vfd ^cmake@3.31.5
     - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
