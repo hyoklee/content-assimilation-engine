@@ -69,17 +69,7 @@ jobs:
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
         cmake --preset debug
-#        mkdir build
-#        cd build
-#        cmake ..
-#        make
-    - name: test engine
-      run: |
-        pwd
-        . ./spack/share/spack/setup-env.sh
-        spack load iowarp+posix
-        cd engine
-        mkdir build
         cd build
-        cmake ..
-        make
+        ninja
+        ninja install
+        ninja test
