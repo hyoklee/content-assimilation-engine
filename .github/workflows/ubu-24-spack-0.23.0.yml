@@ -71,5 +71,5 @@ jobs:
         ninja
         ninja install
         jarvis repo add /home/runner/.scspkg/packages/example/jarvis/jarvis_wrp_cae
-        ctest -VV -R
+        ctest -VV
 
