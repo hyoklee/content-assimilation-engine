@@ -63,8 +63,6 @@ jobs:
         jarvis repo create compressor app
         tree ~/my_mod_repo/
     - name: test cae
-      env:
-        IOWARP_PREFIX: ${{ github.workspace }}
       run: |
         . ./spack/share/spack/setup-env.sh
         spack load iowarp+posix
@@ -72,4 +70,6 @@ jobs:
         cd build
         ninja
         ninja install
-        ninja test
+        jarvis repo add /home/runner/.scspkg/packages/example/jarvis/jarvis_wrp_cae
+        ctest -VV -R
+
