@@ -70,6 +70,6 @@ jobs:
         cd build
         ninja
         ninja install
-        jarvis repo add /home/runner/.scspkg/packages/example/jarvis/jarvis_wrp_cae
+        jarvis env build hermes
         ctest -VV
 
