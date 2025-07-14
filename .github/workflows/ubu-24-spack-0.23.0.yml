@@ -33,11 +33,11 @@ jobs:
         spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
-        spack install iowarp+posix+vfd ^cmake@3.31.5
+        spack install iowarp@main +vfd +mpiio +compress +encrypt ^cmake@3.31.5
     - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
-        spack load iowarp+posix+vfd
+        spack load iowarp
         chi_make_repo ~/my_mod_repo example
         chi_make_mod ~/my_mod_repo/compressor
         scspkg create compressor
@@ -54,7 +54,7 @@ jobs:
       run: |
         pwd
         . ./spack/share/spack/setup-env.sh
-        spack load iowarp+posix
+        spack load iowarp
         jarvis bootstrap from local
         jarvis rg build
         mkdir -p ~/my_mod_repo/jarvis_example/jarvis_example
@@ -65,13 +65,15 @@ jobs:
     - name: test cae
       run: |
         . ./spack/share/spack/setup-env.sh
-        spack load iowarp+posix
+        spack load iowarp
         cmake -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) --preset debug
         cd build
         ninja
         ninja install
         jarvis env build hermes
-        jarvis pkg conf chimaera_run data_shm=500m rdata_shm=500m task_shm=500m qdepth=50 worker_cpus=[0,1,1] lane_depth=50 comux_depth=50
+        jarvis ppl index load jarvis_hermes.hermes.test_hermes
+        jarvis pkg conf chimaera_run data_shm=500m rdata_shm=500m task_shm=500m qdepth=50 worker_cpus=[0,1,1]
+        jarvis ppl print
         cat $(jarvis path +shared)/chimaera_run/hostfile
         cat $(jarvis path +shared)/chimaera_run/chimaera_server.yaml
         ctest -VV
