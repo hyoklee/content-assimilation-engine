@@ -1,0 +1,40 @@
+# Automated test for balanced, concurrent MPI job launching
+name: balanced_concurrent_test
+max_scale: 32  # Up to 32 processes for largest file
+
+data:
+- path: ../data/A46_xx.h5
+  offset: 0
+  size: 16777216  # 16MB
+  description:
+    - hdf5
+    - large
+    - test_concurrent
+  hash: test_h5_hash
+
+- path: ../data/A46_xx.arrow.parquet
+  offset: 0
+  size: 8388608  # 8MB
+  description:
+    - parquet
+    - medium
+    - test_concurrent
+  hash: test_parquet_hash
+
+- path: ../data/A46_xx.feather
+  offset: 0
+  size: 4194304  # 4MB
+  description:
+    - feather
+    - small
+    - test_concurrent
+  hash: test_feather_hash
+
+- path: ../data/A46_xx.csv
+  offset: 0
+  size: 1048576  # 1MB
+  description:
+    - csv
+    - tiny
+    - test_concurrent
+  hash: test_csv_hash 

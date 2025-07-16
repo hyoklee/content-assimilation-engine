@@ -1,0 +1,6 @@
+resource,subresource,description,tags,owners,domain,custom_properties.file_size_bytes,custom_properties.file_type
+urn:li:dataset:(urn:li:dataPlatform:file,,my_files/sales_data.csv,PROD),Sales data from 2023,finance|raw-data,urn:li:corpuser:johndoe|urn:li:corpgroup:sales-team,finance,102400,csv
+urn:li:dataset:(urn:li:dataPlatform:file,,my_files/report_q1.pdf,PROD),Quarter 1 financial report,finance|reports,urn:li:corpuser:johndoe,finance,512000,pdf
+urn:li:dataset:(urn:li:dataPlatform:file,,my_files/image.jpg,PROD),Marketing campaign image,marketing|assets,urn:li:corpuser:janedoe,marketing,256000,jpg
+resource,subresource,glossary_terms,tags,owners,ownership_type,description,domain,ownership_type_urn
+

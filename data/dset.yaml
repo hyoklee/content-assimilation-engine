@@ -1,0 +1,28 @@
+version: "0.8"
+sources:
+  - type: "manual"  # We'll use the 'manual' source for this simple example
+    config:
+      datasets:
+        - name: "users"
+          urn: "urn:li:dataset:(urn:li:dataPlatform:my_database,users,PROD)" # Unique identifier
+          description: "A table containing user information."
+          fields:
+            - name: "user_id"
+              type: "INT"
+              nullable: false
+              description: "Unique identifier for the user."
+            - name: "username"
+              type: "VARCHAR"
+              nullable: false
+              description: "The user's login username."
+            - name: "email"
+              type: "VARCHAR"
+              nullable: true
+              description: "The user's email address."
+          ownership:
+            - owner: "urn:li:corpuser:data_engineer"
+              type: "DATAOWNER"
+          tags:
+            - "user_data"
+            - "important"
+            

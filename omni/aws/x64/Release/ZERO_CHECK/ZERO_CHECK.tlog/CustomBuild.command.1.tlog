@@ -1,0 +1,10 @@
+^C:\SRC\CONTENT-ASSIMILATION-ENGINE\OMNI\AWS\CMAKEFILES\EAE975A75DAAA70DFD7A19F9C95AF0DB\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/src/content-assimilation-engine/omni -BC:/src/content-assimilation-engine/omni/aws --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/src/content-assimilation-engine/omni/aws/OMNI.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
