@@ -1,2 +1,2 @@
 [codespell]
-skip = ./astro/package-lock.json
+skip = ./astro/package-lock.json, ./omni/cacert.pem

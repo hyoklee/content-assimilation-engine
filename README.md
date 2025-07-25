@@ -7,25 +7,8 @@
 ## Installation (Manual)
 
 ```
-spack install iowarp +mpiio +vfd +compres +encrypt
+spack install iowarp +mpiio +vfd +compress +encrypt
 spack load iowarp
 ```
 
-```
-cd content-assimilation-engine
-mkdir build
-cd build
-cmake --preset debug .
-cd build
-cmake --build .
-cmake --install .
-```
-
-## CTest
-
-```
-spack load iowarp
-module load content-assimilation-engine
-jarvis env build hermes
-ctest
 ```
