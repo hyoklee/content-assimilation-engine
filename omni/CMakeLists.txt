@@ -68,19 +68,19 @@ target_link_libraries(wrp_h5 ${YAML_CPP_LIBS} ${HDF5_LIBS})
 target_include_directories(wrp_h5 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set output directory for binaries to match the main project
-set_target_properties(wrp wrp_binary_format_mpi wrp_h5 PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-)
+# set_target_properties(wrp rp_binary_format_mpi  PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+# )
 
-# Copy scripts to bin directory
-configure_file(scripts/h5topq.sh ${CMAKE_BINARY_DIR}/omni/scripts/h5topq.sh COPYONLY)
-configure_file(scripts/h5topq.bat ${CMAKE_BINARY_DIR}/omni/scripts/h5topq.bat COPYONLY)
+# set_target_properties(wrp_h5 PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+# )
 
 # Copy config files to bin directory
 configure_file(config/dataset_config.yaml ${CMAKE_BINARY_DIR}/omni/config/dataset_config.yaml COPYONLY)
 
 # Install targets
-install(TARGETS wrp wrp_binary_format_mpi wrp_h5 dataset_reader
+install(TARGETS wrp wrp_binary_format_mpi wrp_h5 
     RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
 )
 
