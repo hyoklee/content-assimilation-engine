@@ -4,11 +4,11 @@ tags:
   - "my first 3D dataset"
   - "my HDF5 file"
 
-uri: "hdf5://../data/A46_xx.h5/dset1"
-start: [0, 0, 0]
-count: [1, 1, 1]
-stride: [1, 1, 1]
+uri: "hdf5://../data/A46_xx.h5/data/axis0"
+start: [0]
+count: [1]
+stride: [1]
 
-run: h5topq.sh
+# run: h5topq.sh
 
-dest: s3://mybucket/point.parquet
+# dest: s3://mybucket/point.parquet
