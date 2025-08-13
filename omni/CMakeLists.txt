@@ -12,15 +12,30 @@ find_package(yaml-cpp REQUIRED)
 if (${YAML_CPP_LIBRARIES})
     set(YAML_CPP_LIBS ${YAML_CPP_LIBRARIES})
 elseif(TARGET yaml-cpp::yaml-cpp)
-        set(YAML_CPP_LIBS yaml-cpp::yaml-cpp)
+    set(YAML_CPP_LIBS yaml-cpp::yaml-cpp)
 else()
-  set(YAML_CPP_LIBS yaml-cpp)
+    set(YAML_CPP_LIBS yaml-cpp)
 endif()
 
 message(STATUS "Building OMNI module with yaml-cpp")
 
 # Include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# HDF5 dependency with vcpkg support
+find_package(HDF5 REQUIRED COMPONENTS C)
+if (TARGET HDF5::HDF5)
+    set(HDF5_LIBS HDF5::HDF5)
+elseif (TARGET hdf5)
+    set(HDF5_LIBS hdf5)
+else()
+    set(HDF5_LIBS ${HDF5_LIBRARIES})
+    include_directories(${HDF5_INCLUDE_DIRS})
+endif()
+
+message(STATUS "HDF5 found: ${HDF5_VERSION}")
+message(STATUS "yaml-cpp found: ${yaml-cpp_VERSION}")
+message(STATUS "Building wrp_h5 binary for HDF5 dataset reading")
 
 # Source files for the factory and repository implementations
 set(OMNI_FACTORY_SOURCES
@@ -43,13 +58,29 @@ add_executable(wrp_binary_format_mpi wrp_binary_format_mpi.cc)
 target_link_libraries(wrp_binary_format_mpi MPI::MPI_CXX)
 target_include_directories(wrp_binary_format_mpi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+# HDF5 dataset reader (wrp_h5 binary)
+add_executable(wrp_h5
+    wrp_h5.cc
+    format/dataset_config.cc
+    format/hdf5_dataset_client.cc
+)
+target_link_libraries(wrp_h5 ${YAML_CPP_LIBS} ${HDF5_LIBS})
+target_include_directories(wrp_h5 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
 # Set output directory for binaries to match the main project
-set_target_properties(wrp wrp_binary_format_mpi PROPERTIES
+set_target_properties(wrp wrp_binary_format_mpi wrp_h5 PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 
+# Copy scripts to bin directory
+configure_file(scripts/h5topq.sh ${CMAKE_BINARY_DIR}/omni/scripts/h5topq.sh COPYONLY)
+configure_file(scripts/h5topq.bat ${CMAKE_BINARY_DIR}/omni/scripts/h5topq.bat COPYONLY)
+
+# Copy config files to bin directory
+configure_file(config/dataset_config.yaml ${CMAKE_BINARY_DIR}/omni/config/dataset_config.yaml COPYONLY)
+
 # Install targets
-install(TARGETS wrp wrp_binary_format_mpi
+install(TARGETS wrp wrp_binary_format_mpi wrp_h5 dataset_reader
     RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
 )
 
@@ -62,6 +93,8 @@ install(FILES
     format/format_client.h
     format/format_factory.h
     format/binary_file_omni.h
+    format/dataset_config.h
+    format/hdf5_dataset_client.h
     DESTINATION ${CAE_INSTALL_INCLUDE_DIR}/omni/format
 )
 
@@ -101,4 +134,4 @@ install(PROGRAMS config/test_wildcards.sh
         DESTINATION ${CMAKE_BINARY_DIR}/omni/config/
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                    GROUP_READ GROUP_EXECUTE
-                   WORLD_READ WORLD_EXECUTE) 
+                   WORLD_READ WORLD_EXECUTE)
