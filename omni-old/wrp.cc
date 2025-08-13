@@ -134,7 +134,7 @@ int put_hermes_tags(hermes::Context *ctx, hermes::Bucket *bkt,
 }
 
 int put_hermes(std::string name, std::string tags, std::string path,
-               unsigned char *buffer, int nbyte) {
+               unsigned char *buffer, size_t nbyte) {
 
   hermes::Context ctx;
   hermes::Bucket bkt(name);
@@ -169,7 +169,7 @@ int get_hermes(std::string name, std::string path) {
 #endif
 
 int put(std::string name, std::string tags, std::string path,
-        unsigned char *buffer, int nbyte) {
+        unsigned char *buffer, size_t nbyte) {
 
 #ifdef USE_HERMES
   put_hermes(name, tags, path, buffer, nbyte);
