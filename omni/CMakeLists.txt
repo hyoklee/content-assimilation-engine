@@ -1,6 +1,14 @@
 # Content Assimilation Engine (CAE) - OMNI Module
 # Note: This CMakeLists.txt is designed to be included from the main project
 
+cmake_minimum_required(VERSION 3.22)
+project(OMNI)
+
+include(CTest)
+enable_testing()
+
+set(CMAKE_CXX_STANDARD 17)
+
 # Check if we have the necessary dependencies available from the parent project
 if(NOT TARGET MPI::MPI_CXX)
     message(STATUS "MPI not found in parent project, attempting to find it")

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <yaml-cpp/yaml.h>
+#include <hdf5.h>
 
 namespace cae {
 
