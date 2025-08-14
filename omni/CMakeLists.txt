@@ -32,13 +32,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # HDF5 dependency with vcpkg support
 find_package(HDF5 REQUIRED COMPONENTS C)
+include_directories(${HDF5_INCLUDE_DIRS})
 if (TARGET HDF5::HDF5)
     set(HDF5_LIBS HDF5::HDF5)
 elseif (TARGET hdf5)
     set(HDF5_LIBS hdf5)
 else()
     set(HDF5_LIBS ${HDF5_LIBRARIES})
-    include_directories(${HDF5_INCLUDE_DIRS})
 endif()
 
 message(STATUS "HDF5 found: ${HDF5_VERSION}")
