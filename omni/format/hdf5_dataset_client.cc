@@ -312,7 +312,17 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
   std::vector<hsize_t> read_dims = dims;
   if (total_elements > max_elements_to_print) {
     // For large datasets, read only the first few elements
-    read_dims[0] = std::min(dims[0], static_cast<hsize_t>(max_elements_to_print));
+    // Calculate how many elements to read from the first dimension
+    size_t elements_per_dim = 1;
+    for (size_t i = 1; i < dims.size(); ++i) {
+      elements_per_dim *= dims[i];
+    }
+    if (elements_per_dim > 0) {
+      size_t max_first_dim = max_elements_to_print / elements_per_dim;
+      read_dims[0] = std::min(dims[0], static_cast<hsize_t>(max_first_dim));
+    } else {
+      read_dims[0] = std::min(dims[0], static_cast<hsize_t>(max_elements_to_print));
+    }
   }
   
   hid_t memspace_id = H5Screate_simple(read_dims.size(), read_dims.data(), nullptr);
