@@ -415,6 +415,19 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
       }
       break;
     }
+    case H5T_STRING: {
+      // Get string size
+      size_t string_size = H5Tget_size(datatype);
+      const char* data = reinterpret_cast<const char*>(buffer.data());
+      
+      for (size_t i = 0; i < elements_to_print; ++i) {
+        if (i > 0) std::cout << ", ";
+        // Extract string at position i
+        const char* str = data + (i * string_size);
+        std::cout << "\"" << str << "\"";
+      }
+      break;
+    }
     default:
       std::cout << "[Unsupported datatype for printing]";
       break;
@@ -523,6 +536,19 @@ void Hdf5DatasetClient::PrintHyperslabValues(const void* buffer, const std::vect
           if (i > 0) std::cout << ", ";
           std::cout << "float_val_" << i;
         }
+      }
+      break;
+    }
+    case H5T_STRING: {
+      // Get string size
+      size_t string_size = H5Tget_size(datatype);
+      const char* data = reinterpret_cast<const char*>(buffer);
+      
+      for (size_t i = 0; i < elements_to_print; ++i) {
+        if (i > 0) std::cout << ", ";
+        // Extract string at position i
+        const char* str = data + (i * string_size);
+        std::cout << "\"" << str << "\"";
       }
       break;
     }
