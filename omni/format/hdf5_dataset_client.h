@@ -60,7 +60,7 @@ private:
                            const std::vector<hsize_t>& start,
                            const std::vector<hsize_t>& count,
                            const std::vector<hsize_t>& stride,
-                           void* buffer);
+                           void* buffer, hid_t datatype);
   
   /** Get dataset information */
   bool GetDatasetInfo(hid_t file_id, const std::string& dataset_name,
@@ -74,6 +74,10 @@ private:
   
   /** Print dataset values for debugging */
   void PrintDatasetValues(hid_t dataset_id, const std::string& dataset_name);
+  
+  /** Print hyperslab values after reading */
+  void PrintHyperslabValues(const void* buffer, const std::vector<hsize_t>& dimensions, 
+                           hid_t datatype, const std::string& dataset_name);
 };
 
 } // namespace cae

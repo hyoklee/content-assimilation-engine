@@ -4,10 +4,10 @@ tags:
   - "my first 3D dataset"
   - "my HDF5 file"
 
-uri: "hdf5://../data/A46_xx.h5/data/axis0"
+uri: "hdf5://../data/A46_xx.h5/data/axis1"
 start: [0]
-count: [1]
-stride: [1]
+count: [20]
+stride: [5]
 
 # run: h5topq.sh
 

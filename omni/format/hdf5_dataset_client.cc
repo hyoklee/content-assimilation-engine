@@ -4,6 +4,7 @@
 #include <cstring>
 #include <filesystem>
 #include <sstream>
+#include <cstdint>
 
 namespace cae {
 
@@ -62,13 +63,16 @@ void Hdf5DatasetClient::ReadDataset(const DatasetConfig& config) {
   }
   
   // Read the hyperslab
-  if (!ReadDatasetHyperslab(file_id, dataset_name, config.start, config.count, config.stride, buffer.get())) {
+  if (!ReadDatasetHyperslab(file_id, dataset_name, config.start, config.count, config.stride, buffer.get(), datatype)) {
     std::cerr << "Error: Failed to read dataset hyperslab" << std::endl;
     CloseHdf5File(file_id);
     return;
   }
   
   std::cout << "Successfully read dataset hyperslab" << std::endl;
+  
+  // Print hyperslab values after reading
+  PrintHyperslabValues(buffer.get(), config.count, datatype, dataset_name);
   
   // Call callback
   OnDatasetRead(dataset_name, config.count);
@@ -180,7 +184,7 @@ bool Hdf5DatasetClient::ReadDatasetHyperslab(hid_t file_id, const std::string& d
                                             const std::vector<hsize_t>& start,
                                             const std::vector<hsize_t>& count,
                                             const std::vector<hsize_t>& stride,
-                                            void* buffer) {
+                                            void* buffer, hid_t datatype) {
   // Open dataset
   hid_t dataset_id = H5Dopen2(file_id, dataset_name.c_str(), H5P_DEFAULT);
   if (dataset_id < 0) {
@@ -219,7 +223,7 @@ bool Hdf5DatasetClient::ReadDatasetHyperslab(hid_t file_id, const std::string& d
   }
   
   // Read data
-  status = H5Dread(dataset_id, H5T_NATIVE_DOUBLE, memspace_id, dataspace_id, H5P_DEFAULT, buffer);
+  status = H5Dread(dataset_id, datatype, memspace_id, dataspace_id, H5P_DEFAULT, buffer);
   if (status < 0) {
     std::cerr << "Error: Failed to read dataset" << std::endl;
     H5Sclose(memspace_id);
@@ -416,6 +420,112 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
   H5Sclose(memspace_id);
   H5Tclose(datatype);
   H5Sclose(dataspace_id);
+}
+
+void Hdf5DatasetClient::PrintHyperslabValues(const void* buffer, const std::vector<hsize_t>& dimensions, 
+                                            hid_t datatype, const std::string& dataset_name) {
+  std::cout << "=== Hyperslab Values for: " << dataset_name << " ===" << std::endl;
+  
+  // Calculate total number of elements in the hyperslab
+  size_t total_elements = 1;
+  for (hsize_t dim : dimensions) {
+    total_elements *= dim;
+  }
+  
+  std::cout << "Hyperslab dimensions: ";
+  for (size_t i = 0; i < dimensions.size(); ++i) {
+    if (i > 0) std::cout << " x ";
+    std::cout << dimensions[i];
+  }
+  std::cout << std::endl;
+  
+  std::cout << "Total elements in hyperslab: " << total_elements << std::endl;
+  
+  // Print datatype information for debugging
+  H5T_class_t type_class = H5Tget_class(datatype);
+  std::cout << "Datatype class: " << type_class << " (0=INTEGER, 1=FLOAT, 2=STRING, 3=BITFIELD, 4=OPAQUE, 5=COMPOUND, 6=REFERENCE, 7=ENUM, 8=VLEN, 9=ARRAY)" << std::endl;
+  
+  // Limit the number of elements to print to avoid overwhelming output
+  const size_t max_elements_to_print = 100;
+  size_t elements_to_print = std::min(total_elements, max_elements_to_print);
+  
+  std::cout << "First " << elements_to_print << " hyperslab values: ";
+  
+  // Determine the native type and print accordingly
+  switch (type_class) {
+    case H5T_INTEGER: {
+      if (H5Tequal(datatype, H5T_NATIVE_INT)) {
+        const int* data = reinterpret_cast<const int*>(buffer);
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else if (H5Tequal(datatype, H5T_NATIVE_LONG)) {
+        const long* data = reinterpret_cast<const long*>(buffer);
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else if (H5Tequal(datatype, H5T_NATIVE_INT64)) {
+        const int64_t* data = reinterpret_cast<const int64_t*>(buffer);
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else if (H5Tequal(datatype, H5T_NATIVE_UINT64)) {
+        const uint64_t* data = reinterpret_cast<const uint64_t*>(buffer);
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else {
+        // Try to print as generic integer with size information
+        size_t type_size = H5Tget_size(datatype);
+        std::cout << "[Integer type with size " << type_size << " bytes - raw values: ";
+        const unsigned char* raw_data = reinterpret_cast<const unsigned char*>(buffer);
+        for (size_t i = 0; i < std::min(elements_to_print, size_t(5)); ++i) {
+          if (i > 0) std::cout << ", ";
+          for (size_t j = 0; j < type_size; ++j) {
+            std::cout << std::hex << static_cast<int>(raw_data[i * type_size + j]) << std::dec;
+          }
+        }
+        if (elements_to_print > 5) std::cout << ", ...";
+        std::cout << "]";
+      }
+      break;
+    }
+    case H5T_FLOAT: {
+      if (H5Tequal(datatype, H5T_NATIVE_DOUBLE)) {
+        const double* data = reinterpret_cast<const double*>(buffer);
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else if (H5Tequal(datatype, H5T_NATIVE_FLOAT)) {
+        const float* data = reinterpret_cast<const float*>(buffer);
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else {
+        // Generic float printing
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << "float_val_" << i;
+        }
+      }
+      break;
+    }
+    default:
+      std::cout << "[Unsupported datatype for printing]";
+      break;
+  }
+  
+  if (total_elements > max_elements_to_print) {
+    std::cout << " ... (showing first " << max_elements_to_print << " of " << total_elements << " elements)";
+  }
+  std::cout << std::endl;
+  std::cout << "=== End Hyperslab Values ===" << std::endl;
 }
 
 } // namespace cae
