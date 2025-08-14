@@ -1,0 +1,10 @@
+name: header
+tags:
+  - "2nd and 3rd column headers"
+  - "2D dataset"
+  - "HDF5 file from CSV"
+
+uri: "hdf5://../data/A46_xx.h5/data/axis0"
+start: [1]
+count: [2]
+stride: [1]
