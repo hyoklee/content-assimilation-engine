@@ -71,6 +71,9 @@ private:
   
   /** Calculate total size of dataset */
   size_t CalculateDatasetSize(const std::vector<hsize_t>& dimensions, hid_t datatype);
+  
+  /** Print dataset values for debugging */
+  void PrintDatasetValues(hid_t dataset_id, const std::string& dataset_name);
 };
 
 } // namespace cae

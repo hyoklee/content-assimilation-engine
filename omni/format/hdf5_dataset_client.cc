@@ -138,6 +138,9 @@ bool Hdf5DatasetClient::GetDatasetInfo(hid_t file_id, const std::string& dataset
     return false;
   }
   
+  // Print dataset values after opening
+  PrintDatasetValues(dataset_id, dataset_name);
+  
   // Get dataspace
   hid_t dataspace_id = H5Dget_space(dataset_id);
   if (dataspace_id < 0) {
@@ -184,6 +187,9 @@ bool Hdf5DatasetClient::ReadDatasetHyperslab(hid_t file_id, const std::string& d
     std::cerr << "Error: Failed to open dataset: " << dataset_name << std::endl;
     return false;
   }
+  
+  // Print dataset values after opening
+  PrintDatasetValues(dataset_id, dataset_name);
   
   // Get dataspace
   hid_t dataspace_id = H5Dget_space(dataset_id);
@@ -253,6 +259,163 @@ size_t Hdf5DatasetClient::CalculateDatasetSize(const std::vector<hsize_t>& dimen
   }
   
   return total_size;
+}
+
+void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& dataset_name) {
+  std::cout << "=== Dataset Values for: " << dataset_name << " ===" << std::endl;
+  
+  // Get dataspace
+  hid_t dataspace_id = H5Dget_space(dataset_id);
+  if (dataspace_id < 0) {
+    std::cerr << "Error: Failed to get dataspace for printing values" << std::endl;
+    return;
+  }
+  
+  // Get dimensions
+  int rank = H5Sget_simple_extent_ndims(dataspace_id);
+  if (rank < 0) {
+    std::cerr << "Error: Failed to get dataset rank for printing" << std::endl;
+    H5Sclose(dataspace_id);
+    return;
+  }
+  
+  std::vector<hsize_t> dims(rank);
+  H5Sget_simple_extent_dims(dataspace_id, dims.data(), nullptr);
+  
+  // Get datatype
+  hid_t datatype = H5Dget_type(dataset_id);
+  if (datatype < 0) {
+    std::cerr << "Error: Failed to get dataset datatype for printing" << std::endl;
+    H5Sclose(dataspace_id);
+    return;
+  }
+  
+  // Calculate total size
+  size_t total_elements = 1;
+  for (hsize_t dim : dims) {
+    total_elements *= dim;
+  }
+  
+  // Limit the number of elements to print to avoid overwhelming output
+  const size_t max_elements_to_print = 100;
+  size_t elements_to_print = std::min(total_elements, max_elements_to_print);
+  
+  // Allocate buffer for reading
+  size_t type_size = H5Tget_size(datatype);
+  std::vector<char> buffer(elements_to_print * type_size);
+  
+  // Create memory dataspace for reading
+  std::vector<hsize_t> read_dims = dims;
+  if (total_elements > max_elements_to_print) {
+    // For large datasets, read only the first few elements
+    read_dims[0] = std::min(dims[0], static_cast<hsize_t>(max_elements_to_print));
+  }
+  
+  hid_t memspace_id = H5Screate_simple(read_dims.size(), read_dims.data(), nullptr);
+  if (memspace_id < 0) {
+    std::cerr << "Error: Failed to create memory dataspace for printing" << std::endl;
+    H5Tclose(datatype);
+    H5Sclose(dataspace_id);
+    return;
+  }
+  
+  // Select hyperslab from file dataspace to match memory dataspace
+  std::vector<hsize_t> start(dims.size(), 0);  // Start at origin
+  std::vector<hsize_t> stride(dims.size(), 1); // Unit stride
+  std::vector<hsize_t> count = read_dims;      // Count matches memory dataspace
+  
+  herr_t status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, 
+                                     start.data(), stride.data(), count.data(), nullptr);
+  if (status < 0) {
+    std::cerr << "Error: Failed to select hyperslab for printing" << std::endl;
+    H5Sclose(memspace_id);
+    H5Tclose(datatype);
+    H5Sclose(dataspace_id);
+    return;
+  }
+  
+  // Read data
+  status = H5Dread(dataset_id, datatype, memspace_id, dataspace_id, H5P_DEFAULT, buffer.data());
+  if (status < 0) {
+    std::cerr << "Error: Failed to read dataset for printing" << std::endl;
+    H5Sclose(memspace_id);
+    H5Tclose(datatype);
+    H5Sclose(dataspace_id);
+    return;
+  }
+  
+  // Print values based on datatype
+  std::cout << "Dataset dimensions: ";
+  for (size_t i = 0; i < dims.size(); ++i) {
+    if (i > 0) std::cout << " x ";
+    std::cout << dims[i];
+  }
+  std::cout << std::endl;
+  
+  std::cout << "First " << elements_to_print << " values: ";
+  
+  // Determine the native type and print accordingly
+  H5T_class_t type_class = H5Tget_class(datatype);
+  switch (type_class) {
+    case H5T_INTEGER: {
+      if (H5Tequal(datatype, H5T_NATIVE_INT)) {
+        int* data = reinterpret_cast<int*>(buffer.data());
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else if (H5Tequal(datatype, H5T_NATIVE_LONG)) {
+        long* data = reinterpret_cast<long*>(buffer.data());
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else {
+        // Generic integer printing
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << "int_val_" << i;
+        }
+      }
+      break;
+    }
+    case H5T_FLOAT: {
+      if (H5Tequal(datatype, H5T_NATIVE_DOUBLE)) {
+        double* data = reinterpret_cast<double*>(buffer.data());
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else if (H5Tequal(datatype, H5T_NATIVE_FLOAT)) {
+        float* data = reinterpret_cast<float*>(buffer.data());
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << data[i];
+        }
+      } else {
+        // Generic float printing
+        for (size_t i = 0; i < elements_to_print; ++i) {
+          if (i > 0) std::cout << ", ";
+          std::cout << "float_val_" << i;
+        }
+      }
+      break;
+    }
+    default:
+      std::cout << "[Unsupported datatype for printing]";
+      break;
+  }
+  
+  if (total_elements > max_elements_to_print) {
+    std::cout << " ... (showing first " << max_elements_to_print << " of " << total_elements << " elements)";
+  }
+  std::cout << std::endl;
+  std::cout << "=== End Dataset Values ===" << std::endl;
+  
+  // Cleanup
+  H5Sclose(memspace_id);
+  H5Tclose(datatype);
+  H5Sclose(dataspace_id);
 }
 
 } // namespace cae
