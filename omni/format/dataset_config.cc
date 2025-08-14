@@ -73,7 +73,7 @@ DatasetConfig ParseDatasetConfig(const std::string& yaml_file) {
 
 bool ParseHdf5Uri(const std::string& uri, std::string& file_path, std::string& dataset_name) {
   // Parse URI format: hdf5://path/to/file.h5/dataset_name
-  std::regex uri_regex(R"(hdf5://(.+)/(.+))");
+  std::regex uri_regex(R"(hdf5://(.+\.h5)/?(.*))");
   std::smatch match;
   
   if (std::regex_match(uri, match, uri_regex)) {

@@ -1,10 +1,10 @@
 # OMNI job to load entire TERRA HDF5 file
-name: terra_hdf5_full_load
+name: terra_fusion_10
 max_scale: 8  # Use up to 8 processes for large file processing
 data:
-- path: ~/Downloads/TERRA_BF_L1B_O10204_20011118010522_F000_V001.h5
-  offset: 0  # Start from beginning of file
-  # size omitted to read entire file
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O10204_20011118010522_F000_V001.h5
+  offset: 0
+  size: 10000
   description:
     - hdf5
     - binary
@@ -14,4 +14,122 @@ data:
     - scientific_data
     - remote_sensing
     - earth_observation
-  hash: terra_hdf5_full_file  # Identifier for this data load 
+  hash: TERRA_BF_L1B_O10204_20011118010522_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O10437_20011204010522_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O10437_20011204010522_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O10670_20011220010522_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O10670_20011220010522_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O10903_20020105010522_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O10903_20020105010522_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O11136_20020121010314_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O11136_20020121010314_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O1117_20000304011433_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O1117_20000304011433_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O11369_20020206010314_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O11369_20020206010314_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O11602_20020222010314_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O11602_20020222010314_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O11835_20020310010314_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O11835_20020310010314_F000_V001
+- path: /mnt/common/datasets-staging/TERRA_BF_L1B_O12068_20020326010207_F000_V001.h5
+  offset: 0
+  size: 10000
+  description:
+    - hdf5
+    - binary
+    - satellite_data
+    - terra_modis
+    - level1b
+    - scientific_data
+    - remote_sensing
+    - earth_observation
+  hash: TERRA_BF_L1B_O12068_20020326010207_F000_V001
+  
