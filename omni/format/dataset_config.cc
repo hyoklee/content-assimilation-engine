@@ -33,7 +33,7 @@ DatasetConfig ParseDatasetConfig(const std::string& yaml_file) {
     if (yaml["start"]) {
       const YAML::Node& start_node = yaml["start"];
       for (const auto& coord : start_node) {
-        config.start.push_back(coord.as<hsize_t>());
+        config.start.push_back(coord.as<uint64_t>());
       }
     }
     
@@ -41,7 +41,7 @@ DatasetConfig ParseDatasetConfig(const std::string& yaml_file) {
     if (yaml["count"]) {
       const YAML::Node& count_node = yaml["count"];
       for (const auto& val : count_node) {
-        config.count.push_back(val.as<hsize_t>());
+        config.count.push_back(val.as<uint64_t>());
       }
     }
     
@@ -49,7 +49,7 @@ DatasetConfig ParseDatasetConfig(const std::string& yaml_file) {
     if (yaml["stride"]) {
       const YAML::Node& stride_node = yaml["stride"];
       for (const auto& val : stride_node) {
-        config.stride.push_back(val.as<hsize_t>());
+        config.stride.push_back(val.as<uint64_t>());
       }
     }
     

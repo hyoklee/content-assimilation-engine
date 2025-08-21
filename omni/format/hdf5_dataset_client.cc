@@ -39,7 +39,7 @@ void Hdf5DatasetClient::ReadDataset(const DatasetConfig& config) {
   }
   
   // Get dataset information
-  std::vector<hsize_t> dimensions;
+  std::vector<uint64_t> dimensions;
   hid_t datatype;
   if (!GetDatasetInfo(file_id, dataset_name, dimensions, datatype)) {
     std::cerr << "Error: Failed to get dataset info for: " << dataset_name << std::endl;
@@ -134,7 +134,7 @@ void Hdf5DatasetClient::CloseHdf5File(hid_t file_id) {
 }
 
 bool Hdf5DatasetClient::GetDatasetInfo(hid_t file_id, const std::string& dataset_name,
-                                      std::vector<hsize_t>& dimensions, hid_t& datatype) {
+                                       std::vector<uint64_t>& dimensions, hid_t& datatype) {
   // Open dataset
   hid_t dataset_id = H5Dopen2(file_id, dataset_name.c_str(), H5P_DEFAULT);
   if (dataset_id < 0) {
@@ -181,10 +181,10 @@ bool Hdf5DatasetClient::GetDatasetInfo(hid_t file_id, const std::string& dataset
 }
 
 bool Hdf5DatasetClient::ReadDatasetHyperslab(hid_t file_id, const std::string& dataset_name,
-                                            const std::vector<hsize_t>& start,
-                                            const std::vector<hsize_t>& count,
-                                            const std::vector<hsize_t>& stride,
-                                            void* buffer, hid_t datatype) {
+                                             const std::vector<uint64_t>& start,
+                                             const std::vector<uint64_t>& count,
+                                             const std::vector<uint64_t>& stride,
+                                             void* buffer, hid_t datatype) {
   // Open dataset
   hid_t dataset_id = H5Dopen2(file_id, dataset_name.c_str(), H5P_DEFAULT);
   if (dataset_id < 0) {
@@ -239,7 +239,7 @@ bool Hdf5DatasetClient::ReadDatasetHyperslab(hid_t file_id, const std::string& d
   return true;
 }
 
-std::unique_ptr<char[]> Hdf5DatasetClient::AllocateBuffer(const std::vector<hsize_t>& dimensions, hid_t datatype) {
+std::unique_ptr<char[]> Hdf5DatasetClient::AllocateBuffer(const std::vector<uint64_t>& dimensions, hid_t datatype) {
   size_t total_size = CalculateDatasetSize(dimensions, datatype);
   if (total_size == 0) {
     return nullptr;
@@ -248,7 +248,7 @@ std::unique_ptr<char[]> Hdf5DatasetClient::AllocateBuffer(const std::vector<hsiz
   return std::make_unique<char[]>(total_size);
 }
 
-size_t Hdf5DatasetClient::CalculateDatasetSize(const std::vector<hsize_t>& dimensions, hid_t datatype) {
+size_t Hdf5DatasetClient::CalculateDatasetSize(const std::vector<uint64_t>& dimensions, hid_t datatype) {
   // Get size of datatype
   size_t type_size = H5Tget_size(datatype);
   if (type_size == 0) {
@@ -258,7 +258,7 @@ size_t Hdf5DatasetClient::CalculateDatasetSize(const std::vector<hsize_t>& dimen
   
   // Calculate total size
   size_t total_size = type_size;
-  for (hsize_t dim : dimensions) {
+  for (uint64_t dim : dimensions) {
     total_size *= dim;
   }
   
@@ -283,7 +283,7 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
     return;
   }
   
-  std::vector<hsize_t> dims(rank);
+  std::vector<uint64_t> dims(rank);
   H5Sget_simple_extent_dims(dataspace_id, dims.data(), nullptr);
   
   // Get datatype
@@ -296,7 +296,7 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
   
   // Calculate total size
   size_t total_elements = 1;
-  for (hsize_t dim : dims) {
+  for (uint64_t dim : dims) {
     total_elements *= dim;
   }
   
@@ -309,7 +309,7 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
   std::vector<char> buffer(elements_to_print * type_size);
   
   // Create memory dataspace for reading
-  std::vector<hsize_t> read_dims = dims;
+  std::vector<uint64_t> read_dims = dims;
   if (total_elements > max_elements_to_print) {
     // For large datasets, read only the first few elements
     // Calculate how many elements to read from the first dimension
@@ -319,9 +319,9 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
     }
     if (elements_per_dim > 0) {
       size_t max_first_dim = max_elements_to_print / elements_per_dim;
-      read_dims[0] = std::min(dims[0], static_cast<hsize_t>(max_first_dim));
+      read_dims[0] = std::min(dims[0], static_cast<uint64_t>(max_first_dim));
     } else {
-      read_dims[0] = std::min(dims[0], static_cast<hsize_t>(max_elements_to_print));
+      read_dims[0] = std::min(dims[0], static_cast<uint64_t>(max_elements_to_print));
     }
   }
   
@@ -334,9 +334,9 @@ void Hdf5DatasetClient::PrintDatasetValues(hid_t dataset_id, const std::string& 
   }
   
   // Select hyperslab from file dataspace to match memory dataspace
-  std::vector<hsize_t> start(dims.size(), 0);  // Start at origin
-  std::vector<hsize_t> stride(dims.size(), 1); // Unit stride
-  std::vector<hsize_t> count = read_dims;      // Count matches memory dataspace
+  std::vector<uint64_t> start(dims.size(), 0);  // Start at origin
+  std::vector<uint64_t> stride(dims.size(), 1); // Unit stride
+  std::vector<uint64_t> count = read_dims;      // Count matches memory dataspace
   
   herr_t status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, 
                                      start.data(), stride.data(), count.data(), nullptr);
@@ -451,7 +451,7 @@ void Hdf5DatasetClient::PrintHyperslabValues(const void* buffer, const std::vect
   
   // Calculate total number of elements in the hyperslab
   size_t total_elements = 1;
-  for (hsize_t dim : dimensions) {
+  for (uint64_t dim : dimensions) {
     total_elements *= dim;
   }
   

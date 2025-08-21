@@ -3,8 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 #include <yaml-cpp/yaml.h>
-#include <hdf5.h>
 
 namespace cae {
 
@@ -15,9 +15,9 @@ struct DatasetConfig {
   std::string name;
   std::vector<std::string> tags;
   std::string uri;
-  std::vector<hsize_t> start;
-  std::vector<hsize_t> count;
-  std::vector<hsize_t> stride;
+  std::vector<uint64_t> start;
+  std::vector<uint64_t> count;
+  std::vector<uint64_t> stride;
   std::string run_script;
   std::string destination;
 

@@ -48,6 +48,8 @@ message(STATUS "Building wrp_h5 binary for HDF5 dataset reading")
 # Source files for the factory and repository implementations
 set(OMNI_FACTORY_SOURCES
     format/format_factory.cc
+    format/hdf5_dataset_client.cc
+    format/dataset_config.cc
     repo/repo_factory.cc
 )
 
@@ -55,10 +57,11 @@ set(OMNI_FACTORY_SOURCES
 add_library(omni_lib STATIC ${OMNI_FACTORY_SOURCES})
 target_link_libraries(omni_lib MPI::MPI_CXX ${YAML_CPP_LIBS})
 target_include_directories(omni_lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(omni_lib PRIVATE ${HDF5_INCLUDE_DIRS})
 
 # Main YAML parser and job orchestrator (wrp binary)
 add_executable(wrp wrp.cc)
-target_link_libraries(wrp omni_lib MPI::MPI_CXX ${YAML_CPP_LIBS})
+target_link_libraries(wrp omni_lib MPI::MPI_CXX ${YAML_CPP_LIBS} ${HDF5_LIBS})
 target_include_directories(wrp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # MPI binary format processor (wrp_binary_format_mpi binary)
