@@ -6,7 +6,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits.h> // For PATH_MAX
+#ifdef OMNI_ENABLE_MPI
 #include <mpi.h>
+#endif
 #include <pwd.h>
 #include <sstream>
 #include <string>
@@ -414,16 +416,19 @@ void ProcessHdf5DataEntry(const OmniJobConfig::DataEntry &entry) {
   
   // Parse the HDF5 URI
   std::string file_path, dataset_name;
+#ifdef  OMNI_ENABLE_HDF5  
   if (!cae::ParseHdf5Uri(entry.uri, file_path, dataset_name)) {
     std::cerr << "Error: Invalid HDF5 URI format: " << entry.uri << std::endl;
     return;
   }
-  
+#endif  
   std::cout << "File path: " << file_path << std::endl;
   std::cout << "Dataset name: " << dataset_name << std::endl;
-  
+
+#ifdef  OMNI_ENABLE_HDF5
   // Create HDF5 dataset client and read the dataset
   cae::Hdf5DatasetClient client;
+#endif
   
   // Create DatasetConfig from entry
   cae::DatasetConfig config;
@@ -440,12 +445,15 @@ void ProcessHdf5DataEntry(const OmniJobConfig::DataEntry &entry) {
     config.tags.push_back(desc);
   }
   
+#ifdef  OMNI_ENABLE_HDF5
   try {
     client.ReadDataset(config);
     std::cout << "✓ Successfully completed HDF5 processing" << std::endl;
   } catch (const std::exception& e) {
     std::cerr << "✗ Failed to process HDF5 dataset: " << e.what() << std::endl;
   }
+#endif
+  
 }
 
 void ProcessDataEntry(const OmniJobConfig::DataEntry &entry, int nprocs,
@@ -611,6 +619,8 @@ std::string WriteTempHostfile(const std::vector<std::string> &hosts, const std::
 
 int main(int argc, char *argv[]) {
   std::cout << "=== MAIN FUNCTION STARTED ===" << std::endl;
+  
+#ifdef OMNI_ENABLE_MPI
   // Initialize MPI for the main orchestrator
   MPI_Init(&argc, &argv);
 
@@ -623,6 +633,15 @@ int main(int argc, char *argv[]) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#else
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " <omni_yaml_file> [hostfile]"
+              << std::endl;
+    return 1;
+  }
+
+  int rank = 0; // Single process mode
+#endif
 
   try {
     // Parse the OMNI YAML file
@@ -653,7 +672,8 @@ int main(int argc, char *argv[]) {
                 << (hostfile.empty() ? "not specified" : hostfile) << std::endl;
       std::cout << "Number of data entries: " << config.data_entries.size()
                 << std::endl;
-      
+
+
       // Display HDF5 entries
       int hdf5_count = 0;
       for (const auto& entry : config.data_entries) {
@@ -738,10 +758,14 @@ int main(int argc, char *argv[]) {
     if (rank == 0) {
       std::cerr << "Error: " << e.what() << std::endl;
     }
+#ifdef OMNI_ENABLE_MPI
     MPI_Finalize();
+#endif
     return 1;
   }
 
+#ifdef OMNI_ENABLE_MPI
   MPI_Finalize();
+#endif
   return 0;
 }

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
 project(cae VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -18,7 +18,7 @@ option(CAE_ENABLE_CMAKE_DOTENV "Load environment variables from .env.cmake" OFF)
 
 option(CAE_ENABLE_NVIDIA_GDS_ADAPTER "Build the Hermes NVIDIA GDS adapter." OFF)
 option(CAE_ENABLE_POSIX_ADAPTER "Build the Hermes POSIX adapter." ON)
-option(CAE_ENABLE_STDIO_ADAPTER "Build the Hermes stdio adapter." OFF)
+option(CAE_ENABLE_STDIO_ADAPTER "Build the Hermes stdio adapter." ON)
 option(CAE_ENABLE_MPIIO_ADAPTER "Build the Hermes MPI-IO adapter." OFF)
 option(CAE_ENABLE_VFD "Build the Hermes HDF5 Virtual File Driver" OFF)
 

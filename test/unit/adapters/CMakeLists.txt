@@ -9,26 +9,26 @@ find_package(OpenMP REQUIRED COMPONENTS C CXX)
 
 enable_testing()
 
-if(HERMES_ENABLE_POSIX_ADAPTER)
+if(CAE_ENABLE_POSIX_ADAPTER)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/posix)
 endif()
 
-if(HERMES_ENABLE_NVIDIA_GDS_ADAPTER)
+if(CAE_ENABLE_NVIDIA_GDS_ADAPTER)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/nvidia_gds)
 endif()
 
-if(HERMES_ENABLE_STDIO_ADAPTER)
+if(CAE_ENABLE_STDIO_ADAPTER)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/stdio)
 endif()
 
-if(HERMES_ENABLE_MPIIO_ADAPTER)
+if(CAE_ENABLE_MPIIO_ADAPTER)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/mpiio)
 endif()
 
-if(HERMES_ENABLE_PUBSUB_ADAPTER)
+if(CAE_ENABLE_PUBSUB_ADAPTER)
   # add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pubsub)
 endif()
 
-if(HERMES_ENABLE_VFD)
+if(CAE_ENABLE_VFD)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vfd)
 endif()
