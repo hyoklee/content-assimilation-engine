@@ -236,7 +236,7 @@ OmniJobConfig ParseOmniFile(const std::string &yaml_file) {
             data_entry.hdf5_stride.push_back(val.as<hsize_t>());
           }
         }
-#endif
+
         if (entry["run"]) {
           data_entry.run_script = entry["run"].as<std::string>();
         }
@@ -244,7 +244,7 @@ OmniJobConfig ParseOmniFile(const std::string &yaml_file) {
         if (entry["dest"]) {
           data_entry.destination = entry["dest"].as<std::string>();
         }
-
+#endif
         // If size is not specified (0), automatically detect file size
         if (data_entry.size == 0 && !data_entry.paths.empty()) {
           FilesystemRepoClient fs_client;
@@ -417,11 +417,12 @@ void ProcessHdf5DataEntry(const OmniJobConfig::DataEntry &entry) {
   std::cout << "\n" << std::string(50, '=') << std::endl;
   std::cout << "Processing HDF5 Data Entry" << std::endl;
   std::cout << std::string(50, '=') << std::endl;
+#ifdef  OMNI_ENABLE_HDF5    
   std::cout << "URI: " << entry.uri << std::endl;
-  
+#endif  
   // Parse the HDF5 URI
   std::string file_path, dataset_name;
-#ifdef  OMNI_ENABLE_HDF5  
+#ifdef  OMNI_ENABLE_HDF5    
   if (!cae::ParseHdf5Uri(entry.uri, file_path, dataset_name)) {
     std::cerr << "Error: Invalid HDF5 URI format: " << entry.uri << std::endl;
     return;
@@ -438,12 +439,14 @@ void ProcessHdf5DataEntry(const OmniJobConfig::DataEntry &entry) {
   // Create DatasetConfig from entry
   cae::DatasetConfig config;
   config.name = entry.description.empty() ? "dataset" : entry.description[0];
+#ifdef  OMNI_ENABLE_HDF5  
   config.uri = entry.uri;
   config.start = entry.hdf5_start;
   config.count = entry.hdf5_count;
   config.stride = entry.hdf5_stride;
   config.run_script = entry.run_script;
   config.destination = entry.destination;
+#endif
   
   // Add tags from description
   for (const auto& desc : entry.description) {
@@ -466,12 +469,13 @@ void ProcessDataEntry(const OmniJobConfig::DataEntry &entry, int nprocs,
   std::cout << "\n" << std::string(50, '=') << std::endl;
   std::cout << "Processing Data Entry" << std::endl;
   std::cout << std::string(50, '=') << std::endl;
-  
+#ifdef  OMNI_ENABLE_HDF5  
   // Check if this is an HDF5 entry
   if (!entry.uri.empty() && entry.uri.find("hdf5://") == 0) {
     ProcessHdf5DataEntry(entry);
     return;
   }
+#endif
   
   std::cout << "Files: " << entry.paths.size() << std::endl;
   for (size_t i = 0; i < entry.paths.size(); ++i) {
@@ -518,13 +522,13 @@ void ProcessDataEntryAsync(const OmniJobConfig::DataEntry &entry, int nprocs,
   std::cout << "\n" << std::string(50, '=') << std::endl;
   std::cout << "Processing Data Entry (Async)" << std::endl;
   std::cout << std::string(50, '=') << std::endl;
-  
+#ifdef  OMNI_ENABLE_HDF5  
   // Check if this is an HDF5 entry
   if (!entry.uri.empty() && entry.uri.find("hdf5://") == 0) {
     ProcessHdf5DataEntry(entry);
     return;
   }
-  
+#endif  
   std::cout << "Files: " << entry.paths.size() << std::endl;
   for (size_t i = 0; i < entry.paths.size(); ++i) {
     std::cout << "  File " << (i + 1) << ": " << entry.paths[i] << std::endl;
@@ -702,10 +706,11 @@ int main(int argc, char *argv[]) {
         int nprocs, nthreads;
         
         std::cout << "Entry " << i << " has " << entry.paths.size() << " paths" << std::endl;
+#ifdef  OMNI_ENABLE_HDF5        	
         if (!entry.uri.empty()) {
           std::cout << "Entry " << i << " has URI: " << entry.uri << std::endl;
         }
-#ifdef  OMNI_ENABLE_HDF5        
+
         // Skip HDF5 entries for MPI scaling calculation
         if (!entry.uri.empty() && entry.uri.find("hdf5://") == 0) {
           std::cout << "Entry " << i << " is HDF5 entry" << std::endl;
@@ -739,15 +744,19 @@ int main(int argc, char *argv[]) {
         // Launch each job asynchronously
         job_futures.push_back(std::async(std::launch::async, [&, entry, nprocs, temp_hostfile, job_id]() {
           // Check if this is an HDF5 entry
+#ifdef  OMNI_ENABLE_HDF5        	  
           if (!entry.uri.empty() && entry.uri.find("hdf5://") == 0) {
             ProcessHdf5DataEntry(entry);
           } else {
+#endif	    
             // Regular file processing
             if (entry.paths.size() > 1)
               ProcessDataEntryAsync(entry, nprocs, temp_hostfile);
             else
               ProcessDataEntry(entry, nprocs, temp_hostfile);
+#ifdef  OMNI_ENABLE_HDF5        	  	    
           }
+#endif	  
           if (!temp_hostfile.empty() && temp_hostfile.find("hostfile_job_") == 0) {
             std::remove(temp_hostfile.c_str());
           }
