@@ -4,6 +4,7 @@
 #include "format/dataset_config.h"
 #ifdef  OMNI_ENABLE_HDF5
 #include "format/hdf5_dataset_client.h"
+#include <hdf5.h>
 #endif
 #include <cstdlib>
 #include <iostream>
@@ -26,7 +27,6 @@
 #include <fstream>
 #include <cctype> // For isspace
 #include <cstdio> // For std::remove
-#include <hdf5.h>
 #include <regex>
 
 using namespace cae;
@@ -128,7 +128,8 @@ struct OmniJobConfig {
     size_t size;
     std::vector<std::string> description;
     std::string hash;
-    
+
+#ifdef  OMNI_ENABLE_HDF5    
     // HDF5 support
     std::string uri;  // HDF5 URI (e.g., "hdf5://path/to/file.h5/dataset_name")
     std::vector<hsize_t> hdf5_start;   // HDF5 hyperslab start coordinates
@@ -136,7 +137,8 @@ struct OmniJobConfig {
     std::vector<hsize_t> hdf5_stride;  // HDF5 hyperslab stride
     std::string run_script;            // HDF5 run script
     std::string destination;           // HDF5 destination
-
+#endif
+    
     DataEntry() : offset(0), size(0) {}
   };
 
@@ -207,7 +209,7 @@ OmniJobConfig ParseOmniFile(const std::string &yaml_file) {
         if (entry["hash"]) {
           data_entry.hash = entry["hash"].as<std::string>();
         }
-
+#ifdef  OMNI_ENABLE_HDF5
         // Parse HDF5 URI if present
         if (entry["uri"]) {
           data_entry.uri = entry["uri"].as<std::string>();
@@ -234,7 +236,7 @@ OmniJobConfig ParseOmniFile(const std::string &yaml_file) {
             data_entry.hdf5_stride.push_back(val.as<hsize_t>());
           }
         }
-
+#endif
         if (entry["run"]) {
           data_entry.run_script = entry["run"].as<std::string>();
         }
@@ -284,7 +286,7 @@ OmniJobConfig ParseOmniFile(const std::string &yaml_file) {
         config.data_entries.push_back(data_entry);
       }
     }
-    
+#ifdef  OMNI_ENABLE_HDF5
     std::cout << "Checking for old format HDF5 entry..." << std::endl;
     if (yaml["uri"] && yaml["uri"].as<std::string>().find("hdf5://") == 0) {
       // Old format with direct HDF5 fields (compatibility with tf.yaml, tf3d.yaml)
@@ -336,7 +338,8 @@ OmniJobConfig ParseOmniFile(const std::string &yaml_file) {
       
       config.data_entries.push_back(data_entry);
     }
-
+#endif
+    
   } catch (const YAML::Exception &e) {
     std::cerr << "YAML parsing error: " << e.what() << std::endl;
     throw;
@@ -675,7 +678,7 @@ int main(int argc, char *argv[]) {
       std::cout << "Number of data entries: " << config.data_entries.size()
                 << std::endl;
 
-
+#ifdef  OMNI_ENABLE_HDF5
       // Display HDF5 entries
       int hdf5_count = 0;
       for (const auto& entry : config.data_entries) {
@@ -686,7 +689,8 @@ int main(int argc, char *argv[]) {
       if (hdf5_count > 0) {
         std::cout << "HDF5 entries: " << hdf5_count << std::endl;
       }
-
+#endif
+      
       // Launch all jobs concurrently, balancing node usage
       int job_id = 0;
       std::vector<std::future<void>> job_futures;
@@ -701,13 +705,14 @@ int main(int argc, char *argv[]) {
         if (!entry.uri.empty()) {
           std::cout << "Entry " << i << " has URI: " << entry.uri << std::endl;
         }
-        
+#ifdef  OMNI_ENABLE_HDF5        
         // Skip HDF5 entries for MPI scaling calculation
         if (!entry.uri.empty() && entry.uri.find("hdf5://") == 0) {
           std::cout << "Entry " << i << " is HDF5 entry" << std::endl;
           nprocs = 1;  // Default for HDF5 processing
           nthreads = 1;
         } else {
+#endif          
           // Regular file processing
           if (!entry.paths.empty()) {
             std::cout << "Entry " << i << " is regular file entry with path: " << entry.paths[0] << std::endl;
@@ -718,8 +723,9 @@ int main(int argc, char *argv[]) {
             nprocs = 1;
             nthreads = 1;
           }
+#ifdef  OMNI_ENABLE_HDF5                  
         }
-
+#endif
         int nodes_needed = (!hosts.empty()) ? std::min(nprocs, (int)hosts.size()) : nprocs;
         std::vector<int> node_indices;
         std::string temp_hostfile;
