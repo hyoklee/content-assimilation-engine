@@ -2,7 +2,9 @@
 #include "repo/filesystem_repo_omni.h"
 #include "repo/repo_factory.h"
 #include "format/dataset_config.h"
+#ifdef  OMNI_ENABLE_HDF5
 #include "format/hdf5_dataset_client.h"
+#endif
 #include <cstdlib>
 #include <iostream>
 #include <limits.h> // For PATH_MAX
