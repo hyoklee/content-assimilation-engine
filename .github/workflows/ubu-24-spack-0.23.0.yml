@@ -71,11 +71,17 @@ jobs:
         cd build
         ninja
         ninja install
+    - name: test jarvis
+      run: |
         jarvis env build hermes
         jarvis ppl index load jarvis_hermes.hermes.test_hermes
+    - name: test module
+      run: |
         module avail
         module list
         module load chimaera_run
+    - name: test pkg
+      run: |
         jarvis pkg conf chimaera_run data_shm=500m rdata_shm=500m task_shm=500m qdepth=50 worker_cpus=[0,1,1]
         jarvis ppl print
         cat $(jarvis path +shared)/chimaera_run/hostfile
