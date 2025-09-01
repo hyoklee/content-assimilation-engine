@@ -3,7 +3,7 @@ name: IOWarp Install and Build
 on:
   workflow_dispatch:
   push:
-    branches: [main-]
+    branches: [main]
 
 jobs:
   iowarp-setup:
@@ -85,6 +85,7 @@ jobs:
           cd "${IOWARP}/iowarp-install"
           source "${HOME}/spack/share/spack/setup-env.sh"
           spack load iowarp
+          pip3 install -r requirements.txt
           ./wrpgit build
 
       - name: Clean build directories (optional)
