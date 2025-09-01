@@ -74,6 +74,7 @@ jobs:
     - name: module load
       run: |
         sudo apt install -y environment-modules
+        source /etc/profile.d/modules.sh
         module avail
         module list
         module load chimaera_run

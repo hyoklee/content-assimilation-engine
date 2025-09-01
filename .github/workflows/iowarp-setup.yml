@@ -82,6 +82,8 @@ jobs:
       - name: Build and install repos
         run: |
           cd "${IOWARP}/iowarp-install"
+          source "${HOME}/spack/share/spack/setup-env.sh"
+          spack load iowarp
           ./wrpgit build
 
       - name: Clean build directories (optional)
