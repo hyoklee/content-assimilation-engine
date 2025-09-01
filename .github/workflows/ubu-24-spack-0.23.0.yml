@@ -71,17 +71,18 @@ jobs:
         cd build
         ninja
         ninja install
-    - name: jarvis hermes
-      run: |
-        . ./spack/share/spack/setup-env.sh
-        spack load iowarp
-        jarvis env build hermes
-        jarvis ppl index load jarvis_hermes.hermes.test_hermes
     - name: module load
       run: |
         module avail
         module list
         module load chimaera_run
+    - name: jarvis hermes
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        spack load iowarp
+        module load chimaera_run
+        jarvis env build hermes
+        jarvis ppl index load jarvis_hermes.hermes.test_hermes
     - name: test pkg
       run: |
         . ./spack/share/spack/setup-env.sh
