@@ -71,6 +71,7 @@ jobs:
         run: |
           source "${HOME}/spack/share/spack/setup-env.sh"
           spack repo add "${IOWARP}/iowarp-install/iowarp-spack"
+          spack external find
           spack install iowarp
           spack load iowarp
 
