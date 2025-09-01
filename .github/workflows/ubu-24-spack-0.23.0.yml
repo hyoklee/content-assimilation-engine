@@ -27,6 +27,13 @@ jobs:
       with:
         cmakeVersion: 3.31.5
         ninjaVersion: 1.12.1
+    - name: module load
+      run: |
+        sudo apt install -y lmod
+        ls /etc/profile.d/
+        source /etc/profile.d/lmod.sh
+        module avail
+        module list
     - name: spack
       run: |
         . ./spack/share/spack/setup-env.sh
@@ -71,10 +78,9 @@ jobs:
         cd build
         ninja
         ninja install
-    - name: module load
+    - name: load chmaera_run
       run: |
-        sudo apt install -y environment-modules
-        source /etc/profile.d/modules.sh
+        source /etc/profile.d/lmod.sh
         module avail
         module list
         . ./spack/share/spack/setup-env.sh
