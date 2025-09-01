@@ -77,9 +77,10 @@ jobs:
         source /etc/profile.d/modules.sh
         module avail
         module list
+        . ./spack/share/spack/setup-env.sh
         spack load iowarp
         module avail
-        module list        
+        module list
         module load chimaera_run
         module avail
         module list
