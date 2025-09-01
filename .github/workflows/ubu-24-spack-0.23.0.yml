@@ -37,10 +37,12 @@ jobs:
     - name: spack
       run: |
         . ./spack/share/spack/setup-env.sh
+        spack config add modules:default:enable:lmod
         spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
         spack install iowarp@main +vfd +mpiio +compress +encrypt ^cmake@3.31.5
+        spack module lmod refresh
     - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
@@ -78,13 +80,15 @@ jobs:
         cd build
         ninja
         ninja install
-    - name: load chmaera_run
+    - name: load chimaera_run
       run: |
         source /etc/profile.d/lmod.sh
         module avail
         module list
         . ./spack/share/spack/setup-env.sh
         spack load iowarp
+        spack module lmod refresh
+        module spider
         module avail
         module list
         module load chimaera_run
