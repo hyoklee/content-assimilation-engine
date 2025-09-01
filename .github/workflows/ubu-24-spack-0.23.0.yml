@@ -37,7 +37,7 @@ jobs:
     - name: spack
       run: |
         . ./spack/share/spack/setup-env.sh
-        spack config add modules:default:enable:lmod
+        spack config add "modules:default:enable:[lmod]"
         spack external find
         cd ./iowarp-install/
         spack repo add iowarp-spack
