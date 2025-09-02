@@ -87,7 +87,7 @@ jobs:
         module list
         . ./spack/share/spack/setup-env.sh
         spack load iowarp
-        spack module lmod refresh
+        spack module lmod refresh -y
         module spider
         module avail
         module list
