@@ -3,7 +3,7 @@ name: IOWarp Install and Build
 on:
   workflow_dispatch:
   push:
-    branches: [main-]
+    branches: [main]
 
 jobs:
   iowarp-setup:
@@ -96,4 +96,4 @@ jobs:
       - name: Recreate modules (optional)
         run: |
           cd "${IOWARP}/iowarp-install"
-          ./wrpgit recreate 
+          ./wrpgit recreate

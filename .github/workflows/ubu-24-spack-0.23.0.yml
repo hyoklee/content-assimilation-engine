@@ -43,6 +43,10 @@ jobs:
         spack repo add iowarp-spack
         spack install iowarp@main +vfd +mpiio +compress +encrypt ^cmake@3.31.5
         spack module lmod refresh -y
+        module use ./spack/share/spack/modules
+        module spider
+        module avail
+        module list
     - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
@@ -88,6 +92,7 @@ jobs:
         . ./spack/share/spack/setup-env.sh
         spack load iowarp
         spack module lmod refresh -y
+        module use ./spack/share/spack/modules
         module spider
         module avail
         module list
