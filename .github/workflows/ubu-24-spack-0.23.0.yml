@@ -36,6 +36,7 @@ jobs:
         module list
     - name: spack
       run: |
+        source /etc/profile.d/lmod.sh
         . ./spack/share/spack/setup-env.sh
         spack config add "modules:default:enable:[lmod]"
         spack external find
