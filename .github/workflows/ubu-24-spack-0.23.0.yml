@@ -94,15 +94,14 @@ jobs:
         spack load iowarp
         spack load lmod
         source $(spack location -i lmod)/lmod/lmod/init/bash
-        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
+        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
         echo $MODULEPATH
         ls $MODULEPATH
         module use $MODULEPATH
         module avail
         module list
-        module load chimaera_run
-        module avail
-        module list
+        ls $HOME/.scspkg/modulefiles
+#        module load chimaera_run
     - name: jarvis hermes
       run: |
         . ./spack/share/spack/setup-env.sh
