@@ -44,6 +44,8 @@ jobs:
         source $(spack location -i lmod)/lmod/lmod/init/bash
         cd ./iowarp-install/
         spack repo add iowarp-spack
+        spack install hdf5
+        spack load hdf5
         spack install iowarp@main +vfd +mpiio +compress +encrypt ^cmake@3.31.5
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
         echo $MODULEPATH
