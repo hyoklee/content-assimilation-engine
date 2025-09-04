@@ -111,9 +111,11 @@ jobs:
         spack load lmod
         source $(spack location -i lmod)/lmod/lmod/init/bash
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
-        module use $MODULEPATH        
+        module use $MODULEPATH
         module load compressor
         module load iowarp-runtime
+        jarvis bootstrap from local
+        jarvis rg build
         jarvis env build hermes
         jarvis ppl index load jarvis_hermes.hermes.test_hermes
     - name: test pkg
