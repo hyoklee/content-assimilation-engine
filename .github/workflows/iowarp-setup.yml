@@ -44,15 +44,25 @@ jobs:
           cd "${IOWARP}/iowarp-install"
           ./wrpgit init
 
-      - name: Patch wrpgit.yaml for forking
+      # - name: Patch wrpgit.yaml for forking
+      #   run: |
+      #     cd "${IOWARP}/iowarp-install"
+      #     yq eval '
+      #       .username = strenv(GITHUB_USERNAME) |
+      #       .protocol = "https" |
+      #       .token = strenv(GITHUB_TOKEN) |
+      #       .modules[].fork = true
+      #     ' -i wrpgit.yaml
+          
+      - name: Patch wrpgit.yaml
         run: |
           cd "${IOWARP}/iowarp-install"
           yq eval '
             .username = strenv(GITHUB_USERNAME) |
             .protocol = "https" |
             .token = strenv(GITHUB_TOKEN) |
-            .modules[].fork = true
-          ' -i wrpgit.yaml
+            .modules[].fork = false
+          ' -i wrpgit.yaml          
 
 #      - name: Fork IOWarp repos
 #        run: |

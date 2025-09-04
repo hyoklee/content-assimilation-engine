@@ -90,8 +90,6 @@ jobs:
         ninja install
     - name: load chimaera_run
       run: |
-        module avail
-        module list
         . ./spack/share/spack/setup-env.sh
         spack load iowarp
         spack load lmod
