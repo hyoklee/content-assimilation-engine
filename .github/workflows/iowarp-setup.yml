@@ -98,6 +98,7 @@ jobs:
           cd "${IOWARP}/iowarp-install"
           source "${HOME}/spack/share/spack/setup-env.sh"
           spack load iowarp
+          spack load hdf5
           pip3 install -r requirements.txt
           ./wrpgit build
           ls $HOME/.scspkg/modulefiles
