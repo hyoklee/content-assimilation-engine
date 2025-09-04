@@ -38,14 +38,17 @@ jobs:
       run: |
         source /etc/profile.d/lmod.sh
         . ./spack/share/spack/setup-env.sh
-        spack config add "modules:default:enable:[lmod]"
         spack external find
+        spack config add "modules:default:enable:[lmod]"
+        spack install lmod
+        source $(spack location -i lmod)/lmod/lmod/init/bash
         cd ./iowarp-install/
         spack repo add iowarp-spack
         spack install iowarp@main +vfd +mpiio +compress +encrypt ^cmake@3.31.5
-        spack module lmod refresh -y
-        module use ./spack/share/spack/modules
-        module spider
+        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
+        echo $MODULEPATH
+        ls $MODULEPATH
+        module use $MODULEPATH
         module avail
         module list
     - name: test module
@@ -87,14 +90,16 @@ jobs:
         ninja install
     - name: load chimaera_run
       run: |
-        source /etc/profile.d/lmod.sh
         module avail
         module list
         . ./spack/share/spack/setup-env.sh
         spack load iowarp
-        spack module lmod refresh -y
-        module use ./spack/share/spack/modules
-        module spider
+        spack load lmod
+        source $(spack location -i lmod)/lmod/lmod/init/bash
+        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
+        echo $MODULEPATH
+        ls $MODULEPATH
+        module use $MODULEPATH
         module avail
         module list
         module load chimaera_run
