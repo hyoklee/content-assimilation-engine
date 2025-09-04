@@ -90,6 +90,8 @@ jobs:
 
       - name: Setup repo environments
         run: |
+          source "${HOME}/spack/share/spack/setup-env.sh"
+          spack load iowarp
           cd "${IOWARP}/iowarp-install"
           ./wrpgit setup
 
