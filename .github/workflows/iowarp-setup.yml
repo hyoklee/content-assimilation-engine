@@ -48,7 +48,9 @@ jobs:
           spack config add "modules:default:enable:[lmod]"
           spack install lmod
           source $(spack location -i lmod)/lmod/lmod/init/bash
-          export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core          
+          export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
+          spack install mpi
+          spack load mpi
           spack install hdf5
           spack load hdf5
           spack install iowarp

@@ -809,7 +809,7 @@ int read_omni(std::string input_file) {
   }
 
   if (!dest.empty()) {
-    std::cerr << "dset=" << dest << std::endl;      
+    std::cerr << "dst=" << dest << std::endl;      
 #ifdef USE_POCO
     try {
       if (run) {
@@ -839,7 +839,7 @@ int read_omni(std::string input_file) {
       std::cerr << "Error: standard exception - " << e.what() << std::endl;
       return 1;
     }
-#endif // POCO: dset not empy
+#endif // POCO: dset not empty
   }
 #endif // POCO: URL
   return 0;

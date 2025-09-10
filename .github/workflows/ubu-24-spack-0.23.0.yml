@@ -24,9 +24,6 @@ jobs:
         path: ./iowarp-install
     - name: cmake
       uses: lukka/get-cmake@latest
-      with:
-        cmakeVersion: 3.31.5
-        ninjaVersion: 1.12.1
     - name: spack
       run: |
         sudo apt-get update        
@@ -38,6 +35,8 @@ jobs:
         source $(spack location -i lmod)/lmod/lmod/init/bash
         cd ./iowarp-install/
         spack repo add iowarp-spack
+        spack install mpi
+        spack load mpi        
         spack install hdf5
         spack load hdf5
         spack install iowarp
