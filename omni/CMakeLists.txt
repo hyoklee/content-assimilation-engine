@@ -102,7 +102,6 @@ if(USE_HDF5)
     endif()
 
     message(STATUS "HDF5 found: ${HDF5_VERSION}")
-    message(STATUS "Building wrp_h5 binary for HDF5 dataset reading")
 else()
     message(STATUS "HDF5 support disabled")
     set(HDF5_LIBS "")
@@ -137,11 +136,21 @@ if(USE_HDF5)
 endif()
 
 # Main YAML parser and job orchestrator (wrp binary)
-add_executable(wrp wrp.cc)
+add_executable(wrp 
+    wrp.cc
+    format/globus_utils.cpp
+    glo.cc
+)
 target_include_directories(wrp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Build library list for wrp
-set(WRP_LIBS omni_lib ${YAML_CPP_LIBS} ${POCO_LIBS} ${AWS_LIBS})
+set(WRP_LIBS 
+    omni_lib 
+    ${YAML_CPP_LIBS} 
+    ${POCO_LIBS} 
+    ${AWS_LIBS}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 
 if(USE_HDF5)
     list(APPEND WRP_LIBS ${HDF5_LIBS})
@@ -165,29 +174,12 @@ endif()
 
 
 
-# HDF5 dataset reader (wrp_h5 binary)
-if(USE_HDF5)
-    add_executable(wrp_h5
-        wrp_h5.cc
-        format/dataset_config.cc
-        format/hdf5_dataset_client.cc
-    )
-    target_link_libraries(wrp_h5 ${YAML_CPP_LIBS} ${HDF5_LIBS})
-    target_include_directories(wrp_h5 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-else()
-    message(STATUS "Skipping wrp_h5 (HDF5 disabled)")
-endif()
-
-
 
 # Set output directory for binaries to match the main project
 # set_target_properties(wrp rp_binary_format_mpi  PROPERTIES
 #     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 # )
 
-# set_target_properties(wrp_h5 PROPERTIES
-#     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-# )
 
 # Copy config files to bin directory
 if(USE_HDF5)
@@ -195,16 +187,8 @@ if(USE_HDF5)
 endif()
 
 # Install targets
-if(OMNI_ENABLE_MPI AND USE_HDF5)
-    install(TARGETS wrp wrp_binary_format_mpi wrp_h5 
-        RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
-    )
-elseif(OMNI_ENABLE_MPI)
+if(OMNI_ENABLE_MPI)
     install(TARGETS wrp wrp_binary_format_mpi
-        RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
-    )
-elseif(USE_HDF5)
-    install(TARGETS wrp wrp_h5 
         RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
     )
 else()
@@ -361,4 +345,22 @@ endif()
 
 if(USE_HDF5)
     add_test(NAME hdf5 COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/hdf5.yml)
+endif()
+
+# Globus transfer test (requires POCO for HTTP/HTTPS operations)
+if(USE_POCO)
+    add_test(NAME globus COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/globus.yml)
+    if("$ENV{GLOBUS_TRANSFER_TOKEN}" STREQUAL "")
+        set_tests_properties(globus
+            PROPERTIES
+            WILL_FAIL TRUE
+        )
+    else()
+        set_tests_properties(globus
+            PROPERTIES
+            ENVIRONMENT "GLOBUS_TRANSFER_TOKEN=$ENV{GLOBUS_TRANSFER_TOKEN}"
+            WILL_FAIL FALSE
+        )
+    endif()
+    message(STATUS "Added Globus transfer test (requires GLOBUS_TRANSFER_TOKEN environment variable)")
 endif()

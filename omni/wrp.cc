@@ -12,7 +12,6 @@
 #endif
 
 #include "omni_job_config.h"
-
 #include "format/format_factory.h"
 #include "repo/filesystem_repo_omni.h"
 #include "repo/repo_factory.h"
@@ -77,6 +76,9 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #ifdef USE_POCO
+#include <chrono>
+#include <iomanip>
+#include <thread>
 #include "Poco/DigestEngine.h"
 #include "Poco/Exception.h"
 #include "Poco/File.h"
@@ -98,9 +100,7 @@ typedef SSIZE_T ssize_t;
 #include "Poco/StreamCopier.h"
 #include "Poco/TemporaryFile.h"
 #include "Poco/URI.h"
-#include <chrono>
-#include <iomanip>
-#include <thread>
+#include "format/globus_utils.h"
 #endif
 
 #ifdef USE_AWS
@@ -330,6 +330,9 @@ int run_lambda(std::string lambda, std::string name, std::string dest) {
 #endif
   return 0;
 }
+
+
+
 
 std::string get_file_name(const std::string &uri) {
   size_t lastSlashPos = uri.find_last_of('/');
@@ -637,7 +640,8 @@ int read_omni(std::string input_file) {
           std::cout << "Path=" << path.c_str()
 	     	     << std::endl;
 	  if(path.find("https://") == path.npos &&
-	     path.find("hdf5://") == path.npos) {
+	     path.find("hdf5://") == path.npos &&
+             path.find("globus://") == path.npos) {
 #ifdef USE_POCO
 	    Poco::File file(path);
 	    if (!file.exists()) {
@@ -654,6 +658,26 @@ int read_omni(std::string input_file) {
 #ifdef USE_POCO
         if (key == "hash") {
           hash = it->second.as<std::string>();
+        }
+        
+        // Handle Globus transfer if source is a globus:// URL
+        if (path.find("globus://") != path.npos && key == "dst") {
+            std::string dest_uri = it->second.as<std::string>();
+            if (dest_uri.find("globus://") == 0) {
+                std::string transfer_token = std::getenv("GLOBUS_TRANSFER_TOKEN") ? std::getenv("GLOBUS_TRANSFER_TOKEN") : "";
+                if (transfer_token.empty()) {
+                    std::cerr << "Error: GLOBUS_TRANSFER_TOKEN environment variable not set" << std::endl;
+                    return -1;
+                }
+                
+                if (transfer_globus_file(path, dest_uri, transfer_token, "OMNI Transfer")) {
+                    std::cout << "Globus transfer initiated successfully from " << path << " to " << dest_uri << std::endl;
+                    return 0;
+                } else {
+                    std::cerr << "Error: Failed to initiate Globus transfer" << std::endl;
+                    return -1;
+                }
+            }
         }
 #endif
         if (key == "offset") {
