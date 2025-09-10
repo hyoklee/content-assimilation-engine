@@ -17,15 +17,15 @@ void Hdf5DatasetClient::Import(const FormatContext &ctx) {
   // The main functionality is in ReadDataset method
 }
 
-void Hdf5DatasetClient::ReadDataset(const DatasetConfig& config) {
+unsigned char* Hdf5DatasetClient::ReadDataset(const DatasetConfig& config, size_t& buffer_size) {
   std::cout << "Reading dataset: " << config.name << std::endl;
   std::cout << "URI: " << config.uri << std::endl;
   
   // Parse the HDF5 URI
   std::string file_path, dataset_name;
-  if (!ParseHdf5Uri(config.uri, file_path, dataset_name)) {
+  if (!ParseHdf5UriOld(config.uri, file_path, dataset_name)) {
     std::cerr << "Error: Invalid HDF5 URI format: " << config.uri << std::endl;
-    return;
+    return nullptr;
   }
   
   std::cout << "File path: " << file_path << std::endl;
@@ -33,18 +33,18 @@ void Hdf5DatasetClient::ReadDataset(const DatasetConfig& config) {
   
   // Open HDF5 file
   hid_t file_id = OpenHdf5File(file_path);
-  if (file_id < 0) {
-    std::cerr << "Error: Failed to open HDF5 file: " << file_path << std::endl;
-    return;
+  if (!file_id) {
+    std::cerr << "Error: Failed to open HDF5 file" << std::endl;
+    return nullptr;
   }
   
   // Get dataset information
   std::vector<uint64_t> dimensions;
   hid_t datatype;
   if (!GetDatasetInfo(file_id, dataset_name, dimensions, datatype)) {
-    std::cerr << "Error: Failed to get dataset info for: " << dataset_name << std::endl;
+    std::cerr << "Error: Failed to get dataset info" << std::endl;
     CloseHdf5File(file_id);
-    return;
+    return nullptr;
   }
   
   std::cout << "Dataset dimensions: ";
@@ -54,40 +54,41 @@ void Hdf5DatasetClient::ReadDataset(const DatasetConfig& config) {
   }
   std::cout << std::endl;
   
-  // Allocate buffer for the hyperslab
-  auto buffer = AllocateBuffer(config.count, datatype);
-  if (!buffer) {
-    std::cerr << "Error: Failed to allocate buffer for dataset" << std::endl;
+  // Calculate required buffer size and allocate
+  buffer_size = CalculateDatasetSize(config.count, datatype);
+  if (buffer_size == 0) {
+    std::cerr << "Error: Invalid buffer size" << std::endl;
     CloseHdf5File(file_id);
-    return;
+    return nullptr;
+  }
+  
+  unsigned char* buffer = new (std::nothrow) unsigned char[buffer_size];
+  if (!buffer) {
+    std::cerr << "Error: Failed to allocate buffer" << std::endl;
+    CloseHdf5File(file_id);
+    return nullptr;
   }
   
   // Read the hyperslab
-  if (!ReadDatasetHyperslab(file_id, dataset_name, config.start, config.count, config.stride, buffer.get(), datatype)) {
+  if (!ReadDatasetHyperslab(file_id, dataset_name, config.start, config.count, config.stride, buffer, datatype)) {
     std::cerr << "Error: Failed to read dataset hyperslab" << std::endl;
     CloseHdf5File(file_id);
-    return;
+    delete[] buffer;
+    return nullptr;
   }
   
   std::cout << "Successfully read dataset hyperslab" << std::endl;
   
   // Print hyperslab values after reading
-  PrintHyperslabValues(buffer.get(), config.count, datatype, dataset_name);
+  PrintHyperslabValues(buffer, config.count, datatype, dataset_name);
   
   // Call callback
   OnDatasetRead(dataset_name, config.count);
   
-  // Execute run script if specified
-  if (!config.run_script.empty()) {
-    std::string temp_input_file = "/tmp/" + config.name + "_input.h5";
-    std::string temp_output_file = "/tmp/" + config.name + "_output.parquet";
-    
-    // TODO: Save the hyperslab data to a temporary HDF5 file
-    // For now, we'll just call the script with placeholder files
-    ExecuteRunScript(config.run_script, temp_input_file, temp_output_file);
-  }
-  
+  // Note: Caller is responsible for executing the run script and managing the buffer
   CloseHdf5File(file_id);
+  
+  return buffer;
 }
 
 void Hdf5DatasetClient::ExecuteRunScript(const std::string& script_path, 

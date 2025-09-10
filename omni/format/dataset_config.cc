@@ -25,8 +25,8 @@ DatasetConfig ParseDatasetConfig(const std::string& yaml_file) {
     }
     
     // Parse URI
-    if (yaml["uri"]) {
-      config.uri = yaml["uri"].as<std::string>();
+    if (yaml["src"]) {
+      config.uri = yaml["src"].as<std::string>();
     }
     
     // Parse start coordinates
@@ -59,8 +59,8 @@ DatasetConfig ParseDatasetConfig(const std::string& yaml_file) {
     }
     
     // Parse destination
-    if (yaml["dest"]) {
-      config.destination = yaml["dest"].as<std::string>();
+    if (yaml["dst"]) {
+      config.destination = yaml["dst"].as<std::string>();
     }
     
   } catch (const YAML::Exception& e) {
@@ -71,7 +71,7 @@ DatasetConfig ParseDatasetConfig(const std::string& yaml_file) {
   return config;
 }
 
-bool ParseHdf5Uri(const std::string& uri, std::string& file_path, std::string& dataset_name) {
+bool ParseHdf5UriOld(const std::string& uri, std::string& file_path, std::string& dataset_name) {
   // Parse URI format: hdf5://path/to/file.h5/dataset_name
   std::regex uri_regex(R"(hdf5://(.+\.h5)/?(.*))");
   std::smatch match;

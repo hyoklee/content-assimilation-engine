@@ -6,6 +6,16 @@
 #include <iostream>
 #include <sys/stat.h>
 
+// Windows compatibility for S_ISREG macro
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX  // Prevent Windows headers from defining min/max macros
+#endif
+#ifndef S_ISREG
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
+#endif
+
 namespace cae {
 
 /**

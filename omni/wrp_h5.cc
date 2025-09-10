@@ -66,10 +66,19 @@ int main(int argc, char* argv[]) {
     
     // Create HDF5 dataset client and read the dataset
     cae::Hdf5DatasetClient client;
-    client.ReadDataset(config);
+    size_t buffer_size = 0;
+    unsigned char* buffer = client.ReadDataset(config, buffer_size);
     
-    std::cout << std::endl;
-    std::cout << "=== Dataset processing completed successfully! ===" << std::endl;
+    if (buffer) {
+      std::cout << "Successfully read " << buffer_size << " bytes of data" << std::endl;
+      // TODO: Process the buffer if needed
+      delete[] buffer; // Clean up the allocated buffer
+      std::cout << std::endl;
+      std::cout << "=== Dataset processing completed successfully! ===" << std::endl;
+    } else {
+      std::cerr << "Failed to read dataset" << std::endl;
+      return 1;
+    }
     
   } catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;

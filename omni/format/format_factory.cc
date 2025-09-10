@@ -1,6 +1,6 @@
 #include "format_factory.h"
 #include "binary_file_omni.h"
-#ifdef  OMNI_ENABLE_HDF5
+#ifdef  USE_HDF5
 #include "hdf5_dataset_client.h"
 #endif
 #include <algorithm>
@@ -14,10 +14,10 @@ std::unique_ptr<FormatClient> FormatFactory::Get(Format format) {
   case Format::kPosix:
   case Format::kBinary:
     return std::make_unique<BinaryFileOmni>();
-#ifdef  OMNI_ENABLE_HDF5    
+#ifdef  USE_HDF5    
   case Format::kHDF5:
     return std::make_unique<Hdf5DatasetClient>();
-#endif    
+#endif
   default:
     throw std::runtime_error("Unknown format type");
   }

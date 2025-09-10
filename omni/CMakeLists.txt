@@ -41,10 +41,56 @@ message(STATUS "Building OMNI module with yaml-cpp")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Option to enable/disable HDF5 support
-option(OMNI_ENABLE_HDF5 "Enable HDF5 support for OMNI module" OFF)
+option(USE_HDF5 "Enable HDF5 support for OMNI module" ON)
+
+# Find HDF5 package if enabled
+if(USE_HDF5)
+    find_package(HDF5 COMPONENTS CXX REQUIRED)
+    include_directories(${HDF5_INCLUDE_DIRS})
+    set(HDF5_LIBS ${HDF5_LIBRARIES})
+    add_definitions(-DUSE_HDF5)
+    message(STATUS "HDF5 support enabled")
+else()
+    set(HDF5_LIBS "")
+    message(STATUS "HDF5 support disabled")
+endif()
+
+# Options for POCO and AWS support
+option(USE_POCO "Enable POCO support for HTTP downloads and shared memory" OFF)
+option(USE_AWS "Enable AWS SDK support for S3 operations" OFF)
+option(USE_HERMES "Enable HERMES support for data staging" OFF)
+
+if(USE_POCO)
+    add_definitions(-DUSE_POCO)
+    find_package(Poco REQUIRED COMPONENTS Crypto Foundation Net NetSSL)
+    set(POCO_LIBS Poco::Crypto Poco::Foundation Poco::Net Poco::NetSSL)
+    message(STATUS "POCO support enabled")
+else()
+    set(POCO_LIBS "")
+    message(STATUS "POCO support disabled")
+endif()
+
+if(USE_AWS)
+    add_definitions(-DUSE_AWS)
+    find_package(AWSSDK REQUIRED COMPONENTS core s3)
+    set(AWS_LIBS ${AWSSDK_LINK_LIBRARIES})
+    message(STATUS "AWS SDK support enabled")
+else()
+    set(AWS_LIBS "")
+    message(STATUS "AWS SDK support disabled")
+endif()
+
+if(USE_HERMES)
+    add_definitions(-DUSE_HERMES)
+    find_package(Hermes REQUIRED)
+    # Add other Hermes dependencies as needed
+    message(STATUS "HERMES support enabled")
+else()
+    message(STATUS "HERMES support disabled")
+endif()
 
 # HDF5 dependency with vcpkg support
-if(OMNI_ENABLE_HDF5)
+if(USE_HDF5)
     find_package(HDF5 REQUIRED COMPONENTS C)
     include_directories(${HDF5_INCLUDE_DIRS})
     if (TARGET HDF5::HDF5)
@@ -65,12 +111,15 @@ endif()
 message(STATUS "yaml-cpp found: ${yaml-cpp_VERSION}")
 
 # Source files for the factory and repository implementations
-if(OMNI_ENABLE_HDF5)
+if(USE_HDF5)
     set(OMNI_FACTORY_SOURCES
         format/format_factory.cc
         format/hdf5_dataset_client.cc
         format/dataset_config.cc
         repo/repo_factory.cc
+        par.cc
+	pat.cc
+        h5.cc
     )
 else()
     set(OMNI_FACTORY_SOURCES
@@ -83,25 +132,27 @@ endif()
 add_library(omni_lib STATIC ${OMNI_FACTORY_SOURCES})
 target_link_libraries(omni_lib ${MPI_LIBS} ${YAML_CPP_LIBS})
 target_include_directories(omni_lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-if(OMNI_ENABLE_HDF5)
+if(USE_HDF5)
     target_include_directories(omni_lib PRIVATE ${HDF5_INCLUDE_DIRS})
 endif()
 
 # Main YAML parser and job orchestrator (wrp binary)
 add_executable(wrp wrp.cc)
 target_include_directories(wrp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-if(OMNI_ENABLE_HDF5)
-    # Add compile definitions for conditional MPI support
-    if(OMNI_ENABLE_MPI)
-        target_link_libraries(wrp omni_lib ${MPI_LIBS} ${YAML_CPP_LIBS} ${HDF5_LIBS})
-        target_compile_definitions(wrp PRIVATE OMNI_ENABLE_MPI)
-   else()
-        target_link_libraries(wrp omni_lib ${YAML_CPP_LIBS} ${HDF5_LIBS})
-    endif()
-  else()
-    target_link_libraries(wrp omni_lib)
-    #  message(STATUS "Skipping wrp (HDF5 disabled)")
- endif()
+
+# Build library list for wrp
+set(WRP_LIBS omni_lib ${YAML_CPP_LIBS} ${POCO_LIBS} ${AWS_LIBS})
+
+if(USE_HDF5)
+    list(APPEND WRP_LIBS ${HDF5_LIBS})
+endif()
+
+if(OMNI_ENABLE_MPI)
+    list(APPEND WRP_LIBS ${MPI_LIBS})
+    target_compile_definitions(wrp PRIVATE OMNI_ENABLE_MPI)
+endif()
+
+target_link_libraries(wrp ${WRP_LIBS})
 
 # MPI binary format processor (wrp_binary_format_mpi binary)
 if(OMNI_ENABLE_MPI)
@@ -115,7 +166,7 @@ endif()
 
 
 # HDF5 dataset reader (wrp_h5 binary)
-if(OMNI_ENABLE_HDF5)
+if(USE_HDF5)
     add_executable(wrp_h5
         wrp_h5.cc
         format/dataset_config.cc
@@ -139,12 +190,12 @@ endif()
 # )
 
 # Copy config files to bin directory
-if(OMNI_ENABLE_HDF5)
+if(USE_HDF5)
     configure_file(config/dataset_config.yaml ${CMAKE_BINARY_DIR}/omni/config/dataset_config.yaml COPYONLY)
 endif()
 
 # Install targets
-if(OMNI_ENABLE_MPI AND OMNI_ENABLE_HDF5)
+if(OMNI_ENABLE_MPI AND USE_HDF5)
     install(TARGETS wrp wrp_binary_format_mpi wrp_h5 
         RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
     )
@@ -152,7 +203,7 @@ elseif(OMNI_ENABLE_MPI)
     install(TARGETS wrp wrp_binary_format_mpi
         RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
     )
-elseif(OMNI_ENABLE_HDF5)
+elseif(USE_HDF5)
     install(TARGETS wrp wrp_h5 
         RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
     )
@@ -167,13 +218,14 @@ install(TARGETS omni_lib
 )
 
 # Install header files with new structure
-if(OMNI_ENABLE_HDF5)
+if(USE_HDF5)
     install(FILES 
         format/format_client.h
         format/format_factory.h
         format/binary_file_omni.h
         format/dataset_config.h
         format/hdf5_dataset_client.h
+        omni_processing.h
         DESTINATION ${CAE_INSTALL_INCLUDE_DIR}/omni/format
     )
 else()
@@ -222,3 +274,91 @@ install(PROGRAMS config/test_wildcards.sh
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                    GROUP_READ GROUP_EXECUTE
                    WORLD_READ WORLD_EXECUTE)
+
+# Add tests
+add_test(NAME put COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/posix.yml)
+add_test(NAME get COMMAND wrp get cae)
+add_test(NAME ls COMMAND wrp ls)
+
+# Tests that should fail
+add_test(NAME invalid COMMAND wrp invalid)
+set_tests_properties(invalid
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+add_test(NAME no_cmd COMMAND wrp)
+set_tests_properties(no_cmd
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+add_test(NAME put_only COMMAND wrp put)
+set_tests_properties(put_only
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+add_test(NAME get_only COMMAND wrp get)
+set_tests_properties(get_only
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+add_test(NAME not_found COMMAND wrp put not_found)
+set_tests_properties(not_found
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+# Additional test files
+add_test(NAME nested COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/nested.yml)
+add_test(NAME empty COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/empty.yml)
+add_test(NAME root COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/root.yml)
+add_test(NAME scalar COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/scalar.yml)
+
+add_test(NAME invalid_yml COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/invalid.yml)
+set_tests_properties(invalid_yml
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+add_test(NAME path COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/path.yml)
+set_tests_properties(path
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+add_test(NAME root_seq COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/root_seq.yml)
+
+add_test(NAME lseek COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/lseek.yml)
+set_tests_properties(lseek
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    RETURN_VALUE 1
+)
+
+# POCO-specific tests
+if(USE_POCO)
+    add_test(NAME hash COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/hash.yml)
+    set_tests_properties(hash
+        PROPERTIES
+        WILL_FAIL "TRUE"
+        RETURN_VALUE 1
+    )
+
+    add_test(NAME http COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/http.yml)
+    add_test(NAME redi COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/redi.yml)
+    add_test(NAME rget COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/rget.yml)
+endif()
+
+if(USE_HDF5)
+    add_test(NAME hdf5 COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/hdf5.yml)
+endif()

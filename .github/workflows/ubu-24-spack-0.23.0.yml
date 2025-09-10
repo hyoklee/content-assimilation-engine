@@ -27,26 +27,21 @@ jobs:
       with:
         cmakeVersion: 3.31.5
         ninjaVersion: 1.12.1
-    - name: module load
-      run: |
-        sudo apt install -y lmod
-        ls /etc/profile.d/
-        source /etc/profile.d/lmod.sh
-        module avail
-        module list
     - name: spack
       run: |
-        source /etc/profile.d/lmod.sh
+        sudo apt-get update        
         . ./spack/share/spack/setup-env.sh
         spack external find
         spack config add "modules:default:enable:[lmod]"
         spack install lmod
+        spack load lmod
         source $(spack location -i lmod)/lmod/lmod/init/bash
         cd ./iowarp-install/
         spack repo add iowarp-spack
         spack install hdf5
         spack load hdf5
-        spack install iowarp@main +vfd +mpiio +compress +encrypt ^cmake@3.31.5
+        spack install iowarp
+        spack load iowarp
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
         echo $MODULEPATH
         module use $MODULEPATH
@@ -83,8 +78,10 @@ jobs:
     - name: test cae
       run: |
         . ./spack/share/spack/setup-env.sh
-        spack load iowarp
+        spack load lmod
         spack load hdf5
+        spack load iowarp
+        source $(spack location -i lmod)/lmod/lmod/init/bash
         cmake -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) --preset debug
         cd build
         ninja
@@ -92,8 +89,10 @@ jobs:
     - name: load chimaera_run
       run: |
         . ./spack/share/spack/setup-env.sh
-        spack load iowarp
+        echo $MODULEPATH
         spack load lmod
+        spack load hdf5
+        spack load iowarp
         source $(spack location -i lmod)/lmod/lmod/init/bash
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
         echo $MODULEPATH
@@ -107,21 +106,30 @@ jobs:
     - name: jarvis hermes
       run: |
         . ./spack/share/spack/setup-env.sh
-        spack load iowarp
         spack load lmod
+        spack load hdf5        
+        spack load iowarp
         source $(spack location -i lmod)/lmod/lmod/init/bash
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
         module use $MODULEPATH
         module load compressor
         module load iowarp-runtime
         jarvis bootstrap from local
+        sleep 5        
         jarvis rg build
+        sleep 5
+        jarvis repo list
         jarvis env build hermes
-        jarvis ppl index load jarvis_hermes.hermes.test_hermes
-    - name: test pkg
-      run: |
-        . ./spack/share/spack/setup-env.sh
-        spack load iowarp
+        find ${HOME}/.jarvis
+        find ${HOME}/.scspkg
+        pwd
+        jarvis ppl create test_omni
+        cd omni
+        echo "APPEND deom_job"
+        jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/config/demo_job.yaml wrp_path=/home/runner/.scspkg/packages/content-assimilation-engine/bin/wrp
+        sleep 5
+        jarvis ppl print
+        jarvis ppl run
         jarvis pkg conf chimaera_run data_shm=500m rdata_shm=500m task_shm=500m qdepth=50 worker_cpus=[0,1,1]
         jarvis ppl print
         cat $(jarvis path +shared)/chimaera_run/hostfile

@@ -29,11 +29,13 @@ struct DatasetConfig {
  */
 DatasetConfig ParseDatasetConfig(const std::string& yaml_file);
 
+
 /**
  * Parse HDF5 URI to extract file path and dataset name
  */
-bool ParseHdf5Uri(const std::string& uri, std::string& file_path, std::string& dataset_name);
+bool ParseHdf5UriOld(const std::string& uri, std::string& file_path, std::string& dataset_name);
 
+  
 } // namespace cae
 
 #endif // CAE_FORMAT_DATASET_CONFIG_H_

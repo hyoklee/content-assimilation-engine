@@ -38,8 +38,14 @@ public:
   /** Process an HDF5 dataset according to configuration */
   void Import(const FormatContext &ctx) override;
 
-  /** Read dataset using configuration */
-  void ReadDataset(const DatasetConfig& config);
+  /** 
+   * Read dataset using configuration
+   * @param config Configuration for reading the dataset
+   * @param[out] buffer_size Size of the returned buffer in bytes
+   * @return Pointer to the allocated buffer containing the dataset data, or nullptr on failure
+   *         Caller is responsible for freeing this memory using delete[]
+   */
+  unsigned char* ReadDataset(const DatasetConfig& config, size_t& buffer_size);
 
   /** Execute the run script if specified */
   void ExecuteRunScript(const std::string& script_path, const std::string& input_file, const std::string& output_file);
