@@ -10,7 +10,7 @@ count: [1, 3]
 stride: [1, 1]
 
 # lambda script
-run: "../test/hdf5.bat"
-# run: "../test/hdf5.sh"
+# run: "../test/hdf5.bat"
+run: "../test/hdf5.sh"
 
 dst: "s3://iowarp/h5.parquet"

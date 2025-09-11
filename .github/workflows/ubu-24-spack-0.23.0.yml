@@ -24,6 +24,9 @@ jobs:
         path: ./iowarp-install
     - name: cmake
       uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: 3.31.5
+        ninjaVersion: 1.12.1      
     - name: spack
       run: |
         sudo apt-get update        
