@@ -4,9 +4,13 @@
 #include <string>
 #include <regex>
 #include <vector>
+#include <algorithm>
+
+#ifndef _WIN32
 #include <glob.h>
 #include <pwd.h>
 #include <unistd.h>
+#endif
 
 #ifdef _WIN32
 namespace fs = std::filesystem;
@@ -170,4 +174,3 @@ std::vector<std::string> ExpandFilePattern(const std::string &pattern) {
   
   return files;
 }
-
