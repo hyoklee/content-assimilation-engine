@@ -4,8 +4,13 @@
 #include <string>
 #include <regex>
 #include <vector>
+#include <glob.h>
+#include <pwd.h>
+#include <unistd.h>
 
 #ifdef _WIN32
+namespace fs = std::filesystem;
+#else
 namespace fs = std::filesystem;
 #endif
 

@@ -56,7 +56,7 @@ else()
 endif()
 
 # Options for POCO and AWS support
-option(USE_POCO "Enable POCO support for HTTP downloads and shared memory" OFF)
+option(USE_POCO "Enable POCO support for HTTP downloads and shared memory" ON)
 option(USE_AWS "Enable AWS SDK support for S3 operations" OFF)
 option(USE_HERMES "Enable HERMES support for data staging" OFF)
 
@@ -109,6 +109,10 @@ endif()
 
 message(STATUS "yaml-cpp found: ${yaml-cpp_VERSION}")
 
+# Find nlohmann-json for JSON parsing
+find_package(nlohmann_json REQUIRED)
+message(STATUS "nlohmann-json found")
+
 # Source files for the factory and repository implementations
 if(USE_HDF5)
     set(OMNI_FACTORY_SOURCES
@@ -149,6 +153,7 @@ set(WRP_LIBS
     ${YAML_CPP_LIBS} 
     ${POCO_LIBS} 
     ${AWS_LIBS}
+    nlohmann_json::nlohmann_json
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

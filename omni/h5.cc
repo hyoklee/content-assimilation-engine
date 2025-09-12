@@ -50,9 +50,10 @@ void ProcessHdf5DataEntry(const OmniJobConfig::DataEntry &entry) {
   cae::DatasetConfig config;
   config.name =std::string("dataset");
   config.uri = entry.src;
-  config.start = entry.hdf5_start;
-  config.count = entry.hdf5_count;
-  config.stride = entry.hdf5_stride;
+  // Convert from hsize_t to uint64_t
+  config.start.assign(entry.hdf5_start.begin(), entry.hdf5_start.end());
+  config.count.assign(entry.hdf5_count.begin(), entry.hdf5_count.end());
+  config.stride.assign(entry.hdf5_stride.begin(), entry.hdf5_stride.end());
   config.run_script = entry.run_script;
   config.destination = entry.destination;
   
