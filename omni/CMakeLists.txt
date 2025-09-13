@@ -45,7 +45,7 @@ option(USE_HDF5 "Enable HDF5 support for OMNI module" OFF)
 
 # Find HDF5 package if enabled
 if(USE_HDF5)
-    find_package(HDF5 COMPONENTS CXX REQUIRED)
+    find_package(HDF5)
     include_directories(${HDF5_INCLUDE_DIRS})
     set(HDF5_LIBS ${HDF5_LIBRARIES})
     add_definitions(-DUSE_HDF5)
