@@ -41,7 +41,7 @@ message(STATUS "Building OMNI module with yaml-cpp")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Option to enable/disable HDF5 support
-option(USE_HDF5 "Enable HDF5 support for OMNI module" ON)
+option(USE_HDF5 "Enable HDF5 support for OMNI module" OFF)
 
 # Find HDF5 package if enabled
 if(USE_HDF5)
