@@ -4,6 +4,7 @@
 #include <thread>    // For std::this_thread::sleep_for
 #include <sstream>   // For std::stringstream
 
+#ifdef USE_POCO
 // POCO Includes
 #include <Poco/Net/HTTPSClientSession.h>
 #include <Poco/Net/HTTPRequest.h>
@@ -12,6 +13,7 @@
 #include <Poco/StreamCopier.h>
 #include <Poco/Exception.h> // For POCO exceptions
 #include <Poco/Net/Context.h> // For SSL context
+#endif
 
 // JSON Parsing
 #include <nlohmann/json.hpp>
@@ -30,6 +32,7 @@ std::string requestGlobusTransfer(
     const std::string& transferLabel
 );
 
+#ifdef USE_POCO
 // Function to perform an HTTP GET request using POCO
 std::string httpGet(const std::string& url, const std::string& accessToken) {
     try {
@@ -89,7 +92,15 @@ std::string httpGet(const std::string& url, const std::string& accessToken) {
         return "";
     }
 }
+#else
+// Stub implementation when POCO is disabled
+std::string httpGet(const std::string& url, const std::string& accessToken) {
+    std::cerr << "Error: HTTP GET not supported - POCO is disabled" << std::endl;
+    return "";
+}
+#endif
 
+#ifdef USE_POCO
 // Function to perform an HTTP POST request using POCO
 std::string httpPost(const std::string& url, const std::string& accessToken, const std::string& jsonPayload) {
     try {
@@ -147,7 +158,13 @@ std::string httpPost(const std::string& url, const std::string& accessToken, con
         return "";
     }
 }
-
+#else
+// Stub implementation when POCO is disabled
+std::string httpPost(const std::string& url, const std::string& accessToken, const std::string& jsonPayload) {
+    std::cerr << "Error: HTTP POST not supported - POCO is disabled" << std::endl;
+    return "";
+}
+#endif
 
 // Function to get Globus transfer status
 std::string getGlobusTransferStatus(const std::string& transferTaskId, const std::string& accessToken) {
@@ -155,6 +172,7 @@ std::string getGlobusTransferStatus(const std::string& transferTaskId, const std
     return httpGet(apiUrl, accessToken);
 }
 
+#ifdef USE_POCO
 // Implementation of the Globus file transfer function
 // This is called by the wrapper in globus_utils.cpp
 extern "C" bool transfer_globus_file_impl(
@@ -260,7 +278,20 @@ extern "C" bool transfer_globus_file_impl(
         return false;
     }
 }
+#else
+// Stub implementation when POCO is disabled
+extern "C" bool transfer_globus_file_impl(
+    const std::string& source_uri,
+    const std::string& dest_uri,
+    const std::string& access_token,
+    const std::string& transfer_label
+) {
+    std::cerr << "Error: Globus transfer not supported - POCO is disabled" << std::endl;
+    return false;
+}
+#endif
 
+#ifdef USE_POCO
 // Function to request a Globus data transfer
 std::string requestGlobusTransfer(
     const std::string& sourceEndpointId,
@@ -348,8 +379,22 @@ std::string requestGlobusTransfer(
         return "";
     }
 }
+#else
+// Stub implementation when POCO is disabled
+std::string requestGlobusTransfer(
+    const std::string& sourceEndpointId,
+    const std::string& destinationEndpointId,
+    const std::string& sourcePath,
+    const std::string& destinationPath,
+    const std::string& accessToken,
+    const std::string& transferLabel
+) {
+    std::cerr << "Error: Globus transfer request not supported - POCO is disabled" << std::endl;
+    return "";
+}
+#endif
 
-
+#ifdef USE_POCO
 int test_globus() {
     // --- Configuration ---
     // Replace with your actual Globus transfer task ID and access token
@@ -474,3 +519,10 @@ int test_globus() {
 
     return 0;
 }
+#else
+// Stub implementation when POCO is disabled
+int test_globus() {
+    std::cerr << "Error: Globus test not supported - POCO is disabled" << std::endl;
+    return 1;
+}
+#endif

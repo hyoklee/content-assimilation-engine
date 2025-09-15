@@ -56,7 +56,7 @@ else()
 endif()
 
 # Options for POCO and AWS support
-option(USE_POCO "Enable POCO support for HTTP downloads and shared memory" ON)
+option(USE_POCO "Enable POCO support for HTTP downloads and shared memory" OFF)
 option(USE_AWS "Enable AWS SDK support for S3 operations" OFF)
 option(USE_HERMES "Enable HERMES support for data staging" OFF)
 
