@@ -24,7 +24,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits.h> // For PATH_MAX
-#ifdef OMNI_ENABLE_MPI
+#ifdef USE_MPI
 #include <mpi.h>
 #endif
 #ifndef _WIN32

@@ -10,10 +10,10 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 17)
 
 # Option to enable/disable MPI support
-option(OMNI_ENABLE_MPI "Enable MPI support for OMNI module" OFF)
+option(USE_MPI "Enable MPI support for OMNI module" OFF)
 
 # Check if we have the necessary dependencies available from the parent project
-if(OMNI_ENABLE_MPI)
+if(USE_MPI)
     if(NOT TARGET MPI::MPI_CXX)
         message(STATUS "MPI not found in parent project, attempting to find it")
         find_package(MPI REQUIRED)
@@ -161,15 +161,15 @@ if(USE_HDF5)
     list(APPEND WRP_LIBS ${HDF5_LIBS})
 endif()
 
-if(OMNI_ENABLE_MPI)
+if(USE_MPI)
     list(APPEND WRP_LIBS ${MPI_LIBS})
-    target_compile_definitions(wrp PRIVATE OMNI_ENABLE_MPI)
+    target_compile_definitions(wrp PRIVATE USE_MPI)
 endif()
 
 target_link_libraries(wrp ${WRP_LIBS})
 
 # MPI binary format processor (wrp_binary_format_mpi binary)
-if(OMNI_ENABLE_MPI)
+if(USE_MPI)
     add_executable(wrp_binary_format_mpi wrp_binary_format_mpi.cc)
     target_link_libraries(wrp_binary_format_mpi ${MPI_LIBS})
     target_include_directories(wrp_binary_format_mpi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -192,7 +192,7 @@ if(USE_HDF5)
 endif()
 
 # Install targets
-if(OMNI_ENABLE_MPI)
+if(USE_MPI)
     install(TARGETS wrp wrp_binary_format_mpi
         RUNTIME DESTINATION ${CAE_INSTALL_BIN_DIR}
     )
