@@ -109,9 +109,13 @@ endif()
 
 message(STATUS "yaml-cpp found: ${yaml-cpp_VERSION}")
 
-# Find nlohmann-json for JSON parsing
-find_package(nlohmann_json REQUIRED)
-message(STATUS "nlohmann-json found")
+# Find nlohmann-json for JSON parsing (only needed when POCO is enabled)
+if(USE_POCO)
+    find_package(nlohmann_json REQUIRED)
+    message(STATUS "nlohmann-json found")
+else()
+    message(STATUS "nlohmann-json not required (POCO disabled)")
+endif()
 
 # Source files for the factory and repository implementations
 if(USE_HDF5)
@@ -148,14 +152,17 @@ add_executable(wrp
 target_include_directories(wrp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Build library list for wrp
-set(WRP_LIBS 
-    omni_lib 
-    ${YAML_CPP_LIBS} 
-    ${POCO_LIBS} 
+set(WRP_LIBS
+    omni_lib
+    ${YAML_CPP_LIBS}
+    ${POCO_LIBS}
     ${AWS_LIBS}
-    nlohmann_json::nlohmann_json
     ${CMAKE_THREAD_LIBS_INIT}
 )
+
+if(USE_POCO)
+    list(APPEND WRP_LIBS nlohmann_json::nlohmann_json)
+endif()
 
 if(USE_HDF5)
     list(APPEND WRP_LIBS ${HDF5_LIBS})

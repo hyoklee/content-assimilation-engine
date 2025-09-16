@@ -15,8 +15,10 @@
 #include <Poco/Net/Context.h> // For SSL context
 #endif
 
+#ifdef USE_POCO
 // JSON Parsing
 #include <nlohmann/json.hpp>
+#endif
 
 // Globus utilities
 #include "format/globus_utils.h"
