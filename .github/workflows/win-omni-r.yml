@@ -23,7 +23,7 @@ jobs:
           cd omni
           mkdir build
           cd build
-          cmake -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r" ..
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r" ..
           ctest -C Release -D Experimental
           cd ../..
         shell: cmd
@@ -32,6 +32,6 @@ jobs:
           cd omni
           mkdir poco
           cd poco
-          cmake -DUSE_POCO=ON -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r/poco" ..
+          cmake -DUSE_POCO=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r/poco" ..
           ctest -C Release -D Experimental
         shell: cmd
