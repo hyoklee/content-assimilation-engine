@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
       - name: install
         run: |
-          brew install poco yaml-cpp
+          brew install poco yaml-cpp nlohmann-json
       - name: test
         run: |
           cd omni
@@ -29,6 +29,6 @@ jobs:
           cd omni
           mkdir poco
           cd poco
-          cmake -DPOCO=ON -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r/poco" ..
+          cmake -DUSE_POCO=ON -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r/poco" ..
           ctest -C Release -D Experimental
 
