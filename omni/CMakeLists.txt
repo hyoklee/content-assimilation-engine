@@ -144,11 +144,17 @@ if(USE_HDF5)
 endif()
 
 # Main YAML parser and job orchestrator (wrp binary)
-add_executable(wrp 
-    wrp.cc
-    format/globus_utils.cpp
-    glo.cc
-)
+if(USE_POCO)
+    add_executable(wrp
+        wrp.cc
+        format/globus_utils.cpp
+        glo.cc
+    )
+else()
+    add_executable(wrp
+        wrp.cc
+    )
+endif()
 target_include_directories(wrp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Build library list for wrp
