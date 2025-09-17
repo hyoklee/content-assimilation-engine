@@ -636,7 +636,18 @@ int read_omni(std::string input_file) {
           name = it->second.as<std::string>();
         }
         if (key == "src") {
-          path = it->second.as<std::string>();
+          std::string original_path = it->second.as<std::string>();
+          bool wait_for_file = false;
+
+          // Check if src starts with '>' indicating we should wait for the file
+          if (!original_path.empty() && original_path[0] == '>') {
+            wait_for_file = true;
+            path = original_path.substr(1); // Remove the '>' prefix
+            std::cout << "Will wait for file: " << path.c_str() << std::endl;
+          } else {
+            path = original_path;
+          }
+
           std::cout << "Path=" << path.c_str()
 	     	     << std::endl;
 	  if(path.find("https://") == path.npos &&
@@ -644,9 +655,29 @@ int read_omni(std::string input_file) {
              path.find("globus://") == path.npos) {
 #ifdef USE_POCO
 	    Poco::File file(path);
-	    if (!file.exists()) {
+	    if (wait_for_file) {
+	      // Wait indefinitely for the file to become available
+	      std::cout << "Waiting for file '" << path << "' to become available..." << std::endl;
+	      while (!file.exists()) {
+	        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	        file = Poco::File(path); // Refresh the file object
+	      }
+	      std::cout << "File '" << path << "' is now available, continuing..." << std::endl;
+	    } else if (!file.exists()) {
 	      std::cerr << "Error: '" << path << "' does not exist"
 			<< std::endl;
+	      return -1;
+	    }
+#else
+	    if (wait_for_file) {
+	      // Wait indefinitely for the file to become available (non-POCO version)
+	      std::cout << "Waiting for file '" << path << "' to become available..." << std::endl;
+	      while (!std::filesystem::exists(path)) {
+	        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	      }
+	      std::cout << "File '" << path << "' is now available, continuing..." << std::endl;
+	    } else if (!std::filesystem::exists(path)) {
+	      std::cerr << "Error: '" << path << "' does not exist" << std::endl;
 	      return -1;
 	    }
 #endif
