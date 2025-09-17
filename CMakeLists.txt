@@ -145,6 +145,10 @@ if(NOT CAE_INSTALL_DATA_DIR)
     set(CAE_INSTALL_DATA_DIR ${CMAKE_INSTALL_PREFIX}/share)
 endif()
 
+if(NOT CAE_INSTALL_MAN_DIR)
+    set(CAE_INSTALL_MAN_DIR ${CMAKE_INSTALL_PREFIX}/share/man)
+endif()
+
 # -----------------------------------------------------------------------------
 # Find Packages
 # -----------------------------------------------------------------------------

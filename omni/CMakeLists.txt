@@ -257,6 +257,17 @@ install(FILES README.md
     DESTINATION ${CAE_INSTALL_DATA_DIR}/omni
 )
 
+# Install man pages
+install(FILES omni.5
+    DESTINATION ${CAE_INSTALL_MAN_DIR}/man5
+    OPTIONAL
+)
+
+install(FILES wrp.1
+    DESTINATION ${CAE_INSTALL_MAN_DIR}/man1
+    OPTIONAL
+)
+
 # Configure and install configuration files
 configure_file(config/quick_test.yaml ${CMAKE_BINARY_DIR}/omni/config/quick_test.yaml COPYONLY)
 configure_file(config/demo_job.yaml ${CMAKE_BINARY_DIR}/omni/config/demo_job.yaml COPYONLY)
