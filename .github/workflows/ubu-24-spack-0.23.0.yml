@@ -134,6 +134,7 @@ jobs:
         module use $MODULEPATH
         module load compressor
         module load iowarp-runtime
+        export LD_LIBRARY_PATH=$(spack location -i yaml-cpp)/lib:$LD_LIBRARY_PATH
         jarvis bootstrap from local
         sleep 5        
         jarvis rg build
