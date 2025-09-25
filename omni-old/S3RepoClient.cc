@@ -8,7 +8,7 @@
 #include <aws/s3/model/PutObjectRequest.h>
 #endif
 
-namespace CAE {
+namespace cae {
 
 void S3RepoClient::Download(const RepoContext &ctx) {
 #ifdef USE_AWS
@@ -112,4 +112,4 @@ void S3RepoClient::Upload(const RepoContext &ctx, const std::string& local_path)
 #endif
 }
 
-} // namespace CAE 
+} // namespace cae 

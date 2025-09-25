@@ -1,7 +1,7 @@
 #include "OMNI.h"
 #include <iostream>
 
-namespace CAE {
+namespace cae {
 
 void HDF5FormatClient::Import(const FormatContext &ctx) {
     std::cout << "HDF5FormatClient::Import called for file: " << ctx.filename_ << std::endl;
@@ -13,4 +13,4 @@ void HDF5FormatClient::Export(const FormatContext &ctx) {
     // Real HDF5 export logic would go here
 }
 
-} // namespace CAE 
+} // namespace cae 

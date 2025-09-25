@@ -1,7 +1,7 @@
 #include "factory.h"
 #include "OMNI.h"
 
-namespace CAE {
+namespace cae {
 
 std::unique_ptr<RepoClient> CreateRepoClient(const std::string& type) {
     if (type == "filesystem" || type == "posix" || type == "local") {
@@ -27,4 +27,4 @@ std::unique_ptr<FormatClient> CreateFormatClient(const std::string& type) {
     return nullptr;
 }
 
-} // namespace CAE 
+} // namespace cae 

@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-namespace CAE {
+namespace cae {
 
 void PosixFormatClient::Import(const FormatContext &ctx) {
     // Read bytes from file at offset and size
@@ -46,4 +46,4 @@ void PosixFormatClient::Export(const FormatContext &ctx) {
     std::cout << "Export not implemented for PosixFormatClient." << std::endl;
 }
 
-} // namespace CAE 
+} // namespace cae 

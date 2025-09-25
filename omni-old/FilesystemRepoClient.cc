@@ -15,7 +15,7 @@
 #include <Poco/URI.h>
 #endif
 
-namespace CAE {
+namespace cae {
 
 void FilesystemRepoClient::Download(const RepoContext &ctx) {
     // For demonstration, assume ctx.key_ is the URL or file path, and username/passwd are unused.
@@ -110,4 +110,4 @@ void FilesystemRepoClient::Upload(const RepoContext &ctx, const std::string& loc
     std::cout << "Copied " << local_path << " to " << ctx.key_ << std::endl;
 }
 
-} // namespace CAE 
+} // namespace cae 

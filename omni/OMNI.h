@@ -1,7 +1,7 @@
 ///
 /// OMNI.h
 /// 
-namespace CAE {
+namespace cae {
   class OMNI {
   public:
     OMNI() = default;
@@ -19,4 +19,4 @@ namespace CAE {
     }
   };
 
-} // namespace CAE
+} // namespace cae

@@ -1,7 +1,7 @@
 #include "OMNI.h"
 #include <iostream>
 
-namespace CAE {
+namespace cae {
 
 void ParquetFormatClient::Import(const FormatContext &ctx) {
     std::cout << "ParquetFormatClient::Import called for file: " << ctx.filename_ << std::endl;
@@ -13,4 +13,4 @@ void ParquetFormatClient::Export(const FormatContext &ctx) {
     // Real Parquet export logic would go here
 }
 
-} // namespace CAE 
+} // namespace cae 
