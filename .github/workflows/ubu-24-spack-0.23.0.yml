@@ -53,6 +53,8 @@ jobs:
         spack load mpi
         spack install --reuse hdf5
         spack load hdf5
+        spack install --reuse yaml-cpp
+        spack load yaml-cpp
         spack install --reuse iowarp
         spack load iowarp
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
@@ -63,6 +65,7 @@ jobs:
     - name: test module
       run: |
         . ./spack/share/spack/setup-env.sh
+        spack load yaml-cpp
         spack load iowarp
         chi_make_repo ~/my_mod_repo example
         chi_make_mod ~/my_mod_repo/compressor
@@ -80,6 +83,7 @@ jobs:
       run: |
         pwd
         . ./spack/share/spack/setup-env.sh
+        spack load yaml-cpp
         spack load iowarp
         jarvis bootstrap from local
         jarvis rg build
@@ -93,6 +97,7 @@ jobs:
         . ./spack/share/spack/setup-env.sh
         spack load lmod
         spack load hdf5
+        spack load yaml-cpp
         spack load iowarp
         source $(spack location -i lmod)/lmod/lmod/init/bash
         cmake -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) --preset debug
@@ -105,6 +110,7 @@ jobs:
         echo $MODULEPATH
         spack load lmod
         spack load hdf5
+        spack load yaml-cpp
         spack load iowarp
         source $(spack location -i lmod)/lmod/lmod/init/bash
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
@@ -120,7 +126,8 @@ jobs:
       run: |
         . ./spack/share/spack/setup-env.sh
         spack load lmod
-        spack load hdf5        
+        spack load hdf5
+        spack load yaml-cpp
         spack load iowarp
         source $(spack location -i lmod)/lmod/lmod/init/bash
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
