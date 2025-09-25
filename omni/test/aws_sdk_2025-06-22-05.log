@@ -1,0 +1,1958 @@
+[INFO] 2025-06-22 05:41:50.620 Aws_Init_Cleanup [138253064148608] Initiate AWS SDK for C++ with Version:1.11.510
+[INFO] 2025-06-22 05:41:50.620 aws-c-common [138253064148608] static: libnuma.so loaded
+[INFO] 2025-06-22 05:41:50.620 aws-c-common [138253064148608] static: set_mempolicy() loaded
+[INFO] 2025-06-22 05:41:50.620 aws-c-common [138253064148608] static: numa_available() loaded
+[INFO] 2025-06-22 05:41:50.620 aws-c-common [138253064148608] static: numa_num_configured_nodes() loaded
+[INFO] 2025-06-22 05:41:50.620 aws-c-common [138253064148608] static: numa_num_possible_cpus() loaded
+[INFO] 2025-06-22 05:41:50.620 aws-c-common [138253064148608] static: numa_node_of_cpu() loaded
+[DEBUG] 2025-06-22 05:41:50.620 libcrypto_resolve [138253064148608] searching process and loaded modules
+[DEBUG] 2025-06-22 05:41:50.620 libcrypto_resolve [138253064148608] did not find aws-lc symbols linked
+[DEBUG] 2025-06-22 05:41:50.620 libcrypto_resolve [138253064148608] did not find boringssl symbols linked
+[DEBUG] 2025-06-22 05:41:50.620 libcrypto_resolve [138253064148608] found weak ref libcrypto 1.1.1 HMAC symbols
+[DEBUG] 2025-06-22 05:41:50.620 libcrypto_resolve [138253064148608] found weak ref libcrypto 1.1.1 EVP_MD symbols
+[DEBUG] 2025-06-22 05:41:50.621 libcrypto_resolve [138253064148608] Compiled with libcrypto OpenSSL 3.5.0 8 Apr 2025, linked to libcrypto OpenSSL 3.5.0 8 Apr 2025
+[INFO] 2025-06-22 05:41:50.621 tls-handler [138253064148608] static: Initializing TLS using s2n.
+[DEBUG] 2025-06-22 05:41:50.636 tls-handler [138253064148608] ctx: Based on OS, we detected the default PKI path as /etc/ssl/certs, and ca file as /etc/ssl/certs/ca-certificates.crt
+[ERROR] 2025-06-22 05:41:50.636 common-io [138253064148608] static: Failed to open file. path:'/sys/devices/virtual/dmi/id/sys_vendor' mode:'rb' errno:2 aws-error:44(AWS_ERROR_FILE_INVALID_PATH)
+[ERROR] 2025-06-22 05:41:50.636 common-io [138253064148608] static: Failed to open file. path:'/sys/devices/virtual/dmi/id/product_name' mode:'rb' errno:2 aws-error:44(AWS_ERROR_FILE_INVALID_PATH)
+[INFO] 2025-06-22 05:41:50.636 GlobalEnumOverflowContainer [138253064148608] Initialized AWS-CRT-CPP with version 0.32.8
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[INFO] 2025-06-22 05:41:50.636 Aws::Config::AWSConfigFileProfileConfigLoader [138253064148608] Initializing config loader against fileName /home/hyoklee/.aws/credentials and using profilePrefix = 0
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[INFO] 2025-06-22 05:41:50.636 Aws::Config::AWSConfigFileProfileConfigLoader [138253064148608] Initializing config loader against fileName /home/hyoklee/.aws/config and using profilePrefix = 1
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:50.636 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[INFO] 2025-06-22 05:41:50.640 Aws::Config::AWSConfigFileProfileConfigLoader [138253064148608] Unable to open config file /home/hyoklee/.aws/credentials for reading.
+[INFO] 2025-06-22 05:41:50.640 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:41:50.640 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:50.640 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:50.640 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[INFO] 2025-06-22 05:41:50.641 Aws::Config::AWSConfigFileProfileConfigLoader [138253064148608] Unable to open config file /home/hyoklee/.aws/config for reading.
+[INFO] 2025-06-22 05:41:50.641 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb6da40: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb6da40: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb6da40: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb6b110: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb6b110: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb6b110: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb4c770: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb4c770: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb4c770: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb49600: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb49600: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffb49600: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffc0d1d0: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffc0d1d0: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffc0d1d0: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252975597248] id=0x580dffb6b110: main loop started
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252975597248] id=0x580dffb6b110: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252967204544] id=0x580dffb4c770: main loop started
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252967204544] id=0x580dffb4c770: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffbded20: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffbded20: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138253064148608] id=0x580dffbded20: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252983989952] id=0x580dffb6da40: main loop started
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252950419136] id=0x580dffc0d1d0: main loop started
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252983989952] id=0x580dffb6da40: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252950419136] id=0x580dffc0d1d0: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252958811840] id=0x580dffb49600: main loop started
+[INFO] 2025-06-22 05:41:50.641 event-loop [138252958811840] id=0x580dffb49600: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc11a80: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc11a80: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc11a80: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc177e0: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc177e0: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc177e0: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc180f0: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc180f0: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc180f0: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc18a00: Initializing edge-triggered epoll
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252942026432] id=0x580dffbded20: main loop started
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc18a00: Using eventfd for cross-thread notifications.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138253064148608] id=0x580dffc18a00: Starting event-loop thread.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252942026432] id=0x580dffbded20: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252933633728] id=0x580dffc11a80: main loop started
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252933633728] id=0x580dffc11a80: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252715554496] id=0x580dffc177e0: main loop started
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252715554496] id=0x580dffc177e0: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.642 dns [138253064148608] id=0x580dffc19310: Initializing default host resolver with 8 max host entries.
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252707161792] id=0x580dffc180f0: main loop started
+[INFO] 2025-06-22 05:41:50.642 channel-bootstrap [138253064148608] id=0x580dffc19450: Initializing client bootstrap with event-loop group 0x580dffb98480
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252707161792] id=0x580dffc180f0: default timeout 100000, and max events to process per tick 100
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252698769088] id=0x580dffc18a00: main loop started
+[INFO] 2025-06-22 05:41:50.642 event-loop [138252698769088] id=0x580dffc18a00: default timeout 100000, and max events to process per tick 100
+[DEBUG] 2025-06-22 05:41:50.652 HttpClientFactory [138253064148608] Initializing Http Static State
+[DEBUG] 2025-06-22 05:41:50.652 HttpClientFactory [138253064148608] Initializing Curl Http Client
+[INFO] 2025-06-22 05:41:50.653 CurlHttpClient [138253064148608] Initializing Curl library with version: 8.14.1, ssl version: OpenSSL/3.5.0
+[INFO] 2025-06-22 05:41:50.653 EC2MetadataClient [138253064148608] Using IMDS endpoint: http://169.254.169.254
+[DEBUG] 2025-06-22 05:41:50.653 ClientConfiguration [138253064148608] Request Compression enabled
+[DEBUG] 2025-06-22 05:41:50.653 ClientConfiguration [138253064148608] ClientConfiguration will use MinReqCompression: 10240
+[DEBUG] 2025-06-22 05:41:50.653 ClientConfiguration [138253064148608] ClientConfiguration will use SDK Auto Resolved profile: [default] if not specified by users.
+[INFO] 2025-06-22 05:41:50.653 EC2MetadataClient [138253064148608] Creating AWSHttpResourceClient with max connections 2 and scheme http
+[INFO] 2025-06-22 05:41:50.653 CurlHandleContainer [138253064148608] Initializing CurlHandleContainer with size 2
+[DEBUG] 2025-06-22 05:41:50.653 ClientConfiguration [138253064148608] Request Compression enabled
+[DEBUG] 2025-06-22 05:41:50.653 ClientConfiguration [138253064148608] ClientConfiguration will use MinReqCompression: 10240
+[DEBUG] 2025-06-22 05:41:50.653 ClientConfiguration [138253064148608] ClientConfiguration will use SDK Auto Resolved profile: [default] if not specified by users.
+[DEBUG] 2025-06-22 05:41:50.654 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:50.654 CurlHandleContainer [138253064148608] No current connections available in pool. Attempting to create new connections.
+[DEBUG] 2025-06-22 05:41:50.654 CurlHandleContainer [138253064148608] attempting to grow pool size by 2
+[INFO] 2025-06-22 05:41:50.654 CurlHandleContainer [138253064148608] Pool grown by 2
+[DEBUG] 2025-06-22 05:41:50.654 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:50.654 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:50.654 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:50.654 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:51.655 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:41:51.655 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:51.655 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:41:51.655 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:51.655 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:51.655 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:41:51.655 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:41:51.655 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:51.655 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:51.655 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:51.655 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:51.655 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:52.656 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:41:52.656 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:52.656 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:41:52.656 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:52.656 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:52.656 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:41:52.656 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/api/token
+[DEBUG] 2025-06-22 05:41:52.656 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:52.656 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:52.656 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:52.656 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:52.656 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:53.067 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 46114 failed: No route to host
+
+[DEBUG] 2025-06-22 05:41:53.067 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 448 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:41:53.067 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:53.067 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:41:53.067 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:53.067 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:53.067 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:41:53.067 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:41:53.067 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:53.067 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:53.067 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:53.067 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:53.068 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:54.068 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:41:54.068 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:54.068 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:41:54.068 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:54.068 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:54.068 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:41:54.068 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[DEBUG] 2025-06-22 05:41:54.068 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:54.068 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:54.068 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:54.068 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:54.068 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:55.069 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:41:55.069 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:55.069 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:41:55.070 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:55.070 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:55.070 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:41:55.070 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:41:55.070 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:55.070 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:55.070 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:55.070 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:55.070 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:55.817 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 59828 failed: No route to host
+
+[DEBUG] 2025-06-22 05:41:55.817 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 816 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:41:55.817 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:55.817 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:41:55.817 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:55.817 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:55.817 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:41:55.817 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/placement/availability-zone
+[INFO] 2025-06-22 05:41:55.817 EC2MetadataClient [138253064148608] Unable to pull region from instance metadata service 
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[INFO] 2025-06-22 05:41:55.819 Aws::Config::AWSConfigFileProfileConfigLoader [138253064148608] Initializing config loader against fileName /home/hyoklee/.aws/credentials and using profilePrefix = 0
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:55.819 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[INFO] 2025-06-22 05:41:55.819 ProfileConfigFileAWSCredentialsProvider [138253064148608] Setting provider to read credentials from /home/hyoklee/.aws/credentials for credentials file and /home/hyoklee/.aws/config for the config file , for use with profile default
+[INFO] 2025-06-22 05:41:55.819 ProcessCredentialsProvider [138253064148608] Setting process credentials provider to read config from default
+[WARN] 2025-06-22 05:41:55.819 STSAssumeRoleWithWebIdentityCredentialsProvider [138253064148608] Token file must be specified to use STS AssumeRole web identity creds provider.
+[DEBUG] 2025-06-22 05:41:55.819 ClientConfiguration [138253064148608] Request Compression enabled
+[DEBUG] 2025-06-22 05:41:55.819 ClientConfiguration [138253064148608] ClientConfiguration will use MinReqCompression: 10240
+[DEBUG] 2025-06-22 05:41:55.819 ClientConfiguration [138253064148608] ClientConfiguration will use SDK Auto Resolved profile: [default] if not specified by users.
+[DEBUG] 2025-06-22 05:41:55.819 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:55.819 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:55.819 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:55.819 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:55.819 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:56.820 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:41:56.820 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:56.820 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:41:56.820 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:56.820 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:56.820 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:41:56.820 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:41:56.820 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:56.820 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:56.820 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:56.820 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:56.820 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:57.821 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:41:57.821 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:57.821 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:41:57.821 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:57.821 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:57.821 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:41:57.821 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/placement/availability-zone
+[INFO] 2025-06-22 05:41:57.821 EC2MetadataClient [138253064148608] Unable to pull region from instance metadata service 
+[INFO] 2025-06-22 05:41:57.821 SSOBearerTokenProvider [138253064148608] Setting sso bearerToken provider to read config from default
+[INFO] 2025-06-22 05:41:57.821 SSOCredentialsProvider [138253064148608] Setting sso credentials provider to read config from default
+[DEBUG] 2025-06-22 05:41:57.821 ClientConfiguration [138253064148608] Request Compression enabled
+[DEBUG] 2025-06-22 05:41:57.821 ClientConfiguration [138253064148608] ClientConfiguration will use MinReqCompression: 10240
+[DEBUG] 2025-06-22 05:41:57.821 ClientConfiguration [138253064148608] ClientConfiguration will use SDK Auto Resolved profile: [default] if not specified by users.
+[DEBUG] 2025-06-22 05:41:57.821 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:57.821 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:57.821 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:57.821 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:57.821 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:58.567 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 59850 failed: No route to host
+
+[DEBUG] 2025-06-22 05:41:58.567 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 814 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:41:58.567 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:58.567 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:41:58.567 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:58.567 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:58.567 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:41:58.567 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:41:58.567 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:58.567 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:58.567 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:58.567 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:58.567 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:41:59.568 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:41:59.568 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:41:59.568 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:41:59.568 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:59.568 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:41:59.568 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:41:59.568 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/placement/availability-zone
+[INFO] 2025-06-22 05:41:59.568 EC2MetadataClient [138253064148608] Unable to pull region from instance metadata service 
+[DEBUG] 2025-06-22 05:41:59.568 DefaultAWSCredentialsProviderChain [138253064148608] The environment variable value AWS_CONTAINER_CREDENTIALS_RELATIVE_URI is 
+[DEBUG] 2025-06-22 05:41:59.568 DefaultAWSCredentialsProviderChain [138253064148608] The environment variable value AWS_CONTAINER_CREDENTIALS_FULL_URI is 
+[DEBUG] 2025-06-22 05:41:59.568 DefaultAWSCredentialsProviderChain [138253064148608] The environment variable value AWS_EC2_METADATA_DISABLED is 
+[INFO] 2025-06-22 05:41:59.568 InstanceProfileCredentialsProvider [138253064148608] Creating Instance with default EC2MetadataClient and refresh rate 300000
+[INFO] 2025-06-22 05:41:59.568 DefaultAWSCredentialsProviderChain [138253064148608] Added EC2 metadata service credentials provider to the provider chain.
+[INFO] 2025-06-22 05:41:59.582 Aws::Config::AWSConfigFileProfileConfigLoader [138253064148608] Unable to open config file /home/hyoklee/.aws/credentials for reading.
+[INFO] 2025-06-22 05:41:59.582 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[INFO] 2025-06-22 05:41:59.582 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:41:59.582 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:41:59.582 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:41:59.582 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:41:59.582 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:41:59.582 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:41:59.587 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:41:59.587 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:41:59.587 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:41:59.587 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:41:59.587 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:41:59.587 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:59.587 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:41:59.587 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:00.588 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:00.588 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:00.588 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:00.588 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:00.588 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:42:00.588 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:00.588 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:00.588 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:00.588 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:00.588 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:00.588 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:00.588 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:01.317 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 59884 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:01.317 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 796 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:01.317 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:01.317 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:01.317 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:01.317 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:42:01.317 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:01.317 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:01.317 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[INFO] 2025-06-22 05:42:01.317 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:01.317 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:01.317 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:01.317 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:01.317 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:01.317 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:01.326 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:01.326 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:01.326 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:01.326 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:01.326 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:01.326 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:01.326 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:01.326 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:02.327 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:02.327 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:02.327 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:02.327 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:02.327 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:42:02.327 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:02.327 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:02.327 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:02.327 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:02.327 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:02.327 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:02.327 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:03.328 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:03.328 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:03.328 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:03.328 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:03.328 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd9a870
+[ERROR] 2025-06-22 05:42:03.328 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:03.328 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:03.328 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[INFO] 2025-06-22 05:42:03.328 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:03.328 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:03.328 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:03.328 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:03.328 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:03.328 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:03.335 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:03.335 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:03.335 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:03.335 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:03.335 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:03.335 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:03.335 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:03.335 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:04.068 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 59908 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:04.068 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 800 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:04.068 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:04.068 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:04.068 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd9a870
+[DEBUG] 2025-06-22 05:42:04.068 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:04.068 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:04.068 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:04.068 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:04.068 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:04.068 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:04.068 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:04.068 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:07.265 CURL [138253064148608] (Text) Connection timed out after 1037 milliseconds
+
+[DEBUG] 2025-06-22 05:42:07.266 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:07.266 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:07.266 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:07.266 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:07.266 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:07.266 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:07.266 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[INFO] 2025-06-22 05:42:07.266 CurlHandleContainer [138253064148608] Initializing CurlHandleContainer with size 25
+[INFO] 2025-06-22 05:42:07.266 ClientConfiguration [138253064148608] Retry Strategy will use the default max attempts.
+[DEBUG] 2025-06-22 05:42:07.269 Aws::Endpoint::DefaultEndpointProvider [138253064148608] Endpoint rules engine evaluated the endpoint: http://localhost:4566/iowarp
+[INFO] 2025-06-22 05:42:07.271 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:07.271 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:07.271 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:07.271 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:07.271 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:07.271 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:07.274 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:07.274 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:07.274 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:07.274 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:07.274 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:07.274 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:07.274 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:07.274 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:08.274 CURL [138253064148608] (Text) Connection timed out after 1032 milliseconds
+
+[DEBUG] 2025-06-22 05:42:08.274 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:08.274 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:08.274 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:08.274 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:08.274 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:08.274 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:08.274 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:08.274 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:08.274 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:08.274 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:08.275 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:09.166 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 56756 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:09.166 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 921 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:09.166 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:09.166 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:09.166 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:09.166 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:09.166 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:09.166 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] No current connections available in pool. Attempting to create new connections.
+[DEBUG] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] attempting to grow pool size by 2
+[INFO] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] Pool grown by 2
+[DEBUG] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:09.166 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:09.166 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:09.166 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:09.166 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:09.166 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:09.166 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:09.167 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 34974 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:09.167 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:09.167 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40196 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:09.167 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:09.167 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:09.167 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:09.167 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:09.167 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:09.167 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:09.167 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:09.167 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:09.167 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:09.167 AWSClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[INFO] 2025-06-22 05:42:09.167 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:09.167 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:09.167 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:09.167 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:09.167 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:09.167 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:09.175 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:09.175 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:09.175 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:09.175 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:09.175 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:09.175 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:09.175 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:09.175 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:10.176 CURL [138253064148608] (Text) Connection timed out after 1033 milliseconds
+
+[DEBUG] 2025-06-22 05:42:10.176 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:10.176 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:10.176 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:10.176 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:42:10.176 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:10.176 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:10.177 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:10.177 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:10.177 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:10.177 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:10.177 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) Connection timed out after 1032 milliseconds
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:11.177 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:11.177 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:11.177 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:42:11.177 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:11.177 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:11.177 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:11.177 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:11.177 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:11.177 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:11.177 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:11.177 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 34986 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40208 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:11.177 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:11.177 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:11.177 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:11.177 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:11.177 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:11.177 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:11.177 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:11.177 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:11.177 AWSClient [138253064148608] Request failed, now waiting 50 ms before attempting again.
+[INFO] 2025-06-22 05:42:11.228 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:11.228 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:11.228 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:11.228 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:11.228 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:11.228 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:11.233 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:11.233 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:11.233 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:11.233 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:11.233 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:11.233 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:11.233 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:11.233 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:12.073 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 56784 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:12.073 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 867 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:12.073 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:12.073 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:12.073 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:12.073 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:42:12.073 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:12.073 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:12.073 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:12.073 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:12.073 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:12.073 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:12.073 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) Connection timed out after 1032 milliseconds
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:13.074 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:13.074 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:13.074 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:42:13.074 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:13.074 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:13.074 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:13.074 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:13.074 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:13.074 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:13.074 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:13.074 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 34990 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40222 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:13.074 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:13.074 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:13.074 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:13.074 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:13.074 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:13.074 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:13.074 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:13.074 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:13.074 AWSClient [138253064148608] Request failed, now waiting 100 ms before attempting again.
+[INFO] 2025-06-22 05:42:13.175 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:13.175 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:13.175 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:13.175 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:13.175 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:13.175 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:13.184 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:13.184 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:13.184 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:13.184 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:13.184 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:13.184 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:13.184 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:13.184 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:14.185 CURL [138253064148608] (Text) Connection timed out after 1033 milliseconds
+
+[DEBUG] 2025-06-22 05:42:14.186 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:14.186 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:14.186 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:14.186 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:14.186 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:14.186 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:14.186 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:14.186 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:14.186 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:14.186 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:14.186 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:14.946 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 56814 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:14.946 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 820 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:14.946 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:14.946 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:14.947 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:14.947 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:14.947 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:14.947 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:14.947 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:14.947 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:14.947 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:14.947 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:14.947 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:14.947 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 35004 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40230 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:14.947 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:14.947 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:14.947 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:14.947 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:14.947 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:14.947 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:14.947 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:14.947 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:14.947 AWSClient [138253064148608] Request failed, now waiting 200 ms before attempting again.
+[INFO] 2025-06-22 05:42:15.147 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:15.147 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:15.147 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:15.147 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:15.147 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:15.147 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:15.153 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:15.153 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:15.153 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:15.153 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:15.153 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:15.153 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:15.153 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:15.153 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:16.154 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:16.154 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:16.154 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:16.154 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:16.154 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:16.154 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:16.154 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:16.154 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:16.154 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:16.154 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:16.154 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:16.154 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:17.155 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:17.155 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:17.155 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:17.155 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:17.155 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:17.155 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:17.155 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:17.155 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:17.155 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:17.155 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:17.155 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 36372 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 45946 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:17.155 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:17.155 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:17.155 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:17.155 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:17.155 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:17.155 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:17.156 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:17.156 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:17.156 AWSClient [138253064148608] Request failed, now waiting 400 ms before attempting again.
+[INFO] 2025-06-22 05:42:17.556 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:17.556 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:17.556 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:17.556 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:17.556 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:17.556 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:17.562 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:17.562 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:17.562 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:17.562 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:17.562 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:17.562 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:17.562 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:17.562 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:17.696 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 36362 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:17.696 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 145 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:17.696 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:17.696 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:17.696 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:17.696 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:17.696 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:17.696 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:17.696 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:17.696 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:17.696 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:17.696 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:17.696 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:18.697 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:42:18.697 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:18.697 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:18.697 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:18.697 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:18.697 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:18.697 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:18.697 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:18.697 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:18.697 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:18.697 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:18.697 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:18.697 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 36384 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 45948 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:18.698 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:18.698 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:18.698 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:18.698 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:18.698 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:18.698 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:18.698 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:18.698 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:18.698 AWSClient [138253064148608] Request failed, now waiting 800 ms before attempting again.
+[INFO] 2025-06-22 05:42:19.498 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:19.498 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:19.498 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:19.498 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:19.498 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:19.498 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:19.506 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:19.506 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:19.506 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:19.506 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:19.506 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:19.506 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:19.506 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:19.506 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:20.446 CURL [138253064148608] (Text) Connection timed out after 1025 milliseconds
+
+[DEBUG] 2025-06-22 05:42:20.446 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:20.446 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:20.446 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:20.446 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:20.446 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:20.446 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:20.447 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:20.447 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:20.447 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:20.447 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:20.447 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:21.448 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:21.448 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:21.448 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:21.448 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:21.448 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:21.448 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:21.448 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:21.448 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:21.448 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:21.448 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:21.448 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 36392 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 45954 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:21.448 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:21.448 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:21.448 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:21.448 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:21.448 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:21.448 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:21.448 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:21.448 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:21.448 AWSClient [138253064148608] Request failed, now waiting 1600 ms before attempting again.
+[INFO] 2025-06-22 05:42:23.048 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:23.048 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:23.048 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:23.048 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:23.048 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:23.048 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:23.051 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:23.051 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:23.051 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:23.051 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:23.051 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:23.051 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:23.051 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:23.051 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:23.196 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 36410 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:23.196 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 158 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:23.196 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:23.196 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:23.196 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:23.196 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:23.196 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:23.196 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:23.196 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:23.196 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:23.196 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:23.196 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:23.196 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:24.197 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:24.197 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:24.197 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:24.197 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:24.197 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:24.197 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:24.197 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:24.197 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:24.197 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:24.197 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:24.197 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 36404 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 45964 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:24.197 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:24.197 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:24.197 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:24.197 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:24.197 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:24.197 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:24.197 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:24.197 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:24.197 AWSClient [138253064148608] Request failed, now waiting 3200 ms before attempting again.
+[INFO] 2025-06-22 05:42:27.397 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:27.398 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:27.398 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:27.398 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:27.398 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:27.398 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:27.406 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:27.406 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:27.406 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:27.406 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:27.406 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:27.406 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:27.406 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:27.406 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:28.406 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:42:28.406 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:28.407 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:28.407 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:28.407 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:28.407 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:28.407 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:28.407 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:28.407 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:28.407 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:28.407 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:28.407 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:29.408 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:29.408 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:29.408 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[ERROR] 2025-06-22 05:42:29.408 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:29.408 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:29.408 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:29.408 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:29.408 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:29.408 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:29.408 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:29.408 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 48068 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 59394 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:29.408 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:29.408 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:29.408 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:29.408 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:29.408 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:29.408 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:29.408 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:29.408 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:29.408 AWSClient [138253064148608] Request failed, now waiting 6400 ms before attempting again.
+[INFO] 2025-06-22 05:42:35.809 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:35.809 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:35.809 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:35.809 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:35.809 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:35.809 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:35.813 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:35.813 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:35.813 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:35.813 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:35.813 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:35.813 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:35.813 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:35.813 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:36.814 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:36.814 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:36.814 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:36.814 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:36.814 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:36.814 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:36.814 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:36.814 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:36.814 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:36.814 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:36.814 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:36.814 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:37.815 CURL [138253064148608] (Text) Connection timed out after 1082 milliseconds
+
+[DEBUG] 2025-06-22 05:42:37.815 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:37.816 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:37.816 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:37.816 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:37.816 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:37.816 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:37.816 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:37.816 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:37.816 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:37.816 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:37.816 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:37.816 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 60648 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 49814 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:37.816 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:37.816 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:37.816 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:37.816 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:37.816 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:37.816 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:37.816 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:37.816 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:37.816 AWSClient [138253064148608] Request failed, now waiting 12800 ms before attempting again.
+[INFO] 2025-06-22 05:42:52.983 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:52.983 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:52.983 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:52.983 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:52.983 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:52.983 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:52.988 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:52.988 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:52.988 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:52.988 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:52.988 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:52.988 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:52.988 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:52.988 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:53.989 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:53.989 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:53.989 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:53.989 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:53.989 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:53.989 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:53.989 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:53.989 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:53.989 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:53.989 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:53.989 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:53.989 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:54.990 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:54.990 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:54.990 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:54.990 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:54.990 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:54.990 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:54.990 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:54.990 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:54.990 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:54.990 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:54.990 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 54116 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:54.990 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:54.991 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 51706 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:54.991 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:54.991 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:54.991 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:54.991 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:54.991 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:54.991 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:54.991 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:54.991 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:54.991 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[DEBUG] 2025-06-22 05:42:54.991 Aws::Endpoint::DefaultEndpointProvider [138253064148608] Endpoint rules engine evaluated the endpoint: http://localhost:4566/iowarp
+[INFO] 2025-06-22 05:42:54.991 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:54.991 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:54.991 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:54.991 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:54.991 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:54.991 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:54.994 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:54.994 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:54.994 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:54.994 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:54.994 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:54.994 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:54.994 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:54.994 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:55.675 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 51872 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:55.675 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 743 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:55.675 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:55.675 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:55.675 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:55.675 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:42:55.675 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:55.675 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:55.675 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:55.675 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:55.675 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:55.675 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:55.675 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:56.676 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:42:56.676 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:56.676 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:56.676 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:56.676 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:42:56.676 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:56.676 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:56.676 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:56.677 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:56.677 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:56.677 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:56.677 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:56.677 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 54126 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 51716 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:56.677 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:56.677 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:56.677 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:56.677 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:56.677 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:56.677 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:56.677 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:56.677 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:56.677 AWSClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[INFO] 2025-06-22 05:42:56.677 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:56.677 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:56.677 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:56.677 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:56.677 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:56.677 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:56.686 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:56.686 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:56.686 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:56.686 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:56.686 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:56.686 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:56.686 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:56.686 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:57.687 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:42:57.687 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:57.687 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:57.687 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:57.687 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:42:57.687 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:57.687 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:57.687 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:57.687 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:57.687 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:57.687 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:57.687 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:58.424 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 51910 failed: No route to host
+
+[DEBUG] 2025-06-22 05:42:58.424 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 805 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:58.424 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:58.424 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:58.424 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:42:58.424 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:58.424 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:42:58.424 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:42:58.424 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:42:58.424 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:42:58.424 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:58.424 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:58.424 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:58.424 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 54136 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 51724 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:42:58.425 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:58.425 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:42:58.425 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:58.425 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:42:58.425 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:42:58.425 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:42:58.425 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:42:58.425 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:42:58.425 AWSClient [138253064148608] Request failed, now waiting 50 ms before attempting again.
+[INFO] 2025-06-22 05:42:58.475 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:42:58.475 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:42:58.475 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:42:58.475 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:42:58.475 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:58.475 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:42:58.482 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:42:58.482 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:42:58.482 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:42:58.482 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:58.482 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:58.482 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:58.482 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:58.482 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:42:59.483 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:42:59.483 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:42:59.483 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:42:59.483 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:59.483 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:42:59.483 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:42:59.483 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:42:59.483 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:42:59.483 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:42:59.483 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:59.483 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:42:59.483 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:00.484 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:00.484 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:00.484 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:00.484 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:43:00.484 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:43:00.484 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:43:00.484 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:43:00.484 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:00.484 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:00.484 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:00.484 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 47100 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40186 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:00.484 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:00.485 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:00.485 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:00.485 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:00.485 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:00.485 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:43:00.485 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:43:00.485 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:43:00.485 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:43:00.485 AWSClient [138253064148608] Request failed, now waiting 100 ms before attempting again.
+[INFO] 2025-06-22 05:43:00.585 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:43:00.585 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:43:00.585 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:43:00.585 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:43:00.585 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:00.585 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:43:00.588 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:00.588 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:43:00.588 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:43:00.589 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:00.589 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:00.589 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:00.589 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:00.589 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:01.174 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 49780 failed: No route to host
+
+[DEBUG] 2025-06-22 05:43:01.174 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 639 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:01.174 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:01.174 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:01.174 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:01.174 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:43:01.174 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:43:01.174 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:43:01.174 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:01.174 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:01.174 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:01.174 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:01.174 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:02.175 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:02.175 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:02.175 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:02.175 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:43:02.175 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:43:02.175 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:43:02.175 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:43:02.175 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:02.175 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:02.175 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:02.175 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 47110 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40198 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:02.175 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:02.175 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:02.175 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:02.175 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:02.175 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:43:02.175 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:43:02.175 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:43:02.175 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:43:02.175 AWSClient [138253064148608] Request failed, now waiting 200 ms before attempting again.
+[INFO] 2025-06-22 05:43:02.376 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:43:02.376 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:43:02.376 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:43:02.376 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:43:02.376 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:02.376 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:43:02.384 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:02.384 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:43:02.384 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:43:02.384 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:02.384 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:02.384 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:02.384 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:02.384 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:03.385 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:43:03.385 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:03.385 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:03.385 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:03.385 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:03.385 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:43:03.385 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:43:03.385 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:03.385 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:03.385 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:03.385 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:03.385 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) connect to 169.254.169.254 port 80 from 172.30.54.140 port 49820 failed: No route to host
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) Failed to connect to 169.254.169.254 port 80 after 588 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:03.924 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:03.924 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:03.924 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:43:03.924 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:43:03.924 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:43:03.924 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:43:03.924 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:43:03.924 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:03.924 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:03.924 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:03.924 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 47116 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40210 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:03.924 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:03.924 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:03.924 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:03.924 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:03.925 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:43:03.925 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:43:03.925 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:43:03.925 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:43:03.925 AWSClient [138253064148608] Request failed, now waiting 400 ms before attempting again.
+[INFO] 2025-06-22 05:43:04.325 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:43:04.325 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:43:04.325 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:43:04.325 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:43:04.325 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:04.325 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:43:04.329 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:04.329 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:43:04.329 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:43:04.329 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:04.329 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:04.329 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:04.329 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:04.330 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:05.330 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:43:05.330 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:05.330 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:05.330 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:05.330 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:05.331 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:43:05.331 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:43:05.331 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:05.331 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:05.331 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:05.331 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:05.331 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) Connection timed out after 1093 milliseconds
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:06.332 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:06.332 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:06.332 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:43:06.332 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:43:06.332 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:43:06.332 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:43:06.332 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:43:06.332 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:06.332 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:06.332 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:06.332 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 47124 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40222 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:06.332 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:06.332 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:06.332 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:06.332 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:06.332 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:43:06.332 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:43:06.332 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:43:06.332 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:43:06.332 AWSClient [138253064148608] Request failed, now waiting 800 ms before attempting again.
+[INFO] 2025-06-22 05:43:07.133 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:43:07.133 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:43:07.133 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:43:07.133 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:43:07.133 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:07.133 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:43:07.137 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:07.137 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:43:07.137 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:43:07.137 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:07.137 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:07.137 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:07.137 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:07.137 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:08.138 CURL [138253064148608] (Text) Connection timed out after 1091 milliseconds
+
+[DEBUG] 2025-06-22 05:43:08.138 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:08.138 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:08.138 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:08.138 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:43:08.138 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:43:08.138 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:43:08.138 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:08.138 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:08.138 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:08.138 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:08.138 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:09.139 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:09.139 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:09.139 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0e750
+[ERROR] 2025-06-22 05:43:09.139 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:43:09.139 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:43:09.139 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:43:09.139 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:43:09.139 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:09.139 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:09.139 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:09.139 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 47138 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 40230 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:09.139 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:09.139 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:09.139 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:09.139 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:09.139 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:43:09.139 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:43:09.139 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:43:09.139 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:43:09.139 AWSClient [138253064148608] Request failed, now waiting 1600 ms before attempting again.
+[INFO] 2025-06-22 05:43:10.740 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:43:10.740 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:43:10.740 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:43:10.740 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:43:10.740 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:10.740 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:43:10.745 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:10.745 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:43:10.745 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:43:10.745 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:10.745 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:10.745 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:10.745 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:10.745 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:11.746 CURL [138253064148608] (Text) Connection timed out after 1092 milliseconds
+
+[DEBUG] 2025-06-22 05:43:11.746 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:11.747 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:11.747 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0e750
+[DEBUG] 2025-06-22 05:43:11.747 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:11.747 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:43:11.747 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:43:11.747 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:11.747 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:11.747 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:11.747 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:11.747 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) Connection timed out after 1093 milliseconds
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:12.748 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:12.748 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:12.748 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:12.748 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:43:12.748 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:43:12.748 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:43:12.748 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:43:12.748 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:12.748 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:12.748 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:12.748 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 45004 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 50250 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:12.748 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:12.748 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:12.748 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:12.748 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:12.748 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:43:12.748 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:43:12.748 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:43:12.748 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:43:12.748 AWSClient [138253064148608] Request failed, now waiting 3200 ms before attempting again.
+[INFO] 2025-06-22 05:43:18.083 ProcessCredentialsProvider [138253064148608] Failed to find credential process's profile: default
+[DEBUG] 2025-06-22 05:43:18.083 FileSystemUtils [138253064148608] Environment value for variable HOME is /home/hyoklee
+[DEBUG] 2025-06-22 05:43:18.083 FileSystemUtils [138253064148608] Home directory is missing the final / appending one to normalize
+[DEBUG] 2025-06-22 05:43:18.083 FileSystemUtils [138253064148608] Final Home Directory is /home/hyoklee/
+[DEBUG] 2025-06-22 05:43:18.083 SSOCredentialsProvider [138253064148608] Loading token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:18.083 SSOCredentialsProvider [138253064148608] Preparing to load token from: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[INFO] 2025-06-22 05:43:18.087 SSOCredentialsProvider [138253064148608] Unable to open token file on path: /home/hyoklee/.aws/sso/cache/da39a3ee5e6b4b0d3255bfef95601890afd80709.json
+[DEBUG] 2025-06-22 05:43:18.087 InstanceProfileCredentialsProvider [138253064148608] Checking if latest credential pull has expired.
+[INFO] 2025-06-22 05:43:18.087 InstanceProfileCredentialsProvider [138253064148608] Credentials have expired attempting to re-pull from EC2 Metadata Service.
+[DEBUG] 2025-06-22 05:43:18.087 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:18.087 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:18.087 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:18.087 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:18.087 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:19.088 CURL [138253064148608] (Text) Connection timed out after 1004 milliseconds
+
+[DEBUG] 2025-06-22 05:43:19.088 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:19.088 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:19.088 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:19.088 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:19.088 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[WARN] 2025-06-22 05:43:19.088 EC2MetadataClient [138253064148608] Request failed, now waiting 0 ms before attempting again.
+[DEBUG] 2025-06-22 05:43:19.089 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:19.089 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:19.089 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:19.089 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:19.089 CURL [138253064148608] (Text)   Trying 169.254.169.254:80...
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) Connection timed out after 1004 milliseconds
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:20.090 CurlHttpClient [138253064148608] Curl returned error code 28 - Timeout was reached
+[DEBUG] 2025-06-22 05:43:20.090 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffd910f0
+[DEBUG] 2025-06-22 05:43:20.090 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffd910f0
+[ERROR] 2025-06-22 05:43:20.090 EC2MetadataClient [138253064148608] Http request to retrieve credentials failed
+[ERROR] 2025-06-22 05:43:20.090 EC2MetadataClient [138253064148608] Can not retrieve resource from http://169.254.169.254/latest/meta-data/iam/security-credentials
+[INFO] 2025-06-22 05:43:20.090 Aws::Config::AWSProfileConfigLoaderBase [138253064148608] Failed to reload configuration.
+[DEBUG] 2025-06-22 05:43:20.090 AWSClient [138253064148608] Request Successfully signed
+[DEBUG] 2025-06-22 05:43:20.090 CurlHandleContainer [138253064148608] Attempting to acquire curl connection.
+[DEBUG] 2025-06-22 05:43:20.090 CurlHandleContainer [138253064148608] Connection has been released. Continuing.
+[DEBUG] 2025-06-22 05:43:20.090 CurlHandleContainer [138253064148608] Returning connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:20.090 CurlHttpClient [138253064148608] Obtained connection handle 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) Host localhost:4566 was resolved.
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) IPv6: ::1
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) IPv4: 127.0.0.1
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text)   Trying [::1]:4566...
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) connect to ::1 port 4566 from ::1 port 45012 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text)   Trying 127.0.0.1:4566...
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) connect to 127.0.0.1 port 4566 from 127.0.0.1 port 50254 failed: Connection refused
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) Failed to connect to localhost port 4566 after 0 ms: Could not connect to server
+
+[DEBUG] 2025-06-22 05:43:20.090 CURL [138253064148608] (Text) closing connection #0
+
+[ERROR] 2025-06-22 05:43:20.090 CurlHttpClient [138253064148608] Curl returned error code 7 - Could not connect to server
+[DEBUG] 2025-06-22 05:43:20.090 CurlHandleContainer [138253064148608] Destroy curl handle: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:20.090 CurlHandleContainer [138253064148608] Created replacement handle and released to pool: 0x580dffe0d200
+[DEBUG] 2025-06-22 05:43:20.090 AWSClient [138253064148608] Request returned error. Attempting to generate appropriate error codes from response
+[ERROR] 2025-06-22 05:43:20.090 AWSXmlClient [138253064148608] HTTP response code: -1
+Resolved remote host IP address: 
+Request ID: 
+Exception name: 
+Error message: curlCode: 7, Could not connect to server
+0 response headers:
+[WARN] 2025-06-22 05:43:20.090 AWSClient [138253064148608] If the signature check failed. This could be because of a time skew. Attempting to adjust the signer.
+[DEBUG] 2025-06-22 05:43:20.090 AWSClient [138253064148608] Date header was not found in the response, can't attempt to detect clock skew
+[WARN] 2025-06-22 05:43:20.090 AWSClient [138253064148608] Request failed, now waiting 6400 ms before attempting again.
