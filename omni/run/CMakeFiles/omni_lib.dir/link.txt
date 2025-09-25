@@ -1,2 +1,0 @@
-/usr/bin/ar qc libomni_lib.a CMakeFiles/omni_lib.dir/format/format_factory.cc.o CMakeFiles/omni_lib.dir/format/hdf5_dataset_client.cc.o CMakeFiles/omni_lib.dir/format/dataset_config.cc.o CMakeFiles/omni_lib.dir/repo/repo_factory.cc.o CMakeFiles/omni_lib.dir/par.cc.o CMakeFiles/omni_lib.dir/pat.cc.o CMakeFiles/omni_lib.dir/h5.cc.o
-/usr/bin/ranlib libomni_lib.a
