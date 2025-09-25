@@ -26,23 +26,34 @@ jobs:
       uses: lukka/get-cmake@latest
       with:
         cmakeVersion: 3.31.5
-        ninjaVersion: 1.12.1      
+        ninjaVersion: 1.12.1
+    - name: cache spack
+      uses: actions/cache@v4
+      with:
+        path: |
+          ./spack/opt
+          ./spack/var/spack/cache
+          ~/.spack
+        key: spack-${{ runner.os }}-${{ hashFiles('./spack/share/spack/setup-env.sh') }}-${{ hashFiles('./iowarp-install/iowarp-spack/**') }}
+        restore-keys: |
+          spack-${{ runner.os }}-${{ hashFiles('./spack/share/spack/setup-env.sh') }}-
+          spack-${{ runner.os }}-
     - name: spack
       run: |
-        sudo apt-get update        
+        sudo apt-get update
         . ./spack/share/spack/setup-env.sh
         spack external find
         spack config add "modules:default:enable:[lmod]"
-        spack install lmod
+        spack install --reuse lmod
         spack load lmod
         source $(spack location -i lmod)/lmod/lmod/init/bash
         cd ./iowarp-install/
-        spack repo add iowarp-spack
-        spack install mpi
-        spack load mpi        
-        spack install hdf5
+        spack repo add iowarp-spack || true
+        spack install --reuse mpi
+        spack load mpi
+        spack install --reuse hdf5
         spack load hdf5
-        spack install iowarp
+        spack install --reuse iowarp
         spack load iowarp
         export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
         echo $MODULEPATH
