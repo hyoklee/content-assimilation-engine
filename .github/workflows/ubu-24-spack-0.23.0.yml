@@ -140,11 +140,11 @@ jobs:
         module load iowarp-runtime
         export LD_LIBRARY_PATH=$(spack location -i yaml-cpp)/lib:$LD_LIBRARY_PATH
         jarvis bootstrap from local
-        sleep 5        
+        sleep 5
         jarvis rg build
         sleep 5
         jarvis repo list
-        jarvis env build jarvis_wrp_cae        
+        jarvis env build jarvis_wrp_cae
         jarvis env build hermes
         find ${HOME}/.jarvis
         find ${HOME}/.scspkg
@@ -152,11 +152,11 @@ jobs:
         jarvis ppl create test_omni
         cd omni
         echo "APPEND demo_job"
-#       jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/config/demo_job.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
         jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/test/posix.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
         sleep 5
         jarvis ppl print
         jarvis ppl run
+        # jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/config/demo_job.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
         # jarvis pkg conf chimaera_run data_shm=500m rdata_shm=500m task_shm=500m qdepth=50 worker_cpus=[0,1,1]
         # jarvis ppl print
         # cat $(jarvis path +shared)/chimaera_run/hostfile
