@@ -131,7 +131,7 @@ class OmniParse(Application):
         :return: None
         """
         # Construct the command to run wrp with the YAML file
-        cmd = f'{self.config["wrp_path"]} {self.config["omni_yaml"]}'
+        cmd = f'{self.config["wrp_path"]} put {self.config["omni_yaml"]}'
         if self.jarvis.hostfile.path:
             cmd += f' {self.jarvis.hostfile.path}'
         

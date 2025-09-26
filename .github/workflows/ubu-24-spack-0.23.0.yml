@@ -152,7 +152,8 @@ jobs:
         jarvis ppl create test_omni
         cd omni
         echo "APPEND demo_job"
-        jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/config/demo_job.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
+#       jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/config/demo_job.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
+        jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/test/posix.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
         sleep 5
         jarvis ppl print
         jarvis ppl run
