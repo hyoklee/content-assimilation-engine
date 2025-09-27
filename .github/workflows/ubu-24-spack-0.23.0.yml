@@ -151,11 +151,11 @@ jobs:
         pwd
         jarvis ppl create test_omni
         cd omni
+	cd test
         echo "APPEND demo_job"
         jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/test/posix.yml wrp_path=$(scspkg pkg root example)/bin/wrp
         sleep 5
         jarvis ppl print
-        cd test
         jarvis ppl run
         # jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/config/demo_job.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
         # jarvis pkg conf chimaera_run data_shm=500m rdata_shm=500m task_shm=500m qdepth=50 worker_cpus=[0,1,1]
