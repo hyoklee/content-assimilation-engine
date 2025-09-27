@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Find all packages needed by Hermes
 # -----------------------------------------------------------------------------
-# This is for compatability with SPACK
+# This is for compatibility with SPACK
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Chimaera

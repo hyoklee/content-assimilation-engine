@@ -108,6 +108,7 @@ jobs:
         cd build
         ninja
         ninja install
+        ctest -T Test
     - name: load chimaera_run
       run: |
         . ./spack/share/spack/setup-env.sh
