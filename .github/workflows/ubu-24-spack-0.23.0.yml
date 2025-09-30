@@ -99,6 +99,7 @@ jobs:
         cd content-assimilation-engine
         spack load yaml-cpp
         sudo apt install -y libyaml-dev
+        export LD_LIBRARY_PATH=$(spack location -i yaml-cpp)/lib:$LD_LIBRARY_PATH
         cmake \
           -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) \
           --preset debug \
