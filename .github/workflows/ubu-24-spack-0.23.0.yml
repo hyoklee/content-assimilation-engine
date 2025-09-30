@@ -97,12 +97,14 @@ jobs:
         ls
         ln -s content-assimilation-engine/data
         cd content-assimilation-engine
+        spack load yaml-cpp
+        sudo apt install -y libyaml-dev
         cmake \
           -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) \
           --preset debug \
           -DSITE:STRING="ubuntu-24.04" -DBUILDNAME="cae/d"
         cd build
-        spack load yaml-cpp
+
         ctest -D Experimental
     - name: load chimaera_run
       run: |
