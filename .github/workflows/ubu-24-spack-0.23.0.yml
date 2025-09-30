@@ -31,17 +31,6 @@ jobs:
       with:
         cmakeVersion: 3.31.5
         ninjaVersion: 1.12.1
-    - name: cache spack
-      uses: actions/cache@v4
-      with:
-        path: |
-          ./spack/opt
-          ./spack/var/spack/cache
-          ~/.spack
-        key: spack-${{ runner.os }}-${{ hashFiles('./spack/share/spack/setup-env.sh') }}-${{ hashFiles('./iowarp-install/iowarp-spack/**') }}
-        restore-keys: |
-          spack-${{ runner.os }}-${{ hashFiles('./spack/share/spack/setup-env.sh') }}-
-          spack-${{ runner.os }}-
     - name: spack
       run: |
         sudo apt-get update
