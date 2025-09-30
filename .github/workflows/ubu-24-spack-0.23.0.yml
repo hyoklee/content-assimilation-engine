@@ -93,11 +93,16 @@ jobs:
         spack load yaml-cpp
         spack load iowarp
         source $(spack location -i lmod)/lmod/lmod/init/bash
-        cmake -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) --preset debug
+        cd ..
+        ls
+        ln -s content-assimilation-engine/data
+        cd content-assimilation-engine
+        cmake \
+          -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) \
+          --preset debug \
+          -DSITE:STRING="ubuntu-24.04" -DBUILDNAME="cae/d"
         cd build
-        ninja
-        ninja install
-        ctest -T Test
+        ctest -D Experimental
     - name: load chimaera_run
       run: |
         . ./spack/share/spack/setup-env.sh

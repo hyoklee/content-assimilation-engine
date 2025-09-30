@@ -13,7 +13,7 @@
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "/home/hyoklee/.scspkg/packages/content-assimilation-engine",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
                 "CAE_ENABLE_CMAKE_DOTENV": "ON",
                 "CAE_ENABLE_VFD": "ON",
                 "CAE_ENABLE_POSIX_ADAPTER": "ON",
