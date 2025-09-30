@@ -98,15 +98,15 @@ jobs:
         ln -s content-assimilation-engine/data
         cd content-assimilation-engine
         spack load yaml-cpp
-        sudo apt install -y libyaml-dev
         export LD_LIBRARY_PATH=$(spack location -i yaml-cpp)/lib:$LD_LIBRARY_PATH
         cmake \
           -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) \
           --preset debug \
           -DSITE:STRING="ubuntu-24.04" -DBUILDNAME="cae/d"
         cd build
+        ninja
+        ninja install
 
-        ctest -D Experimental
     - name: load chimaera_run
       run: |
         . ./spack/share/spack/setup-env.sh
@@ -162,3 +162,6 @@ jobs:
         # cat $(jarvis path +shared)/chimaera_run/hostfile
         # cat $(jarvis path +shared)/chimaera_run/chimaera_server.yaml
         # ctest -VV
+        cd ../../build
+        pwd
+        ctest -D Experimental
