@@ -149,6 +149,15 @@ jobs:
         ls $HOME/.scspkg/modulefiles
         module load chimaera_run
 
+    - name: copy chimaera_run jarvis package from iowarp
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        spack load iowarp
+        IOWARP_DIR=$(spack location -i iowarp)
+        mkdir -p test/jarvis_wrp_cae/jarvis_wrp_cae/
+        cp -r ${IOWARP_DIR}/test/jarvis_chimaera/jarvis_chimaera/chimaera_run test/jarvis_wrp_cae/jarvis_wrp_cae/
+        ls -la test/jarvis_wrp_cae/jarvis_wrp_cae/chimaera_run/
+
     - name: jarvis hermes
       run: |
         . ./spack/share/spack/setup-env.sh
