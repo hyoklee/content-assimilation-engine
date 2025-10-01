@@ -153,7 +153,7 @@ jobs:
       run: |
         . ./spack/share/spack/setup-env.sh
         spack load iowarp
-        IOWARP_DIR=$(spack location -i iowarp)
+        IOWARP_DIR=$(spack location -i iowarp-runtime)
         mkdir -p test/jarvis_wrp_cae/jarvis_wrp_cae/
         cp -r ${IOWARP_DIR}/test/jarvis_chimaera/jarvis_chimaera/chimaera_run test/jarvis_wrp_cae/jarvis_wrp_cae/
         ls -la test/jarvis_wrp_cae/jarvis_wrp_cae/chimaera_run/
