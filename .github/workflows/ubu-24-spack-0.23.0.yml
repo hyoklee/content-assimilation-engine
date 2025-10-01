@@ -148,6 +148,7 @@ jobs:
         scspkg env prepend chimaera_run LIBRARY_PATH ${CHIMAERA_DIR}/lib
         ls $HOME/.scspkg/modulefiles
         module load chimaera_run
+        jarvis repo add $CHIMAERA_DIR/jarvis/jarvis_chimaera
 
     - name: copy chimaera_run jarvis package from iowarp
       run: |
