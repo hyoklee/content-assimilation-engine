@@ -24,7 +24,7 @@ jobs:
     - name: checkout iowarp-install
       uses: actions/checkout@v4
       with:
-        repository: iowarp/iowarp-install
+        repository: hyoklee/iowarp-install
         path: ./iowarp-install
     - name: cmake
       uses: lukka/get-cmake@latest
