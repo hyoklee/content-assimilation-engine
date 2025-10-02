@@ -3,6 +3,7 @@ project(cae VERSION 1.0.0)
 
 include(CTest)
 enable_testing()
+set(DART_TESTING_TIMEOUT 120)
 
 set(CMAKE_CXX_STANDARD 17)
 
