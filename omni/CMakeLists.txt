@@ -300,6 +300,34 @@ add_test(NAME put COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/posix.yml)
 add_test(NAME get COMMAND wrp get cae)
 add_test(NAME ls COMMAND wrp ls)
 
+# Tests for -q (quiet) option
+add_test(NAME quiet_put COMMAND wrp -q put ${CMAKE_CURRENT_SOURCE_DIR}/test/quiet_test.yml)
+set_tests_properties(quiet_put
+    PROPERTIES
+    FAIL_REGULAR_EXPRESSION "checking IOWarp runtime|creating a new buffer|putting.*bytes into"
+)
+
+add_test(NAME quiet_get COMMAND wrp -q get quiet_test)
+set_tests_properties(quiet_get
+    PROPERTIES
+    DEPENDS quiet_put
+    FAIL_REGULAR_EXPRESSION "writing output|done"
+)
+
+add_test(NAME quiet_ls COMMAND wrp -q ls)
+set_tests_properties(quiet_ls
+    PROPERTIES
+    DEPENDS quiet_put
+    FAIL_REGULAR_EXPRESSION "connecting runtime"
+)
+
+# Test that -q option still fails properly with invalid commands
+add_test(NAME quiet_invalid COMMAND wrp -q invalid)
+set_tests_properties(quiet_invalid
+    PROPERTIES
+    WILL_FAIL TRUE
+)
+
 # Tests that should fail
 add_test(NAME invalid COMMAND wrp invalid)
 set_tests_properties(invalid

@@ -144,7 +144,9 @@ int OMNI::List() {
 
   std::string line;
   while (std::getline(input_file, line)) {
-    std::cout << line << std::endl;
+    if (!quiet_) {
+      std::cout << line << std::endl;
+    }
   }
 
   if (input_file.bad()) {
@@ -218,8 +220,10 @@ int OMNI::PutHermes(const std::string& name, const std::string& tags,
   hermes::Blob blob(nbyte);
   memcpy(blob.data(), buffer, blob.size());
   hermes::BlobId blob_id = bkt.Put(path, blob, ctx);
-  std::cout << "wrote '" << buffer << "' to '" << name << "' buffer."
-            << std::endl;
+  if (!quiet_) {
+    std::cout << "wrote '" << buffer << "' to '" << name << "' buffer."
+              << std::endl;
+  }
   return PutHermesTags(&ctx, &bkt, tags);
 }
 
@@ -229,8 +233,10 @@ int OMNI::GetHermes(const std::string& name, const std::string& path) {
   hermes::Blob blob2;
   hermes::Context ctx;
   bkt.Get(blob_id, blob2, ctx);
-  std::cout << "read '" << blob2.data() << "' from '" << name << "' buffer."
-            << std::endl;
+  if (!quiet_) {
+    std::cout << "read '" << blob2.data() << "' from '" << name << "' buffer."
+              << std::endl;
+  }
 
   // Create a stageable bucket
   hermes::Context ctx_s = hermes::BinaryFileStager::BuildContext(30);
@@ -254,32 +260,48 @@ int OMNI::PutData(const std::string& name, const std::string& tags,
 
   try {
     Poco::File file(name);
-    std::cout << "checking existing buffer '" << name << "'...";
+    if (!quiet_) {
+      std::cout << "checking existing buffer '" << name << "'...";
+    }
     if (file.exists()) {
-      std::cout << "yes" << std::endl;
+      if (!quiet_) {
+        std::cout << "yes" << std::endl;
+      }
       return 0;
     }
-    std::cout << "no" << std::endl;
+    if (!quiet_) {
+      std::cout << "no" << std::endl;
+    }
 
-    std::cout << "creating a new buffer '" << name << "' with '" << tags
-              << "' tags...";
+    if (!quiet_) {
+      std::cout << "creating a new buffer '" << name << "' with '" << tags
+                << "' tags...";
+    }
     file.createFile();
     std::ofstream ofs(name, std::ios::binary);
     ofs.seekp(nbyte);
     ofs.put('\0');
     ofs.close();
-    std::cout << "done" << std::endl;
+    if (!quiet_) {
+      std::cout << "done" << std::endl;
+    }
 
-    std::cout << "putting " << nbyte << " bytes into '" << name
-              << "' buffer...";
+    if (!quiet_) {
+      std::cout << "putting " << nbyte << " bytes into '" << name
+                << "' buffer...";
+    }
     Poco::SharedMemory shm(file, Poco::SharedMemory::AM_WRITE);
 
     char* data = static_cast<char*>(shm.begin());
     std::memcpy(data, (const char*)buffer, nbyte);
-    std::cout << "done" << std::endl;
+    if (!quiet_) {
+      std::cout << "done" << std::endl;
+    }
 #ifdef DEBUG
-    std::cout << "wrote '" << shm.begin() << "' to '" << name << "' buffer."
-              << std::endl;
+    if (!quiet_) {
+      std::cout << "wrote '" << shm.begin() << "' to '" << name << "' buffer."
+                << std::endl;
+    }
 #endif
 
   } catch (Poco::Exception& e) {
@@ -348,11 +370,13 @@ int OMNI::RunLambda(const std::string& lambda, const std::string& name,
 
     int exit_code = ph.wait();
 
-    std::cout << "\n--- Lambda script output ---\n";
-    std::cout << "STDOUT:\n" << stdout_output;
-    std::cout << "STDERR:\n" << stderr_output;
-    std::cout << "-----------------------------------\n";
-    std::cout << "Lambda script exited with status: " << exit_code << std::endl;
+    if (!quiet_) {
+      std::cout << "\n--- Lambda script output ---\n";
+      std::cout << "STDOUT:\n" << stdout_output;
+      std::cout << "STDERR:\n" << stderr_output;
+      std::cout << "-----------------------------------\n";
+      std::cout << "Lambda script exited with status: " << exit_code << std::endl;
+    }
 
   } catch (Poco::SystemException& exc) {
     std::cerr << "Error: poco system exception - " << exc.displayText()
@@ -447,10 +471,14 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   Aws::S3::Model::CreateBucketRequest create_bucket_request;
   create_bucket_request.SetBucket(bucket_name);
 
-  std::cout << "Creating bucket: " << bucket_name << std::endl;
+  if (!quiet_) {
+    std::cout << "Creating bucket: " << bucket_name << std::endl;
+  }
   auto create_bucket_outcome = s3_client.CreateBucket(create_bucket_request);
   if (create_bucket_outcome.IsSuccess()) {
-    std::cout << "Bucket created successfully!" << std::endl;
+    if (!quiet_) {
+      std::cout << "Bucket created successfully!" << std::endl;
+    }
   } else {
     std::cerr << "Error creating bucket: "
               << create_bucket_outcome.GetError().GetMessage() << std::endl;
@@ -486,11 +514,15 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   auto put_object_outcome = s3_client.PutObject(put_request);
 
   if (put_object_outcome.IsSuccess()) {
-    std::cout << "Successfully uploaded object to " << bucket_name << "/"
-              << object_key << std::endl;
+    if (!quiet_) {
+      std::cout << "Successfully uploaded object to " << bucket_name << "/"
+                << object_key << std::endl;
+    }
   } else {
-    std::cout << "Error: uploading object - "
-              << put_object_outcome.GetError().GetMessage() << std::endl;
+    if (!quiet_) {
+      std::cout << "Error: uploading object - "
+                << put_object_outcome.GetError().GetMessage() << std::endl;
+    }
     return -1;
   }
   Aws::ShutdownAPI(options);
@@ -544,18 +576,24 @@ int OMNI::Download(const std::string& url, const std::string& output_file_name,
                                std::to_string(end_byte);
         }
         request.set("Range", range_header_value);
-        std::cout << "Requesting Range: " << range_header_value << std::endl;
+        if (!quiet_) {
+          std::cout << "Requesting Range: " << range_header_value << std::endl;
+        }
       }
 
       Poco::Net::HTTPResponse response;
       int status = 0;
-      std::cout << "Downloading from: " << url << std::endl;
+      if (!quiet_) {
+        std::cout << "Downloading from: " << url << std::endl;
+      }
 
       session->sendRequest(request);
       std::istream& rs = session->receiveResponse(response);
       status = response.getStatus();
-      std::cout << "Status: " << status << " - " << response.getReason()
-                << std::endl;
+      if (!quiet_) {
+        std::cout << "Status: " << status << " - " << response.getReason()
+                  << std::endl;
+      }
 
       if (status == Poco::Net::HTTPResponse::HTTP_MOVED_PERMANENTLY ||
           status == Poco::Net::HTTPResponse::HTTP_FOUND ||
@@ -564,7 +602,9 @@ int OMNI::Download(const std::string& url, const std::string& output_file_name,
           status == Poco::Net::HTTPResponse::HTTP_PERMANENT_REDIRECT) {
         if (response.has("Location")) {
           current_url = response.get("Location");
-          std::cout << "Redirected to: " << current_url << std::endl;
+          if (!quiet_) {
+            std::cout << "Redirected to: " << current_url << std::endl;
+          }
           redirected = true;
           // Consume any remaining data in the current response stream
           Poco::NullOutputStream null_stream;
@@ -575,21 +615,29 @@ int OMNI::Download(const std::string& url, const std::string& output_file_name,
           return -1;
         }
       } else if (status == Poco::Net::HTTPResponse::HTTP_PARTIAL_CONTENT) {
-        std::cout << "Received Partial Content (206)." << std::endl;
+        if (!quiet_) {
+          std::cout << "Received Partial Content (206)." << std::endl;
+        }
         if (response.has("Content-Range")) {
           std::string content_range = response.get("Content-Range");
-          std::cout << "Content-Range: " << content_range << std::endl;
+          if (!quiet_) {
+            std::cout << "Content-Range: " << content_range << std::endl;
+          }
         } else {
-          std::cout << "Warning: 206 status but no Content-Range header."
-                    << std::endl;
+          if (!quiet_) {
+            std::cout << "Warning: 206 status but no Content-Range header."
+                      << std::endl;
+          }
         }
 
         std::ofstream os(output_file_name, std::ios::binary);
         if (os.is_open()) {
           Poco::StreamCopier::copyStream(rs, os);
           os.close();
-          std::cout << "Partial content downloaded successfully to: "
-                    << output_file_name << std::endl;
+          if (!quiet_) {
+            std::cout << "Partial content downloaded successfully to: "
+                      << output_file_name << std::endl;
+          }
         } else {
           std::cerr << "Error: Could not open file for writing: "
                     << output_file_name << std::endl;
@@ -600,8 +648,10 @@ int OMNI::Download(const std::string& url, const std::string& output_file_name,
         if (os.is_open()) {
           Poco::StreamCopier::copyStream(rs, os);
           os.close();
-          std::cout << "File downloaded successfully to: " << output_file_name
-                    << std::endl;
+          if (!quiet_) {
+            std::cout << "File downloaded successfully to: " << output_file_name
+                      << std::endl;
+          }
           return 0;
         } else {
           std::cerr << "Error: Could not open file for writing: "
@@ -677,12 +727,16 @@ int OMNI::ReadOmni(const std::string& input_file) {
           if (!original_path.empty() && original_path[0] == '>') {
             wait_for_file = true;
             path = original_path.substr(1);  // Remove the '>' prefix
-            std::cout << "Will wait for file: " << path.c_str() << std::endl;
+            if (!quiet_) {
+              std::cout << "Will wait for file: " << path.c_str() << std::endl;
+            }
           } else {
             path = original_path;
           }
 
-          std::cout << "Path=" << path.c_str() << std::endl;
+          if (!quiet_) {
+            std::cout << "Path=" << path.c_str() << std::endl;
+          }
           if (path.find("https://") == path.npos &&
               path.find("hdf5://") == path.npos &&
               path.find("globus://") == path.npos) {
@@ -690,14 +744,18 @@ int OMNI::ReadOmni(const std::string& input_file) {
             Poco::File file(path);
             if (wait_for_file) {
               // Wait indefinitely for the file to become available
-              std::cout << "Waiting for file '" << path
-                        << "' to become available..." << std::endl;
+              if (!quiet_) {
+                std::cout << "Waiting for file '" << path
+                          << "' to become available..." << std::endl;
+              }
               while (!file.exists()) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 file = Poco::File(path);  // Refresh the file object
               }
-              std::cout << "File '" << path
-                        << "' is now available, continuing..." << std::endl;
+              if (!quiet_) {
+                std::cout << "File '" << path
+                          << "' is now available, continuing..." << std::endl;
+              }
             } else if (!file.exists()) {
               std::cerr << "Error: '" << path << "' does not exist" << std::endl;
               return -1;
@@ -706,13 +764,17 @@ int OMNI::ReadOmni(const std::string& input_file) {
             if (wait_for_file) {
               // Wait indefinitely for the file to become available (non-POCO
               // version)
-              std::cout << "Waiting for file '" << path
-                        << "' to become available..." << std::endl;
+              if (!quiet_) {
+                std::cout << "Waiting for file '" << path
+                          << "' to become available..." << std::endl;
+              }
               while (!std::filesystem::exists(path)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
               }
-              std::cout << "File '" << path
-                        << "' is now available, continuing..." << std::endl;
+              if (!quiet_) {
+                std::cout << "File '" << path
+                          << "' is now available, continuing..." << std::endl;
+              }
             } else if (!std::filesystem::exists(path)) {
               std::cerr << "Error: '" << path << "' does not exist" << std::endl;
               return -1;
@@ -744,8 +806,10 @@ int OMNI::ReadOmni(const std::string& input_file) {
 
             if (transfer_globus_file(path, dest_uri, transfer_token,
                                      "OMNI Transfer")) {
-              std::cout << "Globus transfer initiated successfully from " << path
-                        << " to " << dest_uri << std::endl;
+              if (!quiet_) {
+                std::cout << "Globus transfer initiated successfully from " << path
+                          << " to " << dest_uri << std::endl;
+              }
               return 0;
             } else {
               std::cerr << "Error: Failed to initiate Globus transfer"
@@ -764,12 +828,16 @@ int OMNI::ReadOmni(const std::string& input_file) {
           unsigned char* ptr = reinterpret_cast<unsigned char*>(buffer.data());
           if (!path.empty() && f == true) {
 #ifdef DEBUG
-            std::cout << "path=" << path << std::endl;
+            if (!quiet_) {
+              std::cout << "path=" << path << std::endl;
+            }
 #endif
             if (ReadExactBytesFromOffset(path.c_str(), offset, nbyte, ptr) ==
                 0) {
 #ifdef DEBUG
-              std::cout << "buffer=" << ptr << std::endl;
+              if (!quiet_) {
+                std::cout << "buffer=" << ptr << std::endl;
+              }
 #endif
               PutData(name, tags, path, ptr, nbyte);
             } else {
@@ -793,16 +861,22 @@ int OMNI::ReadOmni(const std::string& input_file) {
         if (it->second.IsScalar()) {
           std::string value = it->second.as<std::string>();
 #ifdef DEBUG
-          std::cout << key << ": " << value << std::endl;
+          if (!quiet_) {
+            std::cout << key << ": " << value << std::endl;
+          }
 #endif
         } else if (it->second.IsSequence()) {
 #ifdef DEBUG
-          std::cout << key << ": " << std::endl;
+          if (!quiet_) {
+            std::cout << key << ": " << std::endl;
+          }
 #endif
           for (size_t i = 0; i < it->second.size(); ++i) {
             if (it->second[i].IsScalar()) {
 #ifdef DEBUG
-              std::cout << " - " << it->second[i].as<std::string>() << std::endl;
+              if (!quiet_) {
+                std::cout << " - " << it->second[i].as<std::string>() << std::endl;
+              }
 #endif
               if (key == "tags") {
                 tags += it->second[i].as<std::string>();
@@ -814,7 +888,9 @@ int OMNI::ReadOmni(const std::string& input_file) {
           }
         } else if (it->second.IsMap()) {
 #ifdef DEBUG
-          std::cout << key << ": " << std::endl;
+          if (!quiet_) {
+            std::cout << key << ": " << std::endl;
+          }
 #endif
           for (YAML::const_iterator inner_it = it->second.begin();
                inner_it != it->second.end(); ++inner_it) {
@@ -822,7 +898,9 @@ int OMNI::ReadOmni(const std::string& input_file) {
             if (inner_it->second.IsScalar()) {
               std::string inner_value = inner_it->second.as<std::string>();
 #ifdef DEBUG
-              std::cout << "  " << inner_key << ": " << inner_value << std::endl;
+              if (!quiet_) {
+                std::cout << "  " << inner_key << ": " << inner_value << std::endl;
+              }
 #endif
             }
           }  // for
@@ -831,11 +909,15 @@ int OMNI::ReadOmni(const std::string& input_file) {
     } else if (root.IsSequence()) {
       for (size_t i = 0; i < root.size(); ++i) {
         if (root[i].IsScalar()) {
-          std::cout << " - " << root[i].as<std::string>() << std::endl;
+          if (!quiet_) {
+            std::cout << " - " << root[i].as<std::string>() << std::endl;
+          }
         }
       }
     } else if (root.IsScalar()) {
-      std::cout << root.as<std::string>() << std::endl;
+      if (!quiet_) {
+        std::cout << root.as<std::string>() << std::endl;
+      }
     }
   } catch (YAML::ParserException& e) {
     std::cerr << "Error: parsing YAML - " << e.what() << std::endl;
@@ -865,7 +947,9 @@ int OMNI::ReadOmni(const std::string& input_file) {
         std::cerr << "Error: Failed to write buffer using PutData()"
                   << std::endl;
       } else {
-        std::cout << "Successfully wrote buffer using PutData()" << std::endl;
+        if (!quiet_) {
+          std::cout << "Successfully wrote buffer using PutData()" << std::endl;
+        }
       }
 
       // Free the allocated buffer
@@ -922,8 +1006,10 @@ int OMNI::ReadOmni(const std::string& input_file) {
                                             "' not found");
         }
         Poco::SharedMemory shm_r(file, Poco::SharedMemory::AM_READ);
-        std::cout << "read '" << shm_r.begin() << "' from '" << name
-                  << "' buffer." << std::endl;
+        if (!quiet_) {
+          std::cout << "read '" << shm_r.begin() << "' from '" << name
+                    << "' buffer." << std::endl;
+        }
         WriteS3(dest, shm_r.begin());
 #endif  // AWS
       }
@@ -976,7 +1062,9 @@ std::string OMNI::ReadTags(const std::string& buf) {
 
 int OMNI::WriteOmni(const std::string& buf) {
   std::string ofile = buf + ".omni.yaml";
-  std::cout << "writing output " << ofile << "...";
+  if (!quiet_) {
+    std::cout << "writing output " << ofile << "...";
+  }
 
 #ifdef USE_POCO
   std::string h = Sha256File(buf);
@@ -1001,12 +1089,16 @@ int OMNI::WriteOmni(const std::string& buf) {
   }
 #endif
   of.close();
-  std::cout << "done" << std::endl;
+  if (!quiet_) {
+    std::cout << "done" << std::endl;
+  }
   return 0;
 }
 
 int OMNI::SetBlackhole() {
-  std::cout << "checking IOWarp runtime...";
+  if (!quiet_) {
+    std::cout << "checking IOWarp runtime...";
+  }
 #ifdef USE_HERMES
   if (!IOWARP_CAE_INIT()) {
     std::cerr << std::endl << "Error: IOWARP_CAE_INIT() failed." << std::endl;
@@ -1017,12 +1109,18 @@ int OMNI::SetBlackhole() {
 #ifdef USE_POCO
   Poco::File dir(".blackhole");
   if (dir.exists() == true) {
-    std::cout << "yes" << std::endl;
+    if (!quiet_) {
+      std::cout << "yes" << std::endl;
+    }
   } else {
-    std::cout << "no" << std::endl;
-    std::cout << "launching a new IOWarp runtime...";
+    if (!quiet_) {
+      std::cout << "no" << std::endl;
+      std::cout << "launching a new IOWarp runtime...";
+    }
     if (dir.createDirectory()) {
-      std::cout << "done" << std::endl;
+      if (!quiet_) {
+        std::cout << "done" << std::endl;
+      }
       return 0;
     } else {
       std::cerr << "Error: failed to create .blackhole directory" << std::endl;
@@ -1031,12 +1129,18 @@ int OMNI::SetBlackhole() {
   }
 #else
   if (std::filesystem::exists(".blackhole") == true) {
-    std::cout << "yes" << std::endl;
+    if (!quiet_) {
+      std::cout << "yes" << std::endl;
+    }
   } else {
-    std::cout << "no" << std::endl;
-    std::cout << "launching a new IOWarp runtime...";
+    if (!quiet_) {
+      std::cout << "no" << std::endl;
+      std::cout << "launching a new IOWarp runtime...";
+    }
     if (std::filesystem::create_directory(".blackhole")) {
-      std::cout << "done" << std::endl;
+      if (!quiet_) {
+        std::cout << "done" << std::endl;
+      }
       return 0;
     } else {
       std::cerr << "Error: failed to create .blackhole directory" << std::endl;

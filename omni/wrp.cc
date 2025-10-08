@@ -121,7 +121,9 @@ namespace fs = std::filesystem;
 int main(int argc, char *argv[])
 {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <command> [options]" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " [-q] <command> [options]" << std::endl;
+    std::cerr << "Options:" << std::endl;
+    std::cerr << "  -q                 - Quiet mode (suppress standard output)" << std::endl;
     std::cerr << "Commands:" << std::endl;
     std::cerr << "  put <omni.yaml>    - Put data into buffer from YAML config" << std::endl;
     std::cerr << "  get <buffer>       - Get data from buffer and create YAML config" << std::endl;
@@ -129,28 +131,44 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  std::string command = argv[1];
+  // Parse options
+  bool quiet = false;
+  int arg_idx = 1;
+
+  if (std::string(argv[1]) == "-q") {
+    quiet = true;
+    arg_idx = 2;
+    if (argc < 3) {
+      std::cerr << "Usage: " << argv[0] << " [-q] <command> [options]" << std::endl;
+      return 1;
+    }
+  }
+
+  std::string command = argv[arg_idx];
   cae::OMNI omni;
+  omni.SetQuiet(quiet);
 
   // Check for put/get/ls commands
   if (command == "put") {
-    if (argc < 3) {
-      std::cerr << "Usage: " << argv[0] << " put <omni.yaml>" << std::endl;
+    if (argc < arg_idx + 2) {
+      std::cerr << "Usage: " << argv[0] << " [-q] put <omni.yaml>" << std::endl;
       return 1;
     }
-    std::string name = argv[2];
+    std::string name = argv[arg_idx + 1];
     return omni.Put(name);
 
   } else if (command == "get") {
-    if (argc < 3) {
-      std::cerr << "Usage: " << argv[0] << " get <buffer>" << std::endl;
+    if (argc < arg_idx + 2) {
+      std::cerr << "Usage: " << argv[0] << " [-q] get <buffer>" << std::endl;
       return 1;
     }
-    std::string name = argv[2];
+    std::string name = argv[arg_idx + 1];
     return omni.Get(name);
 
   } else if (command == "ls") {
-    std::cout << "connecting runtime" << std::endl;
+    if (!quiet) {
+      std::cout << "connecting runtime" << std::endl;
+    }
     return omni.List();
 
   } else {

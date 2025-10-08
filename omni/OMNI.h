@@ -24,6 +24,9 @@ class OMNI {
   int Get(const std::string& buffer);
   int List();
 
+  // Set quiet mode (suppress stdout)
+  void SetQuiet(bool quiet) { quiet_ = quiet; }
+
  private:
   // Core processing methods
   int ReadOmni(const std::string& input_file);
@@ -66,6 +69,9 @@ class OMNI {
 #endif
   int RunLambda(const std::string& lambda, const std::string& name,
                 const std::string& dest);
+
+  // Member variables
+  bool quiet_ = false;
 };
 
 }  // namespace cae
