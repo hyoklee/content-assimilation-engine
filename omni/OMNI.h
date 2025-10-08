@@ -1,22 +1,73 @@
 ///
 /// OMNI.h
-/// 
-namespace cae {
-  class OMNI {
-  public:
-    OMNI() = default;
-    ~OMNI() = default;
-    int Put() {
-      return 0;
-    }
-    
-    int List() {
-      return 0;
-    }    
-    
-    int Get() {
-      return 0;
-    }
-  };
+///
+#ifndef CAE_OMNI_H_
+#define CAE_OMNI_H_
 
-} // namespace cae
+#include <string>
+#include <cstddef>
+#include <sys/types.h>
+
+#ifdef USE_HERMES
+#include <hermes/hermes.h>
+#endif
+
+namespace cae {
+
+class OMNI {
+ public:
+  OMNI() = default;
+  ~OMNI() = default;
+
+  // Main public API - these call private helper methods
+  int Put(const std::string& input_file);
+  int Get(const std::string& buffer);
+  int List();
+
+ private:
+  // Core processing methods
+  int ReadOmni(const std::string& input_file);
+  int WriteOmni(const std::string& buf);
+  int SetBlackhole();
+
+  // Utility functions
+#ifdef USE_POCO
+  std::string Sha256File(const std::string& file_path);
+#endif
+#ifdef _WIN32
+  std::string GetExt(const std::string& filename);
+#endif
+  std::string GetFileName(const std::string& uri);
+  int ReadExactBytesFromOffset(const char* filename, off_t offset,
+                               size_t num_bytes, unsigned char* buffer);
+
+  // Metadata functions
+  int WriteMeta(const std::string& name, const std::string& tags);
+  std::string ReadTags(const std::string& buf);
+
+  // Storage backend functions
+#ifdef USE_HERMES
+  int PutHermesTags(hermes::Context* ctx, hermes::Bucket* bkt,
+                    const std::string& tags);
+  int PutHermes(const std::string& name, const std::string& tags,
+                const std::string& path, unsigned char* buffer, size_t nbyte);
+  int GetHermes(const std::string& name, const std::string& path);
+#endif
+  int PutData(const std::string& name, const std::string& tags,
+              const std::string& path, unsigned char* buffer, size_t nbyte);
+#ifdef USE_AWS
+  int WriteS3(const std::string& dest, char* ptr);
+#endif
+
+  // Download/transfer functions
+#ifdef USE_POCO
+  int Download(const std::string& url, const std::string& output_file_name,
+               long long start_byte, long long end_byte = -1);
+#endif
+  int RunLambda(const std::string& lambda, const std::string& name,
+                const std::string& dest);
+};
+
+}  // namespace cae
+
+#endif  // CAE_OMNI_H_

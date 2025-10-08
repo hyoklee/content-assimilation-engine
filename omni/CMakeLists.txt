@@ -147,12 +147,14 @@ endif()
 if(USE_POCO)
     add_executable(wrp
         wrp.cc
+        OMNI.cc
         format/globus_utils.cpp
         glo.cc
     )
 else()
     add_executable(wrp
         wrp.cc
+        OMNI.cc
     )
 endif()
 target_include_directories(wrp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -239,11 +241,16 @@ else()
     )
 endif()
 
-install(FILES 
+install(FILES
     repo/repo_client.h
     repo/repo_factory.h
     repo/filesystem_repo_omni.h
     DESTINATION ${CAE_INSTALL_INCLUDE_DIR}/omni/repo
+)
+
+install(FILES
+    OMNI.h
+    DESTINATION ${CAE_INSTALL_INCLUDE_DIR}/omni
 )
 
 # Install configuration examples

@@ -1,0 +1,1097 @@
+///
+/// OMNI.cc
+///
+#define DEBUG 1
+#ifdef _WIN32
+// Fix Winsock conflicts by including winsock2 first
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX  // Prevent Windows headers from defining min/max macros
+#endif
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+
+#include "OMNI.h"
+#include "omni_job_config.h"
+#include "format/format_factory.h"
+#include "repo/filesystem_repo_omni.h"
+#include "repo/repo_factory.h"
+#include "format/dataset_config.h"
+#ifdef USE_HDF5
+#include "format/hdf5_dataset_client.h"
+#include <hdf5.h>
+#include "omni_processing.h"
+#endif
+#include <cstdlib>
+#include <iostream>
+#include <limits.h>  // For PATH_MAX
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+#ifndef _WIN32
+#include <pwd.h>
+#include <unistd.h>
+#include <glob.h>
+#else
+// Windows-specific includes
+#include <windows.h>
+#include <shlobj.h>
+#include <direct.h>
+#endif
+#include <sstream>
+#include <string>
+#include <vector>
+#include <yaml-cpp/yaml.h>
+#include <filesystem>
+#include <future>
+#include <thread>
+#include <algorithm>
+#include <mutex>
+#include <fstream>
+#include <cctype>  // For isspace
+#include <cstdio>  // For std::remove
+#include <regex>
+
+// Additional includes for put/get functionality
+#include <errno.h>
+#include <fcntl.h>
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <cassert>
+#include <cstring>
+
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
+#ifdef USE_HERMES
+#include <hermes/data_stager/stager_factory.h>
+#include <hermes/hermes.h>
+#endif
+
+#ifdef USE_POCO
+#include <chrono>
+#include <iomanip>
+#include <thread>
+#include "Poco/DigestEngine.h"
+#include "Poco/Exception.h"
+#include "Poco/File.h"
+#include "Poco/FileStream.h"
+#include "Poco/Net/Context.h"
+#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+#include "Poco/Net/HTTPSClientSession.h"
+#include "Poco/Net/NetException.h"
+#include "Poco/Net/SSLManager.h"
+#include "Poco/NullStream.h"
+#include "Poco/Path.h"
+#include "Poco/Pipe.h"
+#include "Poco/PipeStream.h"
+#include "Poco/Process.h"
+#include "Poco/SHA2Engine.h"
+#include "Poco/SharedMemory.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/TemporaryFile.h"
+#include "Poco/URI.h"
+#include "format/globus_utils.h"
+#endif
+
+#ifdef USE_AWS
+#include <aws/core/Aws.h>
+#include <aws/core/auth/AWSCredentialsProvider.h>
+#include <aws/core/utils/StringUtils.h>
+#include <aws/core/utils/memory/stl/AWSStringStream.h>
+#include <aws/s3/S3Client.h>
+#include <aws/s3/model/CreateBucketRequest.h>
+#include <aws/s3/model/PutObjectRequest.h>
+#endif
+
+namespace fs = std::filesystem;
+
+namespace cae {
+
+// Public API implementations
+int OMNI::Put(const std::string& input_file) {
+  if (SetBlackhole() != 0) {
+    return 1;
+  }
+  return ReadOmni(input_file);
+}
+
+int OMNI::Get(const std::string& buffer) {
+  return WriteOmni(buffer);
+}
+
+int OMNI::List() {
+  const std::string filename = ".blackhole/ls";
+  std::ifstream input_file(filename);
+  if (!input_file.is_open()) {
+    std::cerr << "Error: Could not open the file \"" << filename << "\""
+              << std::endl;
+    return 1;
+  }
+
+  std::string line;
+  while (std::getline(input_file, line)) {
+    std::cout << line << std::endl;
+  }
+
+  if (input_file.bad()) {
+    std::cerr << "Error: An unrecoverable error occurred while reading the file."
+              << std::endl;
+    return 1;
+  }
+  input_file.close();
+  return 0;
+}
+
+// Private method implementations
+#ifdef USE_POCO
+std::string OMNI::Sha256File(const std::string& file_path) {
+  try {
+    Poco::FileInputStream fis(file_path);
+    Poco::SHA2Engine sha256(Poco::SHA2Engine::SHA_256);
+    const size_t buffer_size = 8192;
+    char buffer[buffer_size];
+
+    while (!fis.eof()) {
+      fis.read(buffer, buffer_size);
+      std::streamsize bytes_read = fis.gcount();
+      if (bytes_read > 0) {
+        sha256.update(buffer, static_cast<unsigned>(bytes_read));
+      }
+    }
+
+    const Poco::DigestEngine::Digest& digest = sha256.digest();
+    std::stringstream ss;
+    for (unsigned char b : digest) {
+      ss << std::hex << std::setfill('0') << std::setw(2)
+         << static_cast<int>(b);
+    }
+    return ss.str();
+  } catch (const Poco::Exception& ex) {
+    throw std::runtime_error("Error: calculating SHA256 - " + ex.displayText());
+  }
+}
+#endif
+
+int OMNI::WriteMeta(const std::string& name, const std::string& tags) {
+  std::string file_path = ".blackhole/ls";
+  std::ofstream outfile(file_path, std::ios::out | std::ios::app);
+  if (outfile.is_open()) {
+    outfile << name << "|";
+    outfile << tags << std::endl;
+    outfile.close();
+  }
+  return 0;
+}
+
+#ifdef USE_HERMES
+int OMNI::PutHermesTags(hermes::Context* ctx, hermes::Bucket* bkt,
+                        const std::string& tags) {
+  hermes::Blob blob(tags.size());
+  memcpy(blob.data(), tags.c_str(), blob.size());
+  hermes::BlobId blob_id = bkt->Put("metadata", blob, *ctx);
+  if (blob_id.IsNull()) {
+    std::cerr << "Error: putting tags into metadata BLOB failed" << std::endl;
+    return -1;
+  }
+  return 0;
+}
+
+int OMNI::PutHermes(const std::string& name, const std::string& tags,
+                    const std::string& path, unsigned char* buffer,
+                    size_t nbyte) {
+  hermes::Context ctx;
+  hermes::Bucket bkt(name);
+  hermes::Blob blob(nbyte);
+  memcpy(blob.data(), buffer, blob.size());
+  hermes::BlobId blob_id = bkt.Put(path, blob, ctx);
+  std::cout << "wrote '" << buffer << "' to '" << name << "' buffer."
+            << std::endl;
+  return PutHermesTags(&ctx, &bkt, tags);
+}
+
+int OMNI::GetHermes(const std::string& name, const std::string& path) {
+  auto bkt = HERMES->GetBucket(name);
+  hermes::BlobId blob_id = bkt.GetBlobId(path);
+  hermes::Blob blob2;
+  hermes::Context ctx;
+  bkt.Get(blob_id, blob2, ctx);
+  std::cout << "read '" << blob2.data() << "' from '" << name << "' buffer."
+            << std::endl;
+
+  // Create a stageable bucket
+  hermes::Context ctx_s = hermes::BinaryFileStager::BuildContext(30);
+  hermes::Bucket bkt_s(name, ctx_s, 30);
+  hermes::Blob blob3(30);
+  memcpy(blob3.data(), blob2.data(), blob2.size());
+  bkt_s.Put(path, blob3, ctx_s);
+  CHI_ADMIN->Flush(HSHM_MCTX, chi::DomainQuery::GetGlobalBcast());
+  return 0;
+}
+#endif
+
+int OMNI::PutData(const std::string& name, const std::string& tags,
+                  const std::string& path, unsigned char* buffer,
+                  size_t nbyte) {
+#ifdef USE_HERMES
+  PutHermes(name, tags, path, buffer, nbyte);
+#endif
+#ifdef USE_POCO
+  const std::size_t shared_memory_size = nbyte + 1;
+
+  try {
+    Poco::File file(name);
+    std::cout << "checking existing buffer '" << name << "'...";
+    if (file.exists()) {
+      std::cout << "yes" << std::endl;
+      return 0;
+    }
+    std::cout << "no" << std::endl;
+
+    std::cout << "creating a new buffer '" << name << "' with '" << tags
+              << "' tags...";
+    file.createFile();
+    std::ofstream ofs(name, std::ios::binary);
+    ofs.seekp(nbyte);
+    ofs.put('\0');
+    ofs.close();
+    std::cout << "done" << std::endl;
+
+    std::cout << "putting " << nbyte << " bytes into '" << name
+              << "' buffer...";
+    Poco::SharedMemory shm(file, Poco::SharedMemory::AM_WRITE);
+
+    char* data = static_cast<char*>(shm.begin());
+    std::memcpy(data, (const char*)buffer, nbyte);
+    std::cout << "done" << std::endl;
+#ifdef DEBUG
+    std::cout << "wrote '" << shm.begin() << "' to '" << name << "' buffer."
+              << std::endl;
+#endif
+
+  } catch (Poco::Exception& e) {
+    std::cerr << "Poco Exception: " << e.displayText() << std::endl;
+    return -1;
+  } catch (std::exception& e) {
+    std::cerr << "Standard Exception: " << e.what() << std::endl;
+    return -1;
+  }
+#endif
+  return WriteMeta(name, tags);
+}
+
+#ifdef _WIN32
+std::string OMNI::GetExt(const std::string& filename) {
+  std::filesystem::path p(filename);
+  std::string extension = p.extension().string();
+  for (char& c : extension) {
+    c = std::tolower(c);
+  }
+  return extension;
+}
+#endif
+
+int OMNI::RunLambda(const std::string& lambda, const std::string& name,
+                    const std::string& dest) {
+#ifdef _WIN32
+  std::string extension = GetExt(lambda);
+  if (extension != ".bat") {
+    std::cerr << "Error: lambda script extension must be '.bat' on Windows"
+              << std::endl;
+    return 1;
+  }
+#endif
+
+#ifdef USE_POCO
+  try {
+#ifdef _WIN32
+    std::string command = "cmd.exe";
+#else
+    std::string command = lambda;
+#endif
+    Poco::Process::Args args;
+#ifdef _WIN32
+    args.push_back("/C");
+    Poco::Path poco_path(lambda);
+    std::string wpath = poco_path.toString(Poco::Path::PATH_WINDOWS);
+    args.push_back(wpath);
+#endif
+    args.push_back(name);
+    args.push_back(dest);
+
+    Poco::Pipe out_pipe;
+    Poco::Pipe err_pipe;
+    Poco::ProcessHandle ph =
+        Poco::Process::launch(command, args, 0, &out_pipe, &err_pipe);
+
+    Poco::PipeInputStream istr(out_pipe);
+    Poco::PipeInputStream estr(err_pipe);
+
+    std::string stdout_output;
+    std::string stderr_output;
+
+    Poco::StreamCopier::copyToString(istr, stdout_output);
+    Poco::StreamCopier::copyToString(estr, stderr_output);
+
+    int exit_code = ph.wait();
+
+    std::cout << "\n--- Lambda script output ---\n";
+    std::cout << "STDOUT:\n" << stdout_output;
+    std::cout << "STDERR:\n" << stderr_output;
+    std::cout << "-----------------------------------\n";
+    std::cout << "Lambda script exited with status: " << exit_code << std::endl;
+
+  } catch (Poco::SystemException& exc) {
+    std::cerr << "Error: poco system exception - " << exc.displayText()
+              << std::endl;
+    return 1;
+  } catch (Poco::Exception& exc) {
+    std::cerr << "Error: poco exception - " << exc.displayText() << std::endl;
+    return 1;
+  } catch (std::exception& exc) {
+    std::cerr << "Error: standard exception - " << exc.what() << std::endl;
+    return 1;
+  }
+#endif
+  return 0;
+}
+
+std::string OMNI::GetFileName(const std::string& uri) {
+  size_t last_slash_pos = uri.find_last_of('/');
+  if (last_slash_pos == std::string::npos) {
+    size_t protocol_end = uri.find("://");
+    if (protocol_end != std::string::npos) {
+      return "";
+    }
+    std::string filename = uri;
+    size_t query_pos = filename.find('?');
+    if (query_pos != std::string::npos) {
+      filename = filename.substr(0, query_pos);
+    }
+    size_t fragment_pos = filename.find('#');
+    if (fragment_pos != std::string::npos) {
+      filename = filename.substr(0, fragment_pos);
+    }
+    return filename;
+  }
+
+  std::string filename_with_params = uri.substr(last_slash_pos + 1);
+  size_t query_pos = filename_with_params.find('?');
+  if (query_pos != std::string::npos) {
+    filename_with_params = filename_with_params.substr(0, query_pos);
+  }
+  size_t fragment_pos = filename_with_params.find('#');
+  if (fragment_pos != std::string::npos) {
+    filename_with_params = filename_with_params.substr(0, fragment_pos);
+  }
+  return filename_with_params;
+}
+
+#ifdef USE_AWS
+int OMNI::WriteS3(const std::string& dest, char* ptr) {
+  Aws::SDKOptions options;
+  options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+
+  const Aws::String prefix = "s3://";
+  Aws::InitAPI(options);
+  if (dest.find(prefix) != 0) {
+    std::cerr << "Error: not a valid S3 URL (missing 's3://' prefix)"
+              << std::endl;
+    return -1;
+  }
+  Aws::String path = dest.substr(prefix.length());
+  // Find the first '/' to separate bucket and key
+  size_t first_slash = path.find('/');
+  if (first_slash == Aws::String::npos) {
+    std::cerr << "Error: invalid S3 URI (no path separator found)" << std::endl;
+    return -1;
+  }
+
+  Aws::String bucket_name = path.substr(0, first_slash);
+  Aws::String object_key = path.substr(first_slash + 1);
+
+  if (bucket_name.empty()) {
+    std::cerr << "Error: bucket name is empty" << std::endl;
+    return -1;
+  }
+  if (object_key.empty()) {
+    std::cerr << "Error: object key is empty" << std::endl;
+    return -1;
+  }
+
+  Aws::Client::ClientConfiguration client_config;
+  client_config.endpointOverride = "localhost:4566";
+  client_config.scheme = Aws::Http::Scheme::HTTP;
+  client_config.region = "us-east-1";
+  client_config.verifySSL = false;
+  client_config.useDualStack = false;
+
+  Aws::Auth::AWSCredentials credentials("test", "test");
+
+  Aws::S3::S3Client s3_client(
+      client_config, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
+      false);
+  Aws::S3::Model::CreateBucketRequest create_bucket_request;
+  create_bucket_request.SetBucket(bucket_name);
+
+  std::cout << "Creating bucket: " << bucket_name << std::endl;
+  auto create_bucket_outcome = s3_client.CreateBucket(create_bucket_request);
+  if (create_bucket_outcome.IsSuccess()) {
+    std::cout << "Bucket created successfully!" << std::endl;
+  } else {
+    std::cerr << "Error creating bucket: "
+              << create_bucket_outcome.GetError().GetMessage() << std::endl;
+  }
+
+  // Create a PutObject request
+  Aws::S3::Model::PutObjectRequest put_request;
+  put_request.SetBucket(bucket_name);
+  put_request.SetKey(object_key);
+
+  if (ptr == NULL) {
+    std::string file_path = GetFileName(dest);
+    std::shared_ptr<Aws::FStream> input_data = Aws::MakeShared<Aws::FStream>(
+        "SampleAllocationTag", file_path.c_str(),
+        std::ios_base::in | std::ios_base::binary);
+    if (!*input_data) {
+      std::cerr << "Error: Unable to open file " << file_path << std::endl;
+      return false;
+    }
+    put_request.SetBody(input_data);
+  } else {
+    auto input_data =
+        Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
+    *input_data << ptr;
+    put_request.SetBody(input_data);
+  }
+
+  // TODO: Set content type based on mime input in OMNI.
+  // put_request.SetContentType("text/plain");
+  put_request.SetContentType("application/octet-stream");
+
+  // Execute the PutObject request
+  auto put_object_outcome = s3_client.PutObject(put_request);
+
+  if (put_object_outcome.IsSuccess()) {
+    std::cout << "Successfully uploaded object to " << bucket_name << "/"
+              << object_key << std::endl;
+  } else {
+    std::cout << "Error: uploading object - "
+              << put_object_outcome.GetError().GetMessage() << std::endl;
+    return -1;
+  }
+  Aws::ShutdownAPI(options);
+  return 0;
+}
+#endif
+
+#ifdef USE_POCO
+int OMNI::Download(const std::string& url, const std::string& output_file_name,
+                   long long start_byte, long long end_byte) {
+  try {
+    std::string current_url = url;
+    const std::string ca_cert_file = "../cacert.pem";
+
+    Poco::Net::Context::Ptr context = new Poco::Net::Context(
+        Poco::Net::Context::CLIENT_USE, "", "", "",
+        Poco::Net::Context::VERIFY_NONE,  // STRICT
+        9, true, ca_cert_file);
+
+    int redirect_count = 0;
+    int max_redirects = 20;  // Match Chrome & Firefox
+    bool redirected = true;
+
+    while (redirected && redirect_count <= max_redirects) {
+      redirected = false;
+      redirect_count++;
+      Poco::URI uri(current_url);
+
+      std::unique_ptr<Poco::Net::HTTPClientSession> session;
+
+      if (uri.getScheme() == "https") {
+        session = std::make_unique<Poco::Net::HTTPSClientSession>(
+            uri.getHost(), uri.getPort() == 0 ? 443 : uri.getPort(), context);
+      } else {
+        session = std::make_unique<Poco::Net::HTTPClientSession>(uri.getHost(),
+                                                                  uri.getPort());
+      }
+
+      Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET,
+                                     uri.getPathAndQuery(),
+                                     Poco::Net::HTTPMessage::HTTP_1_1);
+      request.set("User-Agent", "POCO HTTP Redirect Client/1.0");
+
+      // Set the Range header
+      if (start_byte >= 0) {
+        std::string range_header_value;
+        if (end_byte == -1) {  // Request bytes from start_byte to end of file
+          range_header_value = "bytes=" + std::to_string(start_byte) + "-";
+        } else {  // Request a specific range
+          range_header_value = "bytes=" + std::to_string(start_byte) + "-" +
+                               std::to_string(end_byte);
+        }
+        request.set("Range", range_header_value);
+        std::cout << "Requesting Range: " << range_header_value << std::endl;
+      }
+
+      Poco::Net::HTTPResponse response;
+      int status = 0;
+      std::cout << "Downloading from: " << url << std::endl;
+
+      session->sendRequest(request);
+      std::istream& rs = session->receiveResponse(response);
+      status = response.getStatus();
+      std::cout << "Status: " << status << " - " << response.getReason()
+                << std::endl;
+
+      if (status == Poco::Net::HTTPResponse::HTTP_MOVED_PERMANENTLY ||
+          status == Poco::Net::HTTPResponse::HTTP_FOUND ||
+          status == Poco::Net::HTTPResponse::HTTP_SEE_OTHER ||
+          status == Poco::Net::HTTPResponse::HTTP_TEMPORARY_REDIRECT ||
+          status == Poco::Net::HTTPResponse::HTTP_PERMANENT_REDIRECT) {
+        if (response.has("Location")) {
+          current_url = response.get("Location");
+          std::cout << "Redirected to: " << current_url << std::endl;
+          redirected = true;
+          // Consume any remaining data in the current response stream
+          Poco::NullOutputStream null_stream;
+          Poco::StreamCopier::copyStream(rs, null_stream);
+        } else {
+          std::cerr << "Redirect status (" << status
+                    << ") received but no Location header found." << std::endl;
+          return -1;
+        }
+      } else if (status == Poco::Net::HTTPResponse::HTTP_PARTIAL_CONTENT) {
+        std::cout << "Received Partial Content (206)." << std::endl;
+        if (response.has("Content-Range")) {
+          std::string content_range = response.get("Content-Range");
+          std::cout << "Content-Range: " << content_range << std::endl;
+        } else {
+          std::cout << "Warning: 206 status but no Content-Range header."
+                    << std::endl;
+        }
+
+        std::ofstream os(output_file_name, std::ios::binary);
+        if (os.is_open()) {
+          Poco::StreamCopier::copyStream(rs, os);
+          os.close();
+          std::cout << "Partial content downloaded successfully to: "
+                    << output_file_name << std::endl;
+        } else {
+          std::cerr << "Error: Could not open file for writing: "
+                    << output_file_name << std::endl;
+        }
+      } else if (status == Poco::Net::HTTPResponse::HTTP_OK) {
+        // Success! Download the content
+        std::ofstream os(output_file_name, std::ios::binary);
+        if (os.is_open()) {
+          Poco::StreamCopier::copyStream(rs, os);
+          os.close();
+          std::cout << "File downloaded successfully to: " << output_file_name
+                    << std::endl;
+          return 0;
+        } else {
+          std::cerr << "Error: Could not open file for writing: "
+                    << output_file_name << std::endl;
+          return -1;
+        }
+      } else {
+        // Non-success, non-redirect status
+        std::cerr << "Error: HTTP request failed with status code " << status
+                  << std::endl;
+        std::string error_body;
+        Poco::StreamCopier::copyToString(rs, error_body);
+        std::cerr << "Response Body: " << error_body << std::endl;
+        return -1;
+      }
+    }  // while
+
+    if (redirect_count > max_redirects) {
+      std::cerr << "Error: Maximum redirect limit (" << max_redirects
+                << ") exceeded." << std::endl;
+    }
+  } catch (const Poco::Net::NetException& e) {
+    std::cerr << "Network Error: " << e.displayText() << std::endl;
+  } catch (const Poco::IOException& e) {
+    std::cerr << "IO Error: " << e.displayText() << std::endl;
+  } catch (const Poco::Exception& e) {
+    std::cerr << "POCO Error: " << e.displayText() << std::endl;
+  } catch (const std::exception& e) {
+    std::cerr << "Standard Error: " << e.what() << std::endl;
+  } catch (...) {
+    std::cerr << "Unknown Error occurred." << std::endl;
+  }
+  return 0;
+}
+#endif
+
+int OMNI::ReadOmni(const std::string& input_file) {
+  std::string name;
+  std::string tags;
+  std::string path;
+#ifdef USE_POCO
+  std::string hash;
+#endif
+  size_t offset = 0;
+  size_t nbyte = 0;
+  bool run = false;
+  bool f = true;
+  int res = -1;
+  std::string lambda;
+  std::string dest;
+
+  std::ifstream ifs(input_file);
+  if (!ifs.is_open()) {
+    std::cerr << "Error: could not open file " << input_file << std::endl;
+    return 1;
+  }
+
+  try {
+    YAML::Node root = YAML::Load(ifs);
+
+    if (root.IsMap()) {
+      for (YAML::const_iterator it = root.begin(); it != root.end(); ++it) {
+        std::string key = it->first.as<std::string>();
+
+        if (key == "name") {
+          name = it->second.as<std::string>();
+        }
+        if (key == "src") {
+          std::string original_path = it->second.as<std::string>();
+          bool wait_for_file = false;
+
+          // Check if src starts with '>' indicating we should wait for the file
+          if (!original_path.empty() && original_path[0] == '>') {
+            wait_for_file = true;
+            path = original_path.substr(1);  // Remove the '>' prefix
+            std::cout << "Will wait for file: " << path.c_str() << std::endl;
+          } else {
+            path = original_path;
+          }
+
+          std::cout << "Path=" << path.c_str() << std::endl;
+          if (path.find("https://") == path.npos &&
+              path.find("hdf5://") == path.npos &&
+              path.find("globus://") == path.npos) {
+#ifdef USE_POCO
+            Poco::File file(path);
+            if (wait_for_file) {
+              // Wait indefinitely for the file to become available
+              std::cout << "Waiting for file '" << path
+                        << "' to become available..." << std::endl;
+              while (!file.exists()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                file = Poco::File(path);  // Refresh the file object
+              }
+              std::cout << "File '" << path
+                        << "' is now available, continuing..." << std::endl;
+            } else if (!file.exists()) {
+              std::cerr << "Error: '" << path << "' does not exist" << std::endl;
+              return -1;
+            }
+#else
+            if (wait_for_file) {
+              // Wait indefinitely for the file to become available (non-POCO
+              // version)
+              std::cout << "Waiting for file '" << path
+                        << "' to become available..." << std::endl;
+              while (!std::filesystem::exists(path)) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+              }
+              std::cout << "File '" << path
+                        << "' is now available, continuing..." << std::endl;
+            } else if (!std::filesystem::exists(path)) {
+              std::cerr << "Error: '" << path << "' does not exist" << std::endl;
+              return -1;
+            }
+#endif
+          } else {
+            f = false;
+          }
+        }
+#ifdef USE_POCO
+        if (key == "hash") {
+          hash = it->second.as<std::string>();
+        }
+
+        // Handle Globus transfer if source is a globus:// URL
+        if (path.find("globus://") != path.npos && key == "dst") {
+          std::string dest_uri = it->second.as<std::string>();
+          if (dest_uri.find("globus://") == 0) {
+            std::string transfer_token =
+                std::getenv("GLOBUS_TRANSFER_TOKEN")
+                    ? std::getenv("GLOBUS_TRANSFER_TOKEN")
+                    : "";
+            if (transfer_token.empty()) {
+              std::cerr
+                  << "Error: GLOBUS_TRANSFER_TOKEN environment variable not set"
+                  << std::endl;
+              return -1;
+            }
+
+            if (transfer_globus_file(path, dest_uri, transfer_token,
+                                     "OMNI Transfer")) {
+              std::cout << "Globus transfer initiated successfully from " << path
+                        << " to " << dest_uri << std::endl;
+              return 0;
+            } else {
+              std::cerr << "Error: Failed to initiate Globus transfer"
+                        << std::endl;
+              return -1;
+            }
+          }
+        }
+#endif
+        if (key == "offset") {
+          offset = it->second.as<size_t>();
+        }
+        if (key == "nbyte") {
+          nbyte = it->second.as<size_t>();
+          std::vector<char> buffer(nbyte);
+          unsigned char* ptr = reinterpret_cast<unsigned char*>(buffer.data());
+          if (!path.empty() && f == true) {
+#ifdef DEBUG
+            std::cout << "path=" << path << std::endl;
+#endif
+            if (ReadExactBytesFromOffset(path.c_str(), offset, nbyte, ptr) ==
+                0) {
+#ifdef DEBUG
+              std::cout << "buffer=" << ptr << std::endl;
+#endif
+              PutData(name, tags, path, ptr, nbyte);
+            } else {
+              return -1;
+            }
+          }
+        }
+        if (key == "run") {
+          run = true;
+          lambda = it->second.as<std::string>();
+        }
+        if (key == "dst") {
+          dest = it->second.as<std::string>();
+#ifndef _WIN32
+#ifdef USE_HERMES
+          GetHermes(name, path);
+#endif
+#endif
+        }
+
+        if (it->second.IsScalar()) {
+          std::string value = it->second.as<std::string>();
+#ifdef DEBUG
+          std::cout << key << ": " << value << std::endl;
+#endif
+        } else if (it->second.IsSequence()) {
+#ifdef DEBUG
+          std::cout << key << ": " << std::endl;
+#endif
+          for (size_t i = 0; i < it->second.size(); ++i) {
+            if (it->second[i].IsScalar()) {
+#ifdef DEBUG
+              std::cout << " - " << it->second[i].as<std::string>() << std::endl;
+#endif
+              if (key == "tags") {
+                tags += it->second[i].as<std::string>();
+                if (i < it->second.size() - 1) {
+                  tags += ",";
+                }
+              }
+            }
+          }
+        } else if (it->second.IsMap()) {
+#ifdef DEBUG
+          std::cout << key << ": " << std::endl;
+#endif
+          for (YAML::const_iterator inner_it = it->second.begin();
+               inner_it != it->second.end(); ++inner_it) {
+            std::string inner_key = inner_it->first.as<std::string>();
+            if (inner_it->second.IsScalar()) {
+              std::string inner_value = inner_it->second.as<std::string>();
+#ifdef DEBUG
+              std::cout << "  " << inner_key << ": " << inner_value << std::endl;
+#endif
+            }
+          }  // for
+        }
+      }  // for
+    } else if (root.IsSequence()) {
+      for (size_t i = 0; i < root.size(); ++i) {
+        if (root[i].IsScalar()) {
+          std::cout << " - " << root[i].as<std::string>() << std::endl;
+        }
+      }
+    } else if (root.IsScalar()) {
+      std::cout << root.as<std::string>() << std::endl;
+    }
+  } catch (YAML::ParserException& e) {
+    std::cerr << "Error: parsing YAML - " << e.what() << std::endl;
+    return 1;
+  }
+
+#if USE_HDF5
+  if (path.find("hdf5://") != path.npos) {
+    cae::DatasetConfig dc = cae::ParseDatasetConfig(input_file);
+    cae::Hdf5DatasetClient client;
+
+    // Read dataset and get the buffer
+    size_t buffer_size = 0;
+    unsigned char* buffer = client.ReadDataset(dc, buffer_size);
+
+    if (buffer && buffer_size > 0) {
+      // Use PutData to write the buffer
+      int result =
+          PutData(dc.name,      // name
+                  tags,         // tags
+                  "",           // path (empty for now)
+                  buffer,       // buffer
+                  buffer_size   // buffer size in bytes
+          );
+
+      if (result != 0) {
+        std::cerr << "Error: Failed to write buffer using PutData()"
+                  << std::endl;
+      } else {
+        std::cout << "Successfully wrote buffer using PutData()" << std::endl;
+      }
+
+      // Free the allocated buffer
+      delete[] buffer;
+    } else {
+      std::cerr << "Error: Failed to read dataset or empty dataset"
+                << std::endl;
+    }
+  }
+#endif
+
+#if USE_POCO
+  if (!path.empty() && (path.find("https://") != path.npos)) {
+    long long start = -1;
+    long long end = -1;
+    if (offset > 0) {
+      start = (long long)offset;
+    }
+    if (nbyte > 0) {
+      end = (long long)(offset + nbyte);
+    }
+    if (Download(path, name, start, end) != 0)
+      std::cerr << "Error: downloading '" << path << "' failed " << std::endl;
+  }
+
+  if (!hash.empty()) {
+    std::string h;
+    if (!path.empty() && path.find("https://") != 0 &&
+        path.find("hdf5://") != 0) {
+      h = Sha256File(path);
+    }
+    if (path.find("https://") == 0) {
+      h = Sha256File(name);
+    }
+
+    if (hash != h) {
+      std::cerr << "Error: hash '" << hash << "' is not same as actual '" << h
+                << "'" << std::endl;
+      return -1;
+    }
+  }
+
+  if (!dest.empty()) {
+    std::cerr << "dst=" << dest << std::endl;
+#ifdef USE_POCO
+    try {
+      if (run) {
+        res = RunLambda(lambda, name, dest);
+      } else {
+#ifdef USE_AWS
+        Poco::File file(name);
+        if (!file.exists()) {
+          throw Poco::FileNotFoundException("Error: buffer '" + name +
+                                            "' not found");
+        }
+        Poco::SharedMemory shm_r(file, Poco::SharedMemory::AM_READ);
+        std::cout << "read '" << shm_r.begin() << "' from '" << name
+                  << "' buffer." << std::endl;
+        WriteS3(dest, shm_r.begin());
+#endif  // AWS
+      }
+      if (res == 0) {
+#ifdef USE_AWS
+        WriteS3(dest, NULL);
+#endif  // AWS
+      } else {
+        std::cerr << "Error: lambda failed to generate '" << dest << "'"
+                  << std::endl;
+      }
+    } catch (Poco::Exception& e) {
+      std::cerr << "Error: poco exception - " << e.displayText() << std::endl;
+      return 1;
+    } catch (std::exception& e) {
+      std::cerr << "Error: standard exception - " << e.what() << std::endl;
+      return 1;
+    }
+#endif  // POCO: dset not empty
+  }
+#endif  // POCO: URL
+  return 0;
+}
+
+std::string OMNI::ReadTags(const std::string& buf) {
+  const std::string filename = ".blackhole/ls";
+  std::ifstream input_file(filename);
+  if (!input_file.is_open()) {
+    std::cerr << "Error: Could not open the file \"" << filename << "\""
+              << std::endl;
+    return "";
+  }
+
+  std::string line;
+  while (std::getline(input_file, line)) {
+    std::stringstream ss(line);
+    std::string first_string;
+    std::string second_string;
+    // Get the first part of the string, using '|' as the delimiter
+    if (std::getline(ss, first_string, '|')) {
+      if (first_string == buf) {
+        if (std::getline(ss, second_string, '|')) {
+          return second_string;
+        }
+      }
+    }
+  }
+  return "";
+}
+
+int OMNI::WriteOmni(const std::string& buf) {
+  std::string ofile = buf + ".omni.yaml";
+  std::cout << "writing output " << ofile << "...";
+
+#ifdef USE_POCO
+  std::string h = Sha256File(buf);
+#endif
+
+  std::ofstream of(ofile);
+  of << "# OMNI" << std::endl;
+  of << "name: " << buf << std::endl;
+  std::string tags = ReadTags(buf);
+  if (!tags.empty()) {
+    of << "tags: " << tags << std::endl;
+  } else {
+    of.close();
+    return -1;
+  }
+
+#ifdef USE_POCO
+  Poco::Path path(buf);
+  of << "src: " << path.makeAbsolute().toString() << std::endl;
+  if (!h.empty()) {
+    of << "hash: " << h << std::endl;
+  }
+#endif
+  of.close();
+  std::cout << "done" << std::endl;
+  return 0;
+}
+
+int OMNI::SetBlackhole() {
+  std::cout << "checking IOWarp runtime...";
+#ifdef USE_HERMES
+  if (!IOWARP_CAE_INIT()) {
+    std::cerr << std::endl << "Error: IOWARP_CAE_INIT() failed." << std::endl;
+    return -1;
+  };
+#endif
+
+#ifdef USE_POCO
+  Poco::File dir(".blackhole");
+  if (dir.exists() == true) {
+    std::cout << "yes" << std::endl;
+  } else {
+    std::cout << "no" << std::endl;
+    std::cout << "launching a new IOWarp runtime...";
+    if (dir.createDirectory()) {
+      std::cout << "done" << std::endl;
+      return 0;
+    } else {
+      std::cerr << "Error: failed to create .blackhole directory" << std::endl;
+      return -1;
+    }
+  }
+#else
+  if (std::filesystem::exists(".blackhole") == true) {
+    std::cout << "yes" << std::endl;
+  } else {
+    std::cout << "no" << std::endl;
+    std::cout << "launching a new IOWarp runtime...";
+    if (std::filesystem::create_directory(".blackhole")) {
+      std::cout << "done" << std::endl;
+      return 0;
+    } else {
+      std::cerr << "Error: failed to create .blackhole directory" << std::endl;
+      return -1;
+    }
+  }
+#endif
+  return 0;
+}
+
+int OMNI::ReadExactBytesFromOffset(const char* filename, off_t offset,
+                                   size_t num_bytes, unsigned char* buffer) {
+  int fd = -1;
+  ssize_t total_bytes_read = 0;
+  ssize_t bytes_read;
+
+  fd = open(filename, O_RDONLY);
+  if (fd == -1) {
+    std::cerr << "Error: opening file" << filename << std::endl;
+    return -1;
+  }
+
+  if (lseek(fd, offset, SEEK_SET) == -1) {
+    std::cerr << "Error: seeking file" << filename << std::endl;
+    close(fd);
+    return -1;
+  }
+
+  while (total_bytes_read < num_bytes) {
+    bytes_read =
+        read(fd, buffer + total_bytes_read, num_bytes - total_bytes_read);
+    if (bytes_read == -1) {
+      perror("Error reading file");
+      close(fd);
+      return -1;
+    }
+    if (bytes_read == 0) {
+      fprintf(stderr,
+              "End of file reached after reading %zu bytes, expected %zu.\n",
+              total_bytes_read, num_bytes);
+      close(fd);
+      return -2;
+    }
+    total_bytes_read += bytes_read;
+  }
+
+  if (close(fd) == -1) {
+    perror("Error closing file");
+    return -1;
+  }
+
+  if ((size_t)total_bytes_read == num_bytes)
+    return 0;
+  else
+    return 1;
+}
+
+}  // namespace cae
