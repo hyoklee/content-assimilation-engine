@@ -392,21 +392,18 @@ set_tests_properties(invalid_yml
 add_test(NAME missing_name COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/missing_name.yml)
 set_tests_properties(missing_name
     PROPERTIES
-    WILL_FAIL "TRUE"
     PASS_REGULAR_EXPRESSION "Error: 'name' field is required in OMNI YAML file"
 )
 
 add_test(NAME missing_tags COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/missing_tags.yml)
 set_tests_properties(missing_tags
     PROPERTIES
-    WILL_FAIL "TRUE"
     PASS_REGULAR_EXPRESSION "Error: 'tags' field is required in OMNI YAML file"
 )
 
 add_test(NAME missing_both COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/missing_both.yml)
 set_tests_properties(missing_both
     PROPERTIES
-    WILL_FAIL "TRUE"
     PASS_REGULAR_EXPRESSION "Error: 'name' field is required in OMNI YAML file"
 )
 

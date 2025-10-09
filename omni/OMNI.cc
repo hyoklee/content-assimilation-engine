@@ -1,7 +1,7 @@
 ///
 /// OMNI.cc
 ///
-#define DEBUG 1
+#define DEBUG 0
 #ifdef _WIN32
 // Fix Winsock conflicts by including winsock2 first
 #ifndef WIN32_LEAN_AND_MEAN

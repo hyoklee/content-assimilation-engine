@@ -1,3 +1,2 @@
 # OMNI test file - missing both required 'name' and 'tags' fields
-src: posix.yml
 nbyte: 10
