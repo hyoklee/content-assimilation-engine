@@ -1,0 +1,4 @@
+# OMNI test file - missing required 'tags' field
+name: test_missing_tags
+src: posix.yml
+nbyte: 10

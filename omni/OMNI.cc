@@ -924,6 +924,16 @@ int OMNI::ReadOmni(const std::string& input_file) {
     return 1;
   }
 
+  // Validate required fields
+  if (name.empty()) {
+    std::cerr << "Error: 'name' field is required in OMNI YAML file" << std::endl;
+    return 1;
+  }
+  if (tags.empty()) {
+    std::cerr << "Error: 'tags' field is required in OMNI YAML file" << std::endl;
+    return 1;
+  }
+
 #if USE_HDF5
   if (path.find("hdf5://") != path.npos) {
     cae::DatasetConfig dc = cae::ParseDatasetConfig(input_file);

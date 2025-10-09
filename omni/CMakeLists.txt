@@ -367,14 +367,47 @@ set_tests_properties(not_found
 # Additional test files
 add_test(NAME nested COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/nested.yml)
 add_test(NAME empty COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/empty.yml)
+
+# These tests use YAML structures without required 'name' and 'tags' fields
 add_test(NAME root COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/root.yml)
+set_tests_properties(root
+    PROPERTIES
+    WILL_FAIL "TRUE"
+)
+
 add_test(NAME scalar COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/scalar.yml)
+set_tests_properties(scalar
+    PROPERTIES
+    WILL_FAIL "TRUE"
+)
 
 add_test(NAME invalid_yml COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/invalid.yml)
 set_tests_properties(invalid_yml
     PROPERTIES
     WILL_FAIL "TRUE"
     RETURN_VALUE 1
+)
+
+# Validation tests for required YAML fields
+add_test(NAME missing_name COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/missing_name.yml)
+set_tests_properties(missing_name
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    PASS_REGULAR_EXPRESSION "Error: 'name' field is required in OMNI YAML file"
+)
+
+add_test(NAME missing_tags COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/missing_tags.yml)
+set_tests_properties(missing_tags
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    PASS_REGULAR_EXPRESSION "Error: 'tags' field is required in OMNI YAML file"
+)
+
+add_test(NAME missing_both COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/missing_both.yml)
+set_tests_properties(missing_both
+    PROPERTIES
+    WILL_FAIL "TRUE"
+    PASS_REGULAR_EXPRESSION "Error: 'name' field is required in OMNI YAML file"
 )
 
 add_test(NAME path COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/path.yml)
@@ -385,6 +418,10 @@ set_tests_properties(path
 )
 
 add_test(NAME root_seq COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/root_seq.yml)
+set_tests_properties(root_seq
+    PROPERTIES
+    WILL_FAIL "TRUE"
+)
 
 add_test(NAME lseek COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/lseek.yml)
 set_tests_properties(lseek
