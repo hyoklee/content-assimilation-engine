@@ -209,7 +209,13 @@ bool test_read_config_exists() {
     omni.SetQuiet(true);
 
     // Create a temporary test file
+#ifdef _WIN32
+    char temp_path[MAX_PATH];
+    GetTempPathA(MAX_PATH, temp_path);
+    std::string test_file = std::string(temp_path) + "test_config_" + std::to_string(GetCurrentProcessId());
+#else
     std::string test_file = "/tmp/test_config_" + std::to_string(getpid());
+#endif
     std::ofstream temp(test_file);
     temp << "Test content\nLine 2\n";
     temp.close();

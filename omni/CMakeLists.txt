@@ -485,10 +485,17 @@ if(USE_POCO)
     message(STATUS "Added DataHub unit test (tests CheckDataHubConfig and ReadConfigFile)")
 
     # Integration test that creates config and tests full workflow
-    add_test(NAME datahub_integration
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/test_datahub.sh
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    )
+    if(WIN32)
+        add_test(NAME datahub_integration
+            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/test_datahub.bat
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        )
+    else()
+        add_test(NAME datahub_integration
+            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/test_datahub.sh
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        )
+    endif()
     set_tests_properties(datahub_integration
         PROPERTIES
         PASS_REGULAR_EXPRESSION "DataHub metastore detected in config"
