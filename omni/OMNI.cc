@@ -199,6 +199,179 @@ int OMNI::WriteMeta(const std::string& name, const std::string& tags) {
   return 0;
 }
 
+std::string OMNI::ReadConfigFile(const std::string& config_path) {
+  std::ifstream config_file(config_path);
+  if (!config_file.is_open()) {
+    if (!quiet_) {
+      std::cout << "Config file '" << config_path << "' not found, skipping DataHub registration" << std::endl;
+    }
+    return "";
+  }
+
+  std::stringstream buffer;
+  buffer << config_file.rdbuf();
+  config_file.close();
+  return buffer.str();
+}
+
+bool OMNI::CheckDataHubConfig() {
+  // Get home directory
+  std::string home_dir;
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    home_dir = home_path;
+    free(home_path);
+  } else {
+    if (!quiet_) {
+      std::cout << "Could not determine home directory" << std::endl;
+    }
+    return false;
+  }
+#else
+  const char* home_path = std::getenv("HOME");
+  if (home_path == nullptr) {
+    struct passwd* pw = getpwuid(getuid());
+    if (pw == nullptr) {
+      if (!quiet_) {
+        std::cout << "Could not determine home directory" << std::endl;
+      }
+      return false;
+    }
+    home_dir = pw->pw_dir;
+  } else {
+    home_dir = home_path;
+  }
+#endif
+
+  std::string config_path = home_dir + "/.wrp/config";
+  std::string config_content = ReadConfigFile(config_path);
+
+  if (config_content.empty()) {
+    return false;
+  }
+
+  // Check if config contains "MetaStore DataHub"
+  if (config_content.find("MetaStore DataHub") != std::string::npos) {
+    if (!quiet_) {
+      std::cout << "DataHub metastore detected in config" << std::endl;
+    }
+    return true;
+  }
+
+  return false;
+}
+
+int OMNI::RegisterWithDataHub(const std::string& name, const std::string& tags) {
+#ifdef USE_POCO
+  try {
+    if (!quiet_) {
+      std::cout << "Registering '" << name << "' with DataHub...";
+    }
+
+    // Parse tags into array format
+    std::vector<std::string> tag_list;
+    std::stringstream ss(tags);
+    std::string tag;
+    while (std::getline(ss, tag, ',')) {
+      // Trim whitespace
+      tag.erase(0, tag.find_first_not_of(" \t\n\r\f\v"));
+      tag.erase(tag.find_last_not_of(" \t\n\r\f\v") + 1);
+      if (!tag.empty()) {
+        tag_list.push_back(tag);
+      }
+    }
+
+    // Build tags JSON array
+    std::ostringstream tags_json;
+    tags_json << "[";
+    for (size_t i = 0; i < tag_list.size(); ++i) {
+      tags_json << "{\"tag\": \"urn:li:tag:" << tag_list[i] << "\"}";
+      if (i < tag_list.size() - 1) {
+        tags_json << ",";
+      }
+    }
+    tags_json << "]";
+
+    // Construct DataHub API payload for dataset ingestion
+    std::ostringstream json_payload;
+    json_payload << "{"
+                 << "\"entity\": {"
+                 << "\"value\": {"
+                 << "\"com.linkedin.metadata.snapshot.DatasetSnapshot\": {"
+                 << "\"urn\": \"urn:li:dataset:(urn:li:dataPlatform:omni,\"" << name << "\",PROD)\","
+                 << "\"aspects\": ["
+                 << "{"
+                 << "\"com.linkedin.common.GlobalTags\": {"
+                 << "\"tags\": " << tags_json.str()
+                 << "}"
+                 << "}"
+                 << "]"
+                 << "}"
+                 << "}"
+                 << "}"
+                 << "}";
+
+    std::string payload = json_payload.str();
+
+    // Create HTTP session to DataHub GMS API
+    Poco::Net::HTTPClientSession session("localhost", 8080);
+    session.setTimeout(Poco::Timespan(10, 0));  // 10 second timeout
+
+    Poco::Net::HTTPRequest request(
+        Poco::Net::HTTPRequest::HTTP_POST,
+        "/entities?action=ingest",
+        Poco::Net::HTTPMessage::HTTP_1_1);
+
+    request.setContentType("application/json");
+    request.setContentLength(payload.length());
+
+    // Send request
+    std::ostream& request_stream = session.sendRequest(request);
+    request_stream << payload;
+
+    // Receive response
+    Poco::Net::HTTPResponse response;
+    std::istream& response_stream = session.receiveResponse(response);
+
+    int status = response.getStatus();
+
+    // Read response body
+    std::string response_body;
+    Poco::StreamCopier::copyToString(response_stream, response_body);
+
+    if (status == Poco::Net::HTTPResponse::HTTP_OK ||
+        status == Poco::Net::HTTPResponse::HTTP_CREATED) {
+      if (!quiet_) {
+        std::cout << "done" << std::endl;
+      }
+      return 0;
+    } else {
+      std::cerr << "Error: DataHub API returned status " << status << std::endl;
+      std::cerr << "Response: " << response_body << std::endl;
+      return -1;
+    }
+
+  } catch (const Poco::Net::NetException& e) {
+    std::cerr << "Network error registering with DataHub: " << e.displayText() << std::endl;
+    return -1;
+  } catch (const Poco::Exception& e) {
+    std::cerr << "Error registering with DataHub: " << e.displayText() << std::endl;
+    return -1;
+  } catch (const std::exception& e) {
+    std::cerr << "Error registering with DataHub: " << e.what() << std::endl;
+    return -1;
+  }
+#else
+  if (!quiet_) {
+    std::cout << "DataHub registration skipped (Poco not available)" << std::endl;
+  }
+#endif
+  return 0;
+}
+
 #ifdef USE_HERMES
 int OMNI::PutHermesTags(hermes::Context* ctx, hermes::Bucket* bkt,
                         const std::string& tags) {
@@ -932,6 +1105,15 @@ int OMNI::ReadOmni(const std::string& input_file) {
   if (tags.empty()) {
     std::cerr << "Error: 'tags' field is required in OMNI YAML file" << std::endl;
     return 1;
+  }
+
+  // Check DataHub configuration and register if enabled
+  if (CheckDataHubConfig()) {
+    int datahub_result = RegisterWithDataHub(name, tags);
+    if (datahub_result != 0) {
+      std::cerr << "Warning: DataHub registration failed, continuing..." << std::endl;
+      // Don't return error - just warn and continue
+    }
   }
 
 #if USE_HDF5

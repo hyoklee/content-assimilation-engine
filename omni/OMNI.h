@@ -27,6 +27,10 @@ class OMNI {
   // Set quiet mode (suppress stdout)
   void SetQuiet(bool quiet) { quiet_ = quiet; }
 
+  // DataHub configuration (public for testing)
+  bool CheckDataHubConfig();
+  std::string ReadConfigFile(const std::string& config_path);
+
  private:
   // Core processing methods
   int ReadOmni(const std::string& input_file);
@@ -47,6 +51,9 @@ class OMNI {
   // Metadata functions
   int WriteMeta(const std::string& name, const std::string& tags);
   std::string ReadTags(const std::string& buf);
+
+  // DataHub integration functions
+  int RegisterWithDataHub(const std::string& name, const std::string& tags);
 
   // Storage backend functions
 #ifdef USE_HERMES

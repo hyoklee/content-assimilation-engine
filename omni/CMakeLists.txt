@@ -183,6 +183,17 @@ endif()
 
 target_link_libraries(wrp ${WRP_LIBS})
 
+# DataHub unit test binary (requires POCO)
+if(USE_POCO)
+    add_executable(test_datahub test_datahub.cpp OMNI.cc format/globus_utils.cpp glo.cc)
+    target_include_directories(test_datahub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_datahub ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+    if(USE_POCO)
+        target_link_libraries(test_datahub nlohmann_json::nlohmann_json)
+    endif()
+    message(STATUS "Building DataHub unit test (test_datahub)")
+endif()
+
 # MPI binary format processor (wrp_binary_format_mpi binary)
 if(USE_MPI)
     add_executable(wrp_binary_format_mpi wrp_binary_format_mpi.cc)
@@ -461,4 +472,34 @@ if(USE_POCO)
         )
     endif()
     message(STATUS "Added Globus transfer test (requires GLOBUS_TRANSFER_TOKEN environment variable)")
+endif()
+
+# DataHub unit tests (requires POCO for HTTP operations)
+if(USE_POCO)
+    # Unit test for DataHub functions (CheckDataHubConfig, ReadConfigFile, etc.)
+    add_test(NAME datahub_unit COMMAND test_datahub)
+    set_tests_properties(datahub_unit
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "ALL TESTS PASSED"
+    )
+    message(STATUS "Added DataHub unit test (tests CheckDataHubConfig and ReadConfigFile)")
+
+    # Integration test that creates config and tests full workflow
+    add_test(NAME datahub_integration
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/test/test_datahub.sh
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    set_tests_properties(datahub_integration
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "DataHub metastore detected in config"
+        TIMEOUT 30
+    )
+    message(STATUS "Added DataHub integration test (creates ~/.wrp/config and tests registration)")
+
+    # Test that DataHub config is NOT detected when file doesn't exist or doesn't contain the flag
+    add_test(NAME datahub_disabled COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/posix.yml)
+    set_tests_properties(datahub_disabled
+        PROPERTIES
+        FAIL_REGULAR_EXPRESSION "DataHub metastore detected in config"
+    )
 endif()
