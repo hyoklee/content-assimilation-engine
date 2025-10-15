@@ -3,6 +3,6 @@ name: quiet_test
 tags:
   - test
   - quiet
-src: "../CMakeLists.txt"
+src: "Makefile"
 offset: 0
 nbyte: 100
