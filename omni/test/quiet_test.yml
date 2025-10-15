@@ -3,6 +3,6 @@ name: quiet_test
 tags:
   - test
   - quiet
-src: "Makefile"
+src: "../../data/A46_xx.csv"
 offset: 0
 nbyte: 100
