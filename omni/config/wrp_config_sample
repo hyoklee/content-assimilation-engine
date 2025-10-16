@@ -1,0 +1,14 @@
+# Sample ~/.wrp/config file
+#
+# This file configures various aspects of the wrp tool including
+# proxy settings, metadata storage, and other options.
+
+# Proxy Configuration
+# Uncomment and configure these lines to enable HTTP/HTTPS proxy support
+# ProxyConfig enabled
+# ProxyHost proxy.example.com
+# ProxyPort 8080
+
+# Metadata Storage Configuration
+# Uncomment to enable DataHub metadata registration
+# MetaStore DataHub

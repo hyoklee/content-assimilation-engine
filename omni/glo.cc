@@ -3,6 +3,7 @@
 #include <chrono>    // For std::chrono::seconds
 #include <thread>    // For std::this_thread::sleep_for
 #include <sstream>   // For std::stringstream
+#include <fstream>   // For reading config file
 
 #ifdef USE_POCO
 // POCO Includes
@@ -22,6 +23,7 @@
 
 // Globus utilities
 #include "format/globus_utils.h"
+#include "OMNI.h"  // For ProxyConfig
 
 // Forward declarations
 std::string getGlobusTransferStatus(const std::string& transferTaskId, const std::string& accessToken);
@@ -34,6 +36,56 @@ std::string requestGlobusTransfer(
     const std::string& transferLabel
 );
 
+// Helper function to read proxy config
+cae::ProxyConfig readProxyConfigForGlobus() {
+    cae::ProxyConfig config;
+
+    // Get home directory
+    const char* home_path = std::getenv("HOME");
+    if (!home_path) {
+        return config;
+    }
+
+    std::string config_path = std::string(home_path) + "/.wrp/config";
+    std::ifstream config_file(config_path);
+    if (!config_file.is_open()) {
+        return config;
+    }
+
+    std::string line;
+    while (std::getline(config_file, line)) {
+        // Trim whitespace
+        line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+        line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+
+        if (line.find("ProxyConfig enabled") == 0) {
+            config.enabled = true;
+        } else if (line.find("ProxyHost ") == 0) {
+            config.host = line.substr(10);
+            config.host.erase(0, config.host.find_first_not_of(" \t\n\r\f\v"));
+            config.host.erase(config.host.find_last_not_of(" \t\n\r\f\v") + 1);
+        } else if (line.find("ProxyPort ") == 0) {
+            std::string port_str = line.substr(10);
+            port_str.erase(0, port_str.find_first_not_of(" \t\n\r\f\v"));
+            try {
+                config.port = std::stoi(port_str);
+            } catch (...) {
+                config.port = 0;
+            }
+        } else if (line.find("ProxyUsername ") == 0) {
+            config.username = line.substr(14);
+            config.username.erase(0, config.username.find_first_not_of(" \t\n\r\f\v"));
+            config.username.erase(config.username.find_last_not_of(" \t\n\r\f\v") + 1);
+        } else if (line.find("ProxyPassword ") == 0) {
+            config.password = line.substr(14);
+            config.password.erase(0, config.password.find_first_not_of(" \t\n\r\f\v"));
+            config.password.erase(config.password.find_last_not_of(" \t\n\r\f\v") + 1);
+        }
+    }
+
+    return config;
+}
+
 #ifdef USE_POCO
 // Function to perform an HTTP GET request using POCO
 std::string httpGet(const std::string& url, const std::string& accessToken) {
@@ -41,9 +93,9 @@ std::string httpGet(const std::string& url, const std::string& accessToken) {
         Poco::URI uri(url);
         // Create an SSL Context for HTTPS
         Poco::Net::Context::Ptr context = new Poco::Net::Context(
-            Poco::Net::Context::CLIENT_USE, 
-            "", "", "", 
-            Poco::Net::Context::VERIFY_NONE, 
+            Poco::Net::Context::CLIENT_USE,
+            "", "", "",
+            Poco::Net::Context::VERIFY_NONE,
             9, // Default options
             false, // Don't load default CAs
             "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH" // Cipher list
@@ -52,6 +104,27 @@ std::string httpGet(const std::string& url, const std::string& accessToken) {
         // Set up the session with timeout
         Poco::Net::HTTPSClientSession session(uri.getHost(), uri.getPort(), context);
         session.setTimeout(Poco::Timespan(30, 0)); // 30 second timeout
+
+        // Configure proxy if enabled
+        cae::ProxyConfig proxy = readProxyConfigForGlobus();
+        if (proxy.enabled && !proxy.host.empty() && proxy.port > 0) {
+            session.setProxyHost(proxy.host);
+            session.setProxyPort(proxy.port);
+
+            // Set proxy credentials if provided
+            if (!proxy.username.empty()) {
+                session.setProxyUsername(proxy.username);
+                if (!proxy.password.empty()) {
+                    session.setProxyPassword(proxy.password);
+                }
+            }
+
+            std::cout << "Using proxy for Globus GET: " << proxy.host << ":" << proxy.port;
+            if (!proxy.username.empty()) {
+                std::cout << " (authenticated)";
+            }
+            std::cout << std::endl;
+        }
 
         // Prepare the request
         std::string path = uri.getPathAndQuery();
@@ -108,10 +181,31 @@ std::string httpPost(const std::string& url, const std::string& accessToken, con
     try {
         Poco::URI uri(url);
         Poco::Net::Context::Ptr context = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_NONE);
-        
+
         // Set up the session
         Poco::Net::HTTPSClientSession session(uri.getHost(), uri.getPort(), context);
-        
+
+        // Configure proxy if enabled
+        cae::ProxyConfig proxy = readProxyConfigForGlobus();
+        if (proxy.enabled && !proxy.host.empty() && proxy.port > 0) {
+            session.setProxyHost(proxy.host);
+            session.setProxyPort(proxy.port);
+
+            // Set proxy credentials if provided
+            if (!proxy.username.empty()) {
+                session.setProxyUsername(proxy.username);
+                if (!proxy.password.empty()) {
+                    session.setProxyPassword(proxy.password);
+                }
+            }
+
+            std::cout << "Using proxy for Globus POST: " << proxy.host << ":" << proxy.port;
+            if (!proxy.username.empty()) {
+                std::cout << " (authenticated)";
+            }
+            std::cout << std::endl;
+        }
+
         // Prepare the request
         std::string path = uri.getPathAndQuery();
         if (path.empty()) {

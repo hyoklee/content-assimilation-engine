@@ -214,6 +214,89 @@ std::string OMNI::ReadConfigFile(const std::string& config_path) {
   return buffer.str();
 }
 
+ProxyConfig OMNI::ReadProxyConfig() {
+  ProxyConfig config;
+
+  // Get home directory
+  std::string home_dir;
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    home_dir = home_path;
+    free(home_path);
+  } else {
+    return config;
+  }
+#else
+  const char* home_path = std::getenv("HOME");
+  if (home_path == nullptr) {
+    struct passwd* pw = getpwuid(getuid());
+    if (pw == nullptr) {
+      return config;
+    }
+    home_dir = pw->pw_dir;
+  } else {
+    home_dir = home_path;
+  }
+#endif
+
+  std::string config_path = home_dir + "/.wrp/config";
+  std::string config_content = ReadConfigFile(config_path);
+
+  if (config_content.empty()) {
+    return config;
+  }
+
+  // Parse ProxyConfig lines from config
+  // Expected format:
+  // ProxyConfig enabled
+  // ProxyHost proxy.example.com
+  // ProxyPort 8080
+  // ProxyUsername username (optional)
+  // ProxyPassword password (optional)
+  std::istringstream stream(config_content);
+  std::string line;
+
+  while (std::getline(stream, line)) {
+    // Trim whitespace
+    line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+    line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+
+    if (line.find("ProxyConfig enabled") == 0) {
+      config.enabled = true;
+    } else if (line.find("ProxyHost ") == 0) {
+      config.host = line.substr(10);
+      // Trim any remaining whitespace
+      config.host.erase(0, config.host.find_first_not_of(" \t\n\r\f\v"));
+      config.host.erase(config.host.find_last_not_of(" \t\n\r\f\v") + 1);
+    } else if (line.find("ProxyPort ") == 0) {
+      std::string port_str = line.substr(10);
+      port_str.erase(0, port_str.find_first_not_of(" \t\n\r\f\v"));
+      try {
+        config.port = std::stoi(port_str);
+      } catch (...) {
+        config.port = 0;
+      }
+    } else if (line.find("ProxyUsername ") == 0) {
+      config.username = line.substr(14);
+      config.username.erase(0, config.username.find_first_not_of(" \t\n\r\f\v"));
+      config.username.erase(config.username.find_last_not_of(" \t\n\r\f\v") + 1);
+    } else if (line.find("ProxyPassword ") == 0) {
+      config.password = line.substr(14);
+      config.password.erase(0, config.password.find_first_not_of(" \t\n\r\f\v"));
+      config.password.erase(config.password.find_last_not_of(" \t\n\r\f\v") + 1);
+    }
+  }
+
+  if (!quiet_ && config.enabled) {
+    std::cout << "Proxy configured: " << config.host << ":" << config.port << std::endl;
+  }
+
+  return config;
+}
+
 std::string OMNI::ReadDataHubAPIKey() {
   // Get home directory
   std::string home_dir;
@@ -766,6 +849,13 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
 #ifdef USE_POCO
 int OMNI::Download(const std::string& url, const std::string& output_file_name,
                    long long start_byte, long long end_byte) {
+  // Call the overloaded version with proxy config
+  ProxyConfig proxy = ReadProxyConfig();
+  return Download(url, output_file_name, start_byte, end_byte, proxy);
+}
+
+int OMNI::Download(const std::string& url, const std::string& output_file_name,
+                   long long start_byte, long long end_byte, const ProxyConfig& proxy) {
   try {
     std::string current_url = url;
     const std::string ca_cert_file = "../cacert.pem";
@@ -792,6 +882,32 @@ int OMNI::Download(const std::string& url, const std::string& output_file_name,
       } else {
         session = std::make_unique<Poco::Net::HTTPClientSession>(uri.getHost(),
                                                                   uri.getPort());
+      }
+
+      // Configure proxy if enabled
+      if (proxy.enabled && !proxy.host.empty() && proxy.port > 0) {
+        session->setProxyHost(proxy.host);
+        session->setProxyPort(proxy.port);
+
+        // Set proxy credentials if provided
+        if (!proxy.username.empty()) {
+          session->setProxyUsername(proxy.username);
+          if (!proxy.password.empty()) {
+            session->setProxyPassword(proxy.password);
+          }
+        }
+
+        if (!quiet_) {
+          std::cout << "Using proxy: " << proxy.host << ":" << proxy.port;
+          if (!proxy.username.empty()) {
+            std::cout << " (authenticated)";
+          }
+          std::cout << std::endl;
+        }
+      } else {
+        // Disable proxy to avoid DNS resolution issues with system proxy
+        session->setProxyHost("");
+        session->setProxyPort(0);
       }
 
       Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET,

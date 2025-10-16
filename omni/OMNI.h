@@ -14,6 +14,15 @@
 
 namespace cae {
 
+// Proxy configuration structure
+struct ProxyConfig {
+  bool enabled = false;
+  std::string host;
+  int port = 0;
+  std::string username;
+  std::string password;
+};
+
 class OMNI {
  public:
   OMNI() = default;
@@ -30,6 +39,7 @@ class OMNI {
   // DataHub configuration (public for testing)
   bool CheckDataHubConfig();
   std::string ReadConfigFile(const std::string& config_path);
+  ProxyConfig ReadProxyConfig();
 
  private:
   // Core processing methods
@@ -74,6 +84,8 @@ class OMNI {
 #ifdef USE_POCO
   int Download(const std::string& url, const std::string& output_file_name,
                long long start_byte, long long end_byte = -1);
+  int Download(const std::string& url, const std::string& output_file_name,
+               long long start_byte, long long end_byte, const ProxyConfig& proxy);
 #endif
   int RunLambda(const std::string& lambda, const std::string& name,
                 const std::string& dest);
