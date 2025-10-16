@@ -93,9 +93,24 @@ EOF
 echo -e "${GREEN}✓ Config file created${NC}"
 
 echo ""
-echo "Step 2: Generating DataHub access token"
-COOKIE_FILE="/tmp/datahub_cookies_$$.txt"
+echo "Step 2: Checking DataHub availability"
+DATAHUB_AVAILABLE=false
 if command -v curl &> /dev/null; then
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health | grep -q "200"; then
+        echo -e "${GREEN}✓ DataHub is available at http://localhost:8080${NC}"
+        DATAHUB_AVAILABLE=true
+    else
+        echo -e "${YELLOW}⚠ DataHub is not available at http://localhost:8080${NC}"
+        echo -e "${YELLOW}  Test will verify config detection but skip API registration${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ curl not available, skipping DataHub health check${NC}"
+fi
+
+echo ""
+echo "Step 3: Generating DataHub access token"
+COOKIE_FILE="/tmp/datahub_cookies_$$.txt"
+if [ "${DATAHUB_AVAILABLE}" = true ] && command -v curl &> /dev/null; then
     # Login to DataHub and get session cookie
     curl -c "${COOKIE_FILE}" -s -X POST 'http://localhost:9002/logIn' \
         -H 'Content-Type: application/json' \
@@ -113,35 +128,15 @@ if command -v curl &> /dev/null; then
         if [ -n "${ACCESS_TOKEN}" ]; then
             echo "${ACCESS_TOKEN}" > "${DATAHUB_KEY_FILE}"
             echo -e "${GREEN}✓ DataHub access token generated and saved to ${DATAHUB_KEY_FILE}${NC}"
-            DATAHUB_AVAILABLE=true
         else
             echo -e "${YELLOW}⚠ Could not generate DataHub access token${NC}"
             echo -e "${YELLOW}  Response: ${TOKEN_RESPONSE}${NC}"
-            DATAHUB_AVAILABLE=false
         fi
     else
         echo -e "${YELLOW}⚠ Could not login to DataHub${NC}"
-        DATAHUB_AVAILABLE=false
     fi
 else
-    echo -e "${YELLOW}⚠ curl not available, skipping token generation${NC}"
-    DATAHUB_AVAILABLE=false
-fi
-
-echo ""
-echo "Step 3: Checking DataHub availability"
-if command -v curl &> /dev/null; then
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health | grep -q "200"; then
-        echo -e "${GREEN}✓ DataHub is available at http://localhost:8080${NC}"
-        DATAHUB_AVAILABLE=true
-    else
-        echo -e "${YELLOW}⚠ DataHub is not available at http://localhost:8080${NC}"
-        echo -e "${YELLOW}  Test will verify config detection but skip API registration${NC}"
-        DATAHUB_AVAILABLE=false
-    fi
-else
-    echo -e "${YELLOW}⚠ curl not available, skipping DataHub health check${NC}"
-    DATAHUB_AVAILABLE=false
+    echo -e "${YELLOW}⊘ Skipping token generation (DataHub not available)${NC}"
 fi
 
 echo ""
