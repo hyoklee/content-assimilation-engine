@@ -53,6 +53,7 @@ class OMNI {
   std::string ReadTags(const std::string& buf);
 
   // DataHub integration functions
+  std::string ReadDataHubAPIKey();
   int RegisterWithDataHub(const std::string& name, const std::string& tags);
 
   // Storage backend functions

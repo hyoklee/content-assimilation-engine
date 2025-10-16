@@ -214,6 +214,58 @@ std::string OMNI::ReadConfigFile(const std::string& config_path) {
   return buffer.str();
 }
 
+std::string OMNI::ReadDataHubAPIKey() {
+  // Get home directory
+  std::string home_dir;
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    home_dir = home_path;
+    free(home_path);
+  } else {
+    if (!quiet_) {
+      std::cout << "Could not determine home directory for DataHub API key" << std::endl;
+    }
+    return "";
+  }
+#else
+  const char* home_path = std::getenv("HOME");
+  if (home_path == nullptr) {
+    struct passwd* pw = getpwuid(getuid());
+    if (pw == nullptr) {
+      if (!quiet_) {
+        std::cout << "Could not determine home directory for DataHub API key" << std::endl;
+      }
+      return "";
+    }
+    home_dir = pw->pw_dir;
+  } else {
+    home_dir = home_path;
+  }
+#endif
+
+  std::string api_key_path = home_dir + "/.wrp/datahub";
+  std::ifstream api_key_file(api_key_path);
+  if (!api_key_file.is_open()) {
+    if (!quiet_) {
+      std::cout << "DataHub API key file '" << api_key_path << "' not found, continuing without authentication" << std::endl;
+    }
+    return "";
+  }
+
+  std::string api_key;
+  std::getline(api_key_file, api_key);
+  api_key_file.close();
+
+  // Trim whitespace
+  api_key.erase(0, api_key.find_first_not_of(" \t\n\r\f\v"));
+  api_key.erase(api_key.find_last_not_of(" \t\n\r\f\v") + 1);
+
+  return api_key;
+}
+
 bool OMNI::CheckDataHubConfig() {
   // Get home directory
   std::string home_dir;
@@ -271,6 +323,9 @@ int OMNI::RegisterWithDataHub(const std::string& name, const std::string& tags) 
       std::cout << "Registering '" << name << "' with DataHub...";
     }
 
+    // Read API key from ~/.wrp/datahub
+    std::string api_key = ReadDataHubAPIKey();
+
     // Parse tags into array format
     std::vector<std::string> tag_list;
     std::stringstream ss(tags);
@@ -301,7 +356,7 @@ int OMNI::RegisterWithDataHub(const std::string& name, const std::string& tags) 
                  << "\"entity\": {"
                  << "\"value\": {"
                  << "\"com.linkedin.metadata.snapshot.DatasetSnapshot\": {"
-                 << "\"urn\": \"urn:li:dataset:(urn:li:dataPlatform:omni,\"" << name << "\",PROD)\","
+                 << "\"urn\": \"urn:li:dataset:(urn:li:dataPlatform:omni," << name << ",PROD)\","
                  << "\"aspects\": ["
                  << "{"
                  << "\"com.linkedin.common.GlobalTags\": {"
@@ -327,6 +382,11 @@ int OMNI::RegisterWithDataHub(const std::string& name, const std::string& tags) 
 
     request.setContentType("application/json");
     request.setContentLength(payload.length());
+
+    // Add Authorization header if API key is available
+    if (!api_key.empty()) {
+      request.set("Authorization", "Bearer " + api_key);
+    }
 
     // Send request
     std::ostream& request_stream = session.sendRequest(request);
