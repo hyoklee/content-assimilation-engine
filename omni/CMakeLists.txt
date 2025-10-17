@@ -509,7 +509,7 @@ if(USE_POCO)
     # Test that DataHub config is NOT detected when file doesn't exist or doesn't contain the flag
     # This test removes the config file to ensure clean state
     if(WIN32)
-        add_test(NAME datahub_disabled_cleanup COMMAND cmd /c "del /F /Q %USERPROFILE%\\.wrp\\config 2>nul || exit 0")
+        add_test(NAME datahub_disabled_cleanup COMMAND powershell -Command "Remove-Item -Path $env:USERPROFILE\\.wrp\\config -Force -ErrorAction SilentlyContinue; exit 0")
     else()
         add_test(NAME datahub_disabled_cleanup COMMAND sh -c "rm -f ~/.wrp/config || true")
     endif()
