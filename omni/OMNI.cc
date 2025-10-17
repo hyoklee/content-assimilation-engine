@@ -317,6 +317,95 @@ ProxyConfig OMNI::ReadProxyConfig() {
   return config;
 }
 
+AWSConfig OMNI::ReadAWSConfig() {
+  AWSConfig config;
+
+  // Get home directory
+  std::string home_dir;
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    home_dir = home_path;
+    free(home_path);
+  } else {
+    return config;
+  }
+#else
+  const char* home_path = std::getenv("HOME");
+  if (home_path == nullptr) {
+    struct passwd* pw = getpwuid(getuid());
+    if (pw == nullptr) {
+      return config;
+    }
+    home_dir = pw->pw_dir;
+  } else {
+    home_dir = home_path;
+  }
+#endif
+
+  std::string config_path = home_dir + "/.aws/config";
+  std::string config_content = ReadConfigFile(config_path);
+
+  if (config_content.empty()) {
+    return config;
+  }
+
+  // Parse AWS config file
+  // Expected format:
+  // [default]
+  // endpoint_url = http://localhost:4566
+  // region = us-east-1
+  std::istringstream stream(config_content);
+  std::string line;
+  bool in_default_section = false;
+
+  while (std::getline(stream, line)) {
+    // Trim whitespace
+    line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+    line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+
+    // Skip comments and empty lines
+    if (line.empty() || line[0] == '#' || line[0] == ';') {
+      continue;
+    }
+
+    // Check for section headers
+    if (line[0] == '[') {
+      in_default_section = (line == "[default]");
+      continue;
+    }
+
+    // Parse key-value pairs in the default section
+    if (in_default_section) {
+      size_t eq_pos = line.find('=');
+      if (eq_pos != std::string::npos) {
+        std::string key = line.substr(0, eq_pos);
+        std::string value = line.substr(eq_pos + 1);
+
+        // Trim whitespace from key and value
+        key.erase(0, key.find_first_not_of(" \t\n\r\f\v"));
+        key.erase(key.find_last_not_of(" \t\n\r\f\v") + 1);
+        value.erase(0, value.find_first_not_of(" \t\n\r\f\v"));
+        value.erase(value.find_last_not_of(" \t\n\r\f\v") + 1);
+
+        if (key == "endpoint_url") {
+          config.endpoint_url = value;
+        } else if (key == "region") {
+          config.region = value;
+        }
+      }
+    }
+  }
+
+  if (!quiet_ && !config.endpoint_url.empty()) {
+    std::cout << "AWS endpoint_url from config: " << config.endpoint_url << std::endl;
+  }
+
+  return config;
+}
+
 std::string OMNI::ReadDataHubAPIKey() {
   // Get home directory
   std::string home_dir;
@@ -1070,10 +1159,43 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
     return -1;
   }
 
+  // Read AWS config to get endpoint_url if available
+  AWSConfig aws_config = ReadAWSConfig();
+
   Aws::Client::ClientConfiguration client_config;
-  client_config.endpointOverride = "localhost:4566";
-  client_config.scheme = Aws::Http::Scheme::HTTP;
-  client_config.region = "us-east-1";
+
+  // Parse and use endpoint_url from config if available
+  std::string endpoint = "localhost:4566";  // default
+  Aws::Http::Scheme scheme = Aws::Http::Scheme::HTTP;  // default
+  std::string region = "us-east-1";  // default
+
+  if (!aws_config.endpoint_url.empty()) {
+    std::string url = aws_config.endpoint_url;
+
+    // Parse scheme (http:// or https://)
+    if (url.find("https://") == 0) {
+      scheme = Aws::Http::Scheme::HTTPS;
+      url = url.substr(8);  // Remove "https://"
+    } else if (url.find("http://") == 0) {
+      scheme = Aws::Http::Scheme::HTTP;
+      url = url.substr(7);  // Remove "http://"
+    }
+
+    // Remove trailing slash if present
+    if (!url.empty() && url[url.length() - 1] == '/') {
+      url = url.substr(0, url.length() - 1);
+    }
+
+    endpoint = url;
+  }
+
+  if (!aws_config.region.empty()) {
+    region = aws_config.region;
+  }
+
+  client_config.endpointOverride = endpoint.c_str();
+  client_config.scheme = scheme;
+  client_config.region = region.c_str();
   client_config.verifySSL = false;
   client_config.useDualStack = false;
 

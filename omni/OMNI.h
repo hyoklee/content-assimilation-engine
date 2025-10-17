@@ -25,6 +25,12 @@ struct ProxyConfig {
   std::string password;
 };
 
+// AWS configuration structure
+struct AWSConfig {
+  std::string endpoint_url;
+  std::string region;
+};
+
 class OMNI {
  public:
   OMNI() = default;
@@ -42,6 +48,7 @@ class OMNI {
   bool CheckDataHubConfig();
   std::string ReadConfigFile(const std::string& config_path);
   ProxyConfig ReadProxyConfig();
+  AWSConfig ReadAWSConfig();
 
  private:
   // Core processing methods
