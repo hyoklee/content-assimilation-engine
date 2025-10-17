@@ -191,6 +191,9 @@ if(USE_POCO)
     if(USE_POCO)
         target_link_libraries(test_datahub nlohmann_json::nlohmann_json)
     endif()
+    if(USE_AWS)
+        target_link_libraries(test_datahub ${AWS_LIBS})
+    endif()
     message(STATUS "Building DataHub unit test (test_datahub)")
 endif()
 
@@ -477,7 +480,7 @@ endif()
 # DataHub unit tests (requires POCO for HTTP operations)
 if(USE_POCO)
     # Unit test for DataHub functions (CheckDataHubConfig, ReadConfigFile, etc.)
-    add_test(NAME datahub_unit COMMAND test_datahub)
+    add_test(NAME datahub_unit COMMAND $<TARGET_FILE:test_datahub>)
     set_tests_properties(datahub_unit
         PROPERTIES
         PASS_REGULAR_EXPRESSION "ALL TESTS PASSED"
@@ -504,9 +507,17 @@ if(USE_POCO)
     message(STATUS "Added DataHub integration test (creates ~/.wrp/config and tests registration)")
 
     # Test that DataHub config is NOT detected when file doesn't exist or doesn't contain the flag
+    # This test removes the config file to ensure clean state
+    if(WIN32)
+        add_test(NAME datahub_disabled_cleanup COMMAND cmd /c "del /F /Q %USERPROFILE%\\.wrp\\config 2>nul || exit 0")
+    else()
+        add_test(NAME datahub_disabled_cleanup COMMAND sh -c "rm -f ~/.wrp/config || true")
+    endif()
+
     add_test(NAME datahub_disabled COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/posix.yml)
     set_tests_properties(datahub_disabled
         PROPERTIES
+        DEPENDS datahub_disabled_cleanup
         FAIL_REGULAR_EXPRESSION "DataHub metastore detected in config"
     )
 endif()

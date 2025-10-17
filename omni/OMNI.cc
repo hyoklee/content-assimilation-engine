@@ -990,6 +990,8 @@ int OMNI::RunLambda(const std::string& lambda, const std::string& name,
       std::cout << "Lambda script exited with status: " << exit_code << std::endl;
     }
 
+    return exit_code;
+
   } catch (Poco::SystemException& exc) {
     std::cerr << "Error: poco system exception - " << exc.displayText()
               << std::endl;
@@ -1108,7 +1110,7 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
         std::ios_base::in | std::ios_base::binary);
     if (!*input_data) {
       std::cerr << "Error: Unable to open file " << file_path << std::endl;
-      return false;
+      return -1;
     }
     put_request.SetBody(input_data);
   } else {
