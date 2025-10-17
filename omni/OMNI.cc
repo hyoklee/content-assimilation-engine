@@ -134,6 +134,26 @@ int OMNI::Get(const std::string& buffer) {
 }
 
 int OMNI::List() {
+  // Try to query DataHub if configured, otherwise read from local metadata
+  if (CheckDataHubConfig()) {
+    auto datasets = QueryDataHubForAllDatasets();
+    if (!datasets.empty()) {
+      // Display datasets from DataHub
+      for (const auto& dataset : datasets) {
+        if (!quiet_) {
+          std::cout << dataset.first << "|" << dataset.second << std::endl;
+        }
+      }
+      return 0;
+    } else {
+      if (!quiet_) {
+        std::cout << "No datasets found in DataHub, trying local metadata..." << std::endl;
+      }
+      // Fall through to local metadata
+    }
+  }
+
+  // Read from local metadata file
   const std::string filename = ".blackhole/ls";
   std::ifstream input_file(filename);
   if (!input_file.is_open()) {
@@ -513,6 +533,282 @@ int OMNI::RegisterWithDataHub(const std::string& name, const std::string& tags) 
   }
 #endif
   return 0;
+}
+
+std::string OMNI::QueryDataHubForDataset(const std::string& name) {
+#ifdef USE_POCO
+  try {
+    if (!quiet_) {
+      std::cout << "Querying DataHub for dataset '" << name << "'...";
+    }
+
+    // Read API key from ~/.wrp/datahub
+    std::string api_key = ReadDataHubAPIKey();
+
+    // Construct the dataset URN
+    std::string dataset_urn = "urn:li:dataset:(urn:li:dataPlatform:omni," + name + ",PROD)";
+
+    // Construct GraphQL query to retrieve dataset tags
+    std::ostringstream graphql_query;
+    graphql_query << "{"
+                  << "\"query\": \"query { "
+                  << "dataset(urn: \\\"" << dataset_urn << "\\\") { "
+                  << "globalTags { "
+                  << "tags { "
+                  << "tag { "
+                  << "name "
+                  << "} "
+                  << "} "
+                  << "} "
+                  << "} "
+                  << "}\""
+                  << "}";
+
+    std::string payload = graphql_query.str();
+
+    // Create HTTP session to DataHub GraphQL API (port 9002)
+    Poco::Net::HTTPClientSession session("localhost", 9002);
+    session.setTimeout(Poco::Timespan(10, 0));  // 10 second timeout
+
+    Poco::Net::HTTPRequest request(
+        Poco::Net::HTTPRequest::HTTP_POST,
+        "/api/v2/graphql",
+        Poco::Net::HTTPMessage::HTTP_1_1);
+
+    request.setContentType("application/json");
+    request.setContentLength(payload.length());
+
+    // Add Authorization header if API key is available
+    if (!api_key.empty()) {
+      request.set("Authorization", "Bearer " + api_key);
+    }
+
+    // Send request
+    std::ostream& request_stream = session.sendRequest(request);
+    request_stream << payload;
+
+    // Receive response
+    Poco::Net::HTTPResponse response;
+    std::istream& response_stream = session.receiveResponse(response);
+
+    int status = response.getStatus();
+
+    // Read response body
+    std::string response_body;
+    Poco::StreamCopier::copyToString(response_stream, response_body);
+
+    if (status == Poco::Net::HTTPResponse::HTTP_OK) {
+      if (!quiet_) {
+        std::cout << "done" << std::endl;
+      }
+
+      // Parse JSON response to extract tags
+      // Expected format: {"data":{"dataset":{"globalTags":{"tags":[{"tag":{"name":"urn:li:tag:tagname"}}]}}}}
+      std::string tags_result;
+
+      // Simple JSON parsing - look for tag names
+      size_t pos = 0;
+      while ((pos = response_body.find("\"name\":\"urn:li:tag:", pos)) != std::string::npos) {
+        pos += 19;  // Skip past "name":"urn:li:tag:
+        size_t end_pos = response_body.find("\"", pos);
+        if (end_pos != std::string::npos) {
+          std::string tag = response_body.substr(pos, end_pos - pos);
+          if (!tags_result.empty()) {
+            tags_result += ",";
+          }
+          tags_result += tag;
+          pos = end_pos;
+        } else {
+          break;
+        }
+      }
+
+      if (!tags_result.empty()) {
+        if (!quiet_) {
+          std::cout << "Retrieved tags from DataHub: " << tags_result << std::endl;
+        }
+        return tags_result;
+      } else {
+        if (!quiet_) {
+          std::cout << "No tags found in DataHub for dataset '" << name << "'" << std::endl;
+        }
+        return "";
+      }
+    } else if (status == Poco::Net::HTTPResponse::HTTP_NOT_FOUND) {
+      if (!quiet_) {
+        std::cout << "not found" << std::endl;
+        std::cout << "Dataset '" << name << "' not found in DataHub" << std::endl;
+      }
+      return "";
+    } else {
+      std::cerr << "Error: DataHub GraphQL API returned status " << status << std::endl;
+      std::cerr << "Response: " << response_body << std::endl;
+      return "";
+    }
+
+  } catch (const Poco::Net::NetException& e) {
+    std::cerr << "Network error querying DataHub: " << e.displayText() << std::endl;
+    return "";
+  } catch (const Poco::Exception& e) {
+    std::cerr << "Error querying DataHub: " << e.displayText() << std::endl;
+    return "";
+  } catch (const std::exception& e) {
+    std::cerr << "Error querying DataHub: " << e.what() << std::endl;
+    return "";
+  }
+#else
+  if (!quiet_) {
+    std::cout << "DataHub query skipped (Poco not available)" << std::endl;
+  }
+#endif
+  return "";
+}
+
+std::vector<std::pair<std::string, std::string>> OMNI::QueryDataHubForAllDatasets() {
+  std::vector<std::pair<std::string, std::string>> results;
+
+#ifdef USE_POCO
+  try {
+    if (!quiet_) {
+      std::cout << "Querying DataHub for all OMNI datasets...";
+    }
+
+    // Read API key from ~/.wrp/datahub
+    std::string api_key = ReadDataHubAPIKey();
+
+    // Construct GraphQL query to search for all datasets from the omni platform
+    std::ostringstream graphql_query;
+    graphql_query << "{"
+                  << "\"query\": \"query { "
+                  << "search(input: { type: DATASET, query: \\\"*\\\", start: 0, count: 1000, filters: [{field: \\\"platform\\\", values: [\\\"urn:li:dataPlatform:omni\\\"]}] }) { "
+                  << "searchResults { "
+                  << "entity { "
+                  << "... on Dataset { "
+                  << "urn "
+                  << "name "
+                  << "globalTags { "
+                  << "tags { "
+                  << "tag { "
+                  << "name "
+                  << "} "
+                  << "} "
+                  << "} "
+                  << "} "
+                  << "} "
+                  << "} "
+                  << "} "
+                  << "}\""
+                  << "}";
+
+    std::string payload = graphql_query.str();
+
+    // Create HTTP session to DataHub GraphQL API (port 9002)
+    Poco::Net::HTTPClientSession session("localhost", 9002);
+    session.setTimeout(Poco::Timespan(10, 0));  // 10 second timeout
+
+    Poco::Net::HTTPRequest request(
+        Poco::Net::HTTPRequest::HTTP_POST,
+        "/api/v2/graphql",
+        Poco::Net::HTTPMessage::HTTP_1_1);
+
+    request.setContentType("application/json");
+    request.setContentLength(payload.length());
+
+    // Add Authorization header if API key is available
+    if (!api_key.empty()) {
+      request.set("Authorization", "Bearer " + api_key);
+    }
+
+    // Send request
+    std::ostream& request_stream = session.sendRequest(request);
+    request_stream << payload;
+
+    // Receive response
+    Poco::Net::HTTPResponse response;
+    std::istream& response_stream = session.receiveResponse(response);
+
+    int status = response.getStatus();
+
+    // Read response body
+    std::string response_body;
+    Poco::StreamCopier::copyToString(response_stream, response_body);
+
+    if (status == Poco::Net::HTTPResponse::HTTP_OK) {
+      if (!quiet_) {
+        std::cout << "done" << std::endl;
+      }
+
+      // Parse JSON response to extract dataset names and tags
+      // Expected format has searchResults array with entity.name and entity.globalTags.tags
+
+      // Extract dataset names - look for "name" field after "entity"
+      size_t search_pos = 0;
+      while ((search_pos = response_body.find("\"name\":\"", search_pos)) != std::string::npos) {
+        // Check if this is a dataset name (not a tag name)
+        if (search_pos > 50 && response_body.substr(search_pos - 50, 50).find("\"entity\"") != std::string::npos) {
+          search_pos += 8;  // Skip past "name":"
+          size_t name_end = response_body.find("\"", search_pos);
+          if (name_end != std::string::npos) {
+            std::string dataset_name = response_body.substr(search_pos, name_end - search_pos);
+
+            // Now find tags for this dataset by looking ahead
+            std::string tags_str;
+            size_t tag_search_start = name_end;
+            size_t tag_search_end = response_body.find("\"entity\"", tag_search_start);
+            if (tag_search_end == std::string::npos) {
+              tag_search_end = response_body.length();
+            }
+
+            std::string section = response_body.substr(tag_search_start, tag_search_end - tag_search_start);
+            size_t tag_pos = 0;
+            while ((tag_pos = section.find("\"name\":\"urn:li:tag:", tag_pos)) != std::string::npos) {
+              tag_pos += 19;  // Skip past "name":"urn:li:tag:
+              size_t tag_end = section.find("\"", tag_pos);
+              if (tag_end != std::string::npos) {
+                std::string tag = section.substr(tag_pos, tag_end - tag_pos);
+                if (!tags_str.empty()) {
+                  tags_str += ",";
+                }
+                tags_str += tag;
+                tag_pos = tag_end;
+              } else {
+                break;
+              }
+            }
+
+            results.push_back(std::make_pair(dataset_name, tags_str));
+            search_pos = tag_search_end;
+          } else {
+            break;
+          }
+        } else {
+          search_pos += 8;
+        }
+      }
+
+      if (!quiet_) {
+        std::cout << "Found " << results.size() << " datasets in DataHub" << std::endl;
+      }
+
+    } else {
+      std::cerr << "Error: DataHub GraphQL API returned status " << status << std::endl;
+      std::cerr << "Response: " << response_body << std::endl;
+    }
+
+  } catch (const Poco::Net::NetException& e) {
+    // Silently fail - caller will handle empty results with fallback to local metadata
+  } catch (const Poco::Exception& e) {
+    // Silently fail - caller will handle empty results with fallback to local metadata
+  } catch (const std::exception& e) {
+    // Silently fail - caller will handle empty results with fallback to local metadata
+  }
+#else
+  if (!quiet_) {
+    std::cout << "DataHub query skipped (Poco not available)" << std::endl;
+  }
+#endif
+
+  return results;
 }
 
 #ifdef USE_HERMES
@@ -1441,11 +1737,26 @@ int OMNI::WriteOmni(const std::string& buf) {
   std::ofstream of(ofile);
   of << "# OMNI" << std::endl;
   of << "name: " << buf << std::endl;
-  std::string tags = ReadTags(buf);
+
+  // Try to get tags from DataHub if configured, otherwise read from local metadata
+  std::string tags;
+  if (CheckDataHubConfig()) {
+    tags = QueryDataHubForDataset(buf);
+    if (tags.empty()) {
+      if (!quiet_) {
+        std::cout << "DataHub query returned no tags, trying local metadata..." << std::endl;
+      }
+      tags = ReadTags(buf);
+    }
+  } else {
+    tags = ReadTags(buf);
+  }
+
   if (!tags.empty()) {
     of << "tags: " << tags << std::endl;
   } else {
     of.close();
+    std::cerr << "Error: No tags found for dataset '" << buf << "' in DataHub or local metadata" << std::endl;
     return -1;
   }
 

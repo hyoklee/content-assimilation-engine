@@ -5,6 +5,8 @@
 #define CAE_OMNI_H_
 
 #include <string>
+#include <vector>
+#include <utility>
 #include <cstddef>
 #include <sys/types.h>
 
@@ -65,6 +67,8 @@ class OMNI {
   // DataHub integration functions
   std::string ReadDataHubAPIKey();
   int RegisterWithDataHub(const std::string& name, const std::string& tags);
+  std::string QueryDataHubForDataset(const std::string& name);
+  std::vector<std::pair<std::string, std::string>> QueryDataHubForAllDatasets();
 
   // Storage backend functions
 #ifdef USE_HERMES
