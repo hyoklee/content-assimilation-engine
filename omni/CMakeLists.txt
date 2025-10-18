@@ -70,6 +70,18 @@ else()
     message(STATUS "POCO support disabled")
 endif()
 
+# DataHub support (requires POCO for HTTP operations)
+option(USE_DATAHUB "Enable DataHub metastore integration" OFF)
+if(USE_DATAHUB)
+    if(NOT USE_POCO)
+        message(FATAL_ERROR "USE_DATAHUB requires USE_POCO to be enabled")
+    endif()
+    add_definitions(-DUSE_DATAHUB)
+    message(STATUS "DataHub support enabled")
+else()
+    message(STATUS "DataHub support disabled")
+endif()
+
 if(USE_AWS)
     add_definitions(-DUSE_AWS)
     find_package(AWSSDK REQUIRED COMPONENTS core s3)
@@ -83,10 +95,18 @@ endif()
 if(USE_HERMES)
     add_definitions(-DUSE_HERMES)
     find_package(Hermes REQUIRED)
-    # Add other Hermes dependencies as needed
-    message(STATUS "HERMES support enabled")
+    # Link required Hermes/IOWarp libraries
+    set(HERMES_LIBS
+        hermes_hermes_core_client
+        hermes_shm_host
+        chimaera_client_host
+        chimaera_runtime
+        margo
+    )
+    message(STATUS "HERMES support enabled with libraries: ${HERMES_LIBS}")
 else()
     message(STATUS "HERMES support disabled")
+    set(HERMES_LIBS "")
 endif()
 
 # HDF5 dependency with vcpkg support
@@ -181,10 +201,14 @@ if(USE_MPI)
     target_compile_definitions(wrp PRIVATE USE_MPI)
 endif()
 
+if(USE_HERMES)
+    list(APPEND WRP_LIBS ${HERMES_LIBS})
+endif()
+
 target_link_libraries(wrp ${WRP_LIBS})
 
-# DataHub unit test binary (requires POCO)
-if(USE_POCO)
+# DataHub unit test binary (requires POCO and DataHub support)
+if(USE_POCO AND USE_DATAHUB)
     add_executable(test_datahub test_datahub.cpp OMNI.cc format/globus_utils.cpp glo.cc)
     target_include_directories(test_datahub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_datahub ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
@@ -194,7 +218,14 @@ if(USE_POCO)
     if(USE_AWS)
         target_link_libraries(test_datahub ${AWS_LIBS})
     endif()
+    if(USE_HERMES)
+        target_link_libraries(test_datahub ${HERMES_LIBS})
+    endif()
     message(STATUS "Building DataHub unit test (test_datahub)")
+else()
+    if(USE_POCO AND NOT USE_DATAHUB)
+        message(STATUS "Skipping DataHub unit test (USE_DATAHUB disabled)")
+    endif()
 endif()
 
 # MPI binary format processor (wrp_binary_format_mpi binary)
@@ -477,8 +508,8 @@ if(USE_POCO)
     message(STATUS "Added Globus transfer test (requires GLOBUS_TRANSFER_TOKEN environment variable)")
 endif()
 
-# DataHub unit tests (requires POCO for HTTP operations)
-if(USE_POCO)
+# DataHub unit tests (requires POCO and DataHub support)
+if(USE_POCO AND USE_DATAHUB)
     # Unit test for DataHub functions (CheckDataHubConfig, ReadConfigFile, etc.)
     add_test(NAME datahub_unit COMMAND $<TARGET_FILE:test_datahub>)
     set_tests_properties(datahub_unit

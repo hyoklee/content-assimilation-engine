@@ -1,7 +1,6 @@
 ///
 /// OMNI.cc
 ///
-#define DEBUG 0
 #ifdef _WIN32
 // Fix Winsock conflicts by including winsock2 first
 #ifndef WIN32_LEAN_AND_MEAN
@@ -134,6 +133,7 @@ int OMNI::Get(const std::string& buffer) {
 }
 
 int OMNI::List() {
+#ifdef USE_DATAHUB
   // Try to query DataHub if configured, otherwise read from local metadata
   if (CheckDataHubConfig()) {
     auto datasets = QueryDataHubForAllDatasets();
@@ -152,6 +152,7 @@ int OMNI::List() {
       // Fall through to local metadata
     }
   }
+#endif
 
   // Read from local metadata file
   const std::string filename = ".blackhole/ls";
@@ -406,6 +407,7 @@ AWSConfig OMNI::ReadAWSConfig() {
   return config;
 }
 
+#ifdef USE_DATAHUB
 std::string OMNI::ReadDataHubAPIKey() {
   // Get home directory
   std::string home_dir;
@@ -509,7 +511,6 @@ bool OMNI::CheckDataHubConfig() {
 }
 
 int OMNI::RegisterWithDataHub(const std::string& name, const std::string& tags) {
-#ifdef USE_POCO
   try {
     if (!quiet_) {
       std::cout << "Registering '" << name << "' with DataHub...";
@@ -616,16 +617,10 @@ int OMNI::RegisterWithDataHub(const std::string& name, const std::string& tags) 
     std::cerr << "Error registering with DataHub: " << e.what() << std::endl;
     return -1;
   }
-#else
-  if (!quiet_) {
-    std::cout << "DataHub registration skipped (Poco not available)" << std::endl;
-  }
-#endif
   return 0;
 }
 
 std::string OMNI::QueryDataHubForDataset(const std::string& name) {
-#ifdef USE_POCO
   try {
     if (!quiet_) {
       std::cout << "Querying DataHub for dataset '" << name << "'...";
@@ -745,18 +740,12 @@ std::string OMNI::QueryDataHubForDataset(const std::string& name) {
     std::cerr << "Error querying DataHub: " << e.what() << std::endl;
     return "";
   }
-#else
-  if (!quiet_) {
-    std::cout << "DataHub query skipped (Poco not available)" << std::endl;
-  }
-#endif
   return "";
 }
 
 std::vector<std::pair<std::string, std::string>> OMNI::QueryDataHubForAllDatasets() {
   std::vector<std::pair<std::string, std::string>> results;
 
-#ifdef USE_POCO
   try {
     if (!quiet_) {
       std::cout << "Querying DataHub for all OMNI datasets...";
@@ -891,14 +880,10 @@ std::vector<std::pair<std::string, std::string>> OMNI::QueryDataHubForAllDataset
   } catch (const std::exception& e) {
     // Silently fail - caller will handle empty results with fallback to local metadata
   }
-#else
-  if (!quiet_) {
-    std::cout << "DataHub query skipped (Poco not available)" << std::endl;
-  }
-#endif
 
   return results;
 }
+#endif // USE_DATAHUB
 
 #ifdef USE_HERMES
 int OMNI::PutHermesTags(hermes::Context* ctx, hermes::Bucket* bkt,
@@ -954,7 +939,17 @@ int OMNI::PutData(const std::string& name, const std::string& tags,
                   const std::string& path, unsigned char* buffer,
                   size_t nbyte) {
 #ifdef USE_HERMES
-  PutHermes(name, tags, path, buffer, nbyte);
+  // Try to use Hermes if available, but don't fail if it's not running
+  try {
+    if (chi::chiClient != nullptr) {
+      PutHermes(name, tags, path, buffer, nbyte);
+    }
+  } catch (...) {
+    // Hermes not available, fall through to other storage backends
+    if (!quiet_) {
+      std::cout << "Hermes not available, using alternative storage" << std::endl;
+    }
+  }
 #endif
 #ifdef USE_POCO
   const std::size_t shared_memory_size = nbyte + 1;
@@ -968,7 +963,8 @@ int OMNI::PutData(const std::string& name, const std::string& tags,
       if (!quiet_) {
         std::cout << "yes" << std::endl;
       }
-      return 0;
+      // Still write metadata even if buffer exists
+      return WriteMeta(name, tags);
     }
     if (!quiet_) {
       std::cout << "no" << std::endl;
@@ -998,7 +994,7 @@ int OMNI::PutData(const std::string& name, const std::string& tags,
     if (!quiet_) {
       std::cout << "done" << std::endl;
     }
-#ifdef DEBUG
+#ifndef NDEBUG
     if (!quiet_) {
       std::cout << "wrote '" << shm.begin() << "' to '" << name << "' buffer."
                 << std::endl;
@@ -1503,9 +1499,11 @@ int OMNI::ReadOmni(const std::string& input_file) {
             path = original_path;
           }
 
+#ifndef NDEBUG
           if (!quiet_) {
             std::cout << "Path=" << path.c_str() << std::endl;
           }
+#endif
           if (path.find("https://") == path.npos &&
               path.find("hdf5://") == path.npos &&
               path.find("globus://") == path.npos) {
@@ -1596,14 +1594,14 @@ int OMNI::ReadOmni(const std::string& input_file) {
           std::vector<char> buffer(nbyte);
           unsigned char* ptr = reinterpret_cast<unsigned char*>(buffer.data());
           if (!path.empty() && f == true) {
-#ifdef DEBUG
+#ifndef NDEBUG
             if (!quiet_) {
               std::cout << "path=" << path << std::endl;
             }
 #endif
             if (ReadExactBytesFromOffset(path.c_str(), offset, nbyte, ptr) ==
                 0) {
-#ifdef DEBUG
+#ifndef NDEBUG
               if (!quiet_) {
                 std::cout << "buffer=" << ptr << std::endl;
               }
@@ -1622,27 +1620,30 @@ int OMNI::ReadOmni(const std::string& input_file) {
           dest = it->second.as<std::string>();
 #ifndef _WIN32
 #ifdef USE_HERMES
-          GetHermes(name, path);
+          // Only call GetHermes if Hermes client is initialized
+          if (chi::chiClient != nullptr) {
+            GetHermes(name, path);
+          }
 #endif
 #endif
         }
 
         if (it->second.IsScalar()) {
           std::string value = it->second.as<std::string>();
-#ifdef DEBUG
+#ifndef NDEBUG
           if (!quiet_) {
             std::cout << key << ": " << value << std::endl;
           }
 #endif
         } else if (it->second.IsSequence()) {
-#ifdef DEBUG
+#ifndef NDEBUG
           if (!quiet_) {
             std::cout << key << ": " << std::endl;
           }
 #endif
           for (size_t i = 0; i < it->second.size(); ++i) {
             if (it->second[i].IsScalar()) {
-#ifdef DEBUG
+#ifndef NDEBUG
               if (!quiet_) {
                 std::cout << " - " << it->second[i].as<std::string>() << std::endl;
               }
@@ -1656,7 +1657,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
             }
           }
         } else if (it->second.IsMap()) {
-#ifdef DEBUG
+#ifndef NDEBUG
           if (!quiet_) {
             std::cout << key << ": " << std::endl;
           }
@@ -1666,7 +1667,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
             std::string inner_key = inner_it->first.as<std::string>();
             if (inner_it->second.IsScalar()) {
               std::string inner_value = inner_it->second.as<std::string>();
-#ifdef DEBUG
+#ifndef NDEBUG
               if (!quiet_) {
                 std::cout << "  " << inner_key << ": " << inner_value << std::endl;
               }
@@ -1703,6 +1704,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
     return 1;
   }
 
+#ifdef USE_DATAHUB
   // Check DataHub configuration and register if enabled
   if (CheckDataHubConfig()) {
     int datahub_result = RegisterWithDataHub(name, tags);
@@ -1711,6 +1713,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
       // Don't return error - just warn and continue
     }
   }
+#endif
 
 #if USE_HDF5
   if (path.find("hdf5://") != path.npos) {
@@ -1864,6 +1867,7 @@ int OMNI::WriteOmni(const std::string& buf) {
 
   // Try to get tags from DataHub if configured, otherwise read from local metadata
   std::string tags;
+#ifdef USE_DATAHUB
   if (CheckDataHubConfig()) {
     tags = QueryDataHubForDataset(buf);
     if (tags.empty()) {
@@ -1875,6 +1879,9 @@ int OMNI::WriteOmni(const std::string& buf) {
   } else {
     tags = ReadTags(buf);
   }
+#else
+  tags = ReadTags(buf);
+#endif
 
   if (!tags.empty()) {
     of << "tags: " << tags << std::endl;
@@ -1902,12 +1909,6 @@ int OMNI::SetBlackhole() {
   if (!quiet_) {
     std::cout << "checking IOWarp runtime...";
   }
-#ifdef USE_HERMES
-  if (!IOWARP_CAE_INIT()) {
-    std::cerr << std::endl << "Error: IOWARP_CAE_INIT() failed." << std::endl;
-    return -1;
-  };
-#endif
 
 #ifdef USE_POCO
   Poco::File dir(".blackhole");

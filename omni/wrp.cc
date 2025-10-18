@@ -1,4 +1,3 @@
-#define DEBUG 1
 #ifdef _WIN32
 // Fix Winsock conflicts by including winsock2 first
 #ifndef WIN32_LEAN_AND_MEAN
@@ -145,6 +144,30 @@ int main(int argc, char *argv[])
   }
 
   std::string command = argv[arg_idx];
+
+#ifdef USE_HERMES
+  // Initialize Hermes/Chimaera client only if config files exist
+  char* server_config_path = std::getenv("HERMES_CONF");
+  char* client_config_path = std::getenv("HERMES_CLIENT_CONF");
+
+  // Use default paths if environment variables are not set
+  std::string server_path = server_config_path ? server_config_path : "hermes_server.yaml";
+  std::string client_path = client_config_path ? client_config_path : "hermes_client.yaml";
+
+  // Only initialize if both config files exist
+  if (fs::exists(server_path) && fs::exists(client_path)) {
+    try {
+      bool start_server = false;  // Don't start server, just connect as client
+      CHI_CLIENT->Create(server_path.c_str(), client_path.c_str(), start_server);
+    } catch (...) {
+      // Hermes initialization failed, continue without it
+      if (!quiet) {
+        std::cerr << "Warning: Hermes initialization failed, continuing without Hermes support" << std::endl;
+      }
+    }
+  }
+#endif
+
   cae::OMNI omni;
   omni.SetQuiet(quiet);
 
