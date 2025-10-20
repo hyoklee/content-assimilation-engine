@@ -12,6 +12,22 @@ set(CMAKE_CXX_STANDARD 17)
 # Option to enable/disable MPI support
 option(USE_MPI "Enable MPI support for OMNI module" OFF)
 
+# Option to enable code coverage
+option(ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
+
+# Add coverage compiler flags if enabled
+if(ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(STATUS "Code coverage enabled")
+        set(COVERAGE_FLAGS "--coverage -fprofile-arcs -ftest-coverage")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_FLAGS}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COVERAGE_FLAGS}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    else()
+        message(WARNING "Code coverage is only supported with GCC or Clang")
+    endif()
+endif()
+
 # Check if we have the necessary dependencies available from the parent project
 if(USE_MPI)
     if(NOT TARGET MPI::MPI_CXX)
@@ -226,6 +242,19 @@ else()
     if(USE_POCO AND NOT USE_DATAHUB)
         message(STATUS "Skipping DataHub unit test (USE_DATAHUB disabled)")
     endif()
+endif()
+
+# Globus Utils unit test binary (requires POCO support)
+if(USE_POCO)
+    add_executable(test_globus_utils test_globus_utils.cpp format/globus_utils.cpp glo.cc)
+    target_include_directories(test_globus_utils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_globus_utils ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+    if(USE_POCO)
+        target_link_libraries(test_globus_utils nlohmann_json::nlohmann_json)
+    endif()
+    message(STATUS "Building Globus Utils unit test (test_globus_utils)")
+else()
+    message(STATUS "Skipping Globus Utils unit test (USE_POCO disabled)")
 endif()
 
 # MPI binary format processor (wrp_binary_format_mpi binary)
@@ -508,6 +537,16 @@ if(USE_POCO)
     message(STATUS "Added Globus transfer test (requires GLOBUS_TRANSFER_TOKEN environment variable)")
 endif()
 
+# Globus Utils unit test (requires POCO support)
+if(USE_POCO)
+    add_test(NAME globus_utils_unit COMMAND $<TARGET_FILE:test_globus_utils>)
+    set_tests_properties(globus_utils_unit
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "All tests passed!"
+    )
+    message(STATUS "Added Globus Utils unit test (tests is_globus_uri and parse_globus_uri)")
+endif()
+
 # DataHub unit tests (requires POCO and DataHub support)
 if(USE_POCO AND USE_DATAHUB)
     # Unit test for DataHub functions (CheckDataHubConfig, ReadConfigFile, etc.)
@@ -551,4 +590,51 @@ if(USE_POCO AND USE_DATAHUB)
         DEPENDS datahub_disabled_cleanup
         FAIL_REGULAR_EXPRESSION "DataHub metastore detected in config"
     )
+endif()
+
+# Add coverage target
+if(ENABLE_COVERAGE)
+    # Find gcov and lcov tools
+    find_program(GCOV_PATH gcov)
+    find_program(LCOV_PATH lcov)
+    find_program(GENHTML_PATH genhtml)
+
+    if(LCOV_PATH AND GENHTML_PATH)
+        # Add custom target for coverage report
+        add_custom_target(coverage
+            # Clean previous coverage data
+            COMMAND ${LCOV_PATH} --directory . --zerocounters
+
+            # Run tests
+            COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+
+            # Capture coverage data
+            COMMAND ${LCOV_PATH} --directory . --capture --output-file coverage.info
+
+            # Remove system and external libraries from coverage
+            COMMAND ${LCOV_PATH} --ignore-errors unused --remove coverage.info '/usr/*' '*/test/*' --output-file coverage.info.cleaned
+
+            # Generate HTML report
+            COMMAND ${GENHTML_PATH} -o coverage_html coverage.info.cleaned
+
+            # Summary
+            COMMAND ${LCOV_PATH} --list coverage.info.cleaned
+
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Generating code coverage report..."
+        )
+
+        message(STATUS "Coverage target added. Run 'make coverage' or 'cmake --build . --target coverage' to generate report")
+    elseif(GCOV_PATH)
+        # Fallback to basic gcov if lcov is not available
+        add_custom_target(coverage
+            COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+            COMMAND ${GCOV_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/*.cc
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Running tests with coverage (gcov)..."
+        )
+        message(STATUS "Coverage target added (gcov only). Run 'make coverage' or 'cmake --build . --target coverage'")
+    else()
+        message(WARNING "gcov/lcov tools not found. Coverage target not available.")
+    endif()
 endif()

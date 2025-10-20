@@ -46,14 +46,12 @@ bool parse_globus_uri(const std::string &uri, std::string &endpoint_id, std::str
     std::cerr << "Debug - Parsed Globus URI:" << std::endl;
     std::cerr << "  Endpoint ID: " << endpoint_id << std::endl;
     std::cerr << "  Path: " << path << std::endl;
-    
-    // Ensure path starts with a slash
-    if (path.empty()) {
-        path = "/";
-    } else if (path[0] != '/') {
-        path = "/" + path;
-    }
-    
+
+    // Note: path is guaranteed to start with '/' due to the logic above
+    // - If first_slash == 0: path = uri_part (starts with '/')
+    // - If first_slash == npos: path = "/"
+    // - Otherwise: path = uri_part.substr(first_slash) (includes the '/' at first_slash)
+
     return true;
 }
 
