@@ -1505,8 +1505,11 @@ int OMNI::ReadOmni(const std::string& input_file) {
           }
 #endif
           if (path.find("https://") == path.npos &&
-              path.find("hdf5://") == path.npos &&
-              path.find("globus://") == path.npos) {
+              path.find("hdf5://") == path.npos
+#ifdef USE_GLOBUS
+              && path.find("globus://") == path.npos
+#endif
+          ) {
 #ifdef USE_POCO
             Poco::File file(path);
             if (wait_for_file) {
@@ -1555,7 +1558,9 @@ int OMNI::ReadOmni(const std::string& input_file) {
         if (key == "hash") {
           hash = it->second.as<std::string>();
         }
+#endif
 
+#ifdef USE_GLOBUS
         // Handle Globus transfer if source is a globus:// URL
         if (path.find("globus://") != path.npos && key == "dst") {
           std::string dest_uri = it->second.as<std::string>();
@@ -1585,7 +1590,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
             }
           }
         }
-#endif
+#endif  // USE_GLOBUS
         if (key == "offset") {
           offset = it->second.as<size_t>();
         }
