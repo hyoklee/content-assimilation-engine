@@ -762,9 +762,11 @@ int main() {
 
   if (tests_failed == 0) {
     std::cout << "All tests passed!" << std::endl;
+    std::cout.flush();
     return 0;
   } else {
     std::cout << "Some tests failed." << std::endl;
+    std::cout.flush();
     return 1;
   }
 }
