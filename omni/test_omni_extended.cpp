@@ -8,7 +8,9 @@
 #include <iostream>
 #include <sstream>
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 namespace fs = std::filesystem;
 
