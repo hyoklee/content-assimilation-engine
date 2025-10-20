@@ -257,6 +257,40 @@ else()
     message(STATUS "Skipping Globus Utils unit test (USE_POCO disabled)")
 endif()
 
+# OMNI unit test binary (requires POCO support)
+if(USE_POCO)
+    add_executable(test_omni test_omni.cpp OMNI.cc format/globus_utils.cpp glo.cc)
+    target_include_directories(test_omni PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_omni ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+    if(USE_POCO)
+        target_link_libraries(test_omni nlohmann_json::nlohmann_json)
+    endif()
+    if(USE_AWS)
+        target_link_libraries(test_omni ${AWS_LIBS})
+    endif()
+    if(USE_HERMES)
+        target_link_libraries(test_omni ${HERMES_LIBS})
+    endif()
+    message(STATUS "Building OMNI unit test (test_omni)")
+
+    # Extended OMNI unit test binary
+    add_executable(test_omni_extended test_omni_extended.cpp OMNI.cc format/globus_utils.cpp glo.cc)
+    target_include_directories(test_omni_extended PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_omni_extended ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+    if(USE_POCO)
+        target_link_libraries(test_omni_extended nlohmann_json::nlohmann_json)
+    endif()
+    if(USE_AWS)
+        target_link_libraries(test_omni_extended ${AWS_LIBS})
+    endif()
+    if(USE_HERMES)
+        target_link_libraries(test_omni_extended ${HERMES_LIBS})
+    endif()
+    message(STATUS "Building OMNI extended unit test (test_omni_extended)")
+else()
+    message(STATUS "Skipping OMNI unit tests (USE_POCO disabled)")
+endif()
+
 # MPI binary format processor (wrp_binary_format_mpi binary)
 if(USE_MPI)
     add_executable(wrp_binary_format_mpi wrp_binary_format_mpi.cc)
@@ -402,6 +436,14 @@ set_tests_properties(quiet_invalid
     WILL_FAIL TRUE
 )
 
+# Test that -q option fails when no command is provided
+add_test(NAME quiet_no_cmd COMMAND wrp -q)
+set_tests_properties(quiet_no_cmd
+    PROPERTIES
+    WILL_FAIL TRUE
+    RETURN_VALUE 1
+)
+
 # Tests that should fail
 add_test(NAME invalid COMMAND wrp invalid)
 set_tests_properties(invalid
@@ -545,6 +587,23 @@ if(USE_POCO)
         PASS_REGULAR_EXPRESSION "All tests passed!"
     )
     message(STATUS "Added Globus Utils unit test (tests is_globus_uri and parse_globus_uri)")
+endif()
+
+# OMNI unit test (requires POCO support)
+if(USE_POCO)
+    add_test(NAME omni_unit COMMAND $<TARGET_FILE:test_omni>)
+    set_tests_properties(omni_unit
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "All tests passed!"
+    )
+    message(STATUS "Added OMNI unit test (tests OMNI class methods)")
+
+    add_test(NAME omni_extended_unit COMMAND $<TARGET_FILE:test_omni_extended>)
+    set_tests_properties(omni_extended_unit
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "All tests passed!"
+    )
+    message(STATUS "Added OMNI extended unit test (tests YAML parsing and workflows)")
 endif()
 
 # DataHub unit tests (requires POCO and DataHub support)

@@ -50,6 +50,13 @@ class OMNI {
   ProxyConfig ReadProxyConfig();
   AWSConfig ReadAWSConfig();
 
+  // Exposed for testing
+#ifdef USE_POCO
+  std::string Sha256File(const std::string& file_path);
+#endif
+  int ReadExactBytesFromOffset(const char* filename, off_t offset,
+                               size_t num_bytes, unsigned char* buffer);
+
  private:
   // Core processing methods
   int ReadOmni(const std::string& input_file);
@@ -57,15 +64,10 @@ class OMNI {
   int SetBlackhole();
 
   // Utility functions
-#ifdef USE_POCO
-  std::string Sha256File(const std::string& file_path);
-#endif
 #ifdef _WIN32
   std::string GetExt(const std::string& filename);
 #endif
   std::string GetFileName(const std::string& uri);
-  int ReadExactBytesFromOffset(const char* filename, off_t offset,
-                               size_t num_bytes, unsigned char* buffer);
 
   // Metadata functions
   int WriteMeta(const std::string& name, const std::string& tags);
