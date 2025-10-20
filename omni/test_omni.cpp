@@ -49,6 +49,24 @@ void remove_test_dir(const std::string& path) {
   }
 }
 
+// Helper to get home directory (matches OMNI::ReadProxyConfig logic)
+std::string get_home_dir() {
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    std::string result = home_path;
+    free(home_path);
+    return result;
+  }
+  return ".";
+#else
+  const char* home_path = std::getenv("HOME");
+  return home_path ? home_path : ".";
+#endif
+}
+
 //
 // Test 1: Test List() error when .blackhole/ls doesn't exist
 //
@@ -173,7 +191,7 @@ bool test_ReadProxyConfig_no_file() {
   omni.SetQuiet(true);
 
   // Remove config if it exists
-  std::string home = std::getenv("HOME") ? std::getenv("HOME") : ".";
+  std::string home = get_home_dir();
   std::string config_path = home + "/.wrp/config";
   bool config_existed = fs::exists(config_path);
   std::string backup_content;
@@ -205,7 +223,7 @@ bool test_ReadProxyConfig_with_file() {
   cae::OMNI omni;
   omni.SetQuiet(true);
 
-  std::string home = std::getenv("HOME") ? std::getenv("HOME") : ".";
+  std::string home = get_home_dir();
   std::string wrp_dir = home + "/.wrp";
   std::string config_path = wrp_dir + "/config";
 
@@ -252,7 +270,7 @@ bool test_ReadProxyConfig_invalid_port() {
   cae::OMNI omni;
   omni.SetQuiet(true);
 
-  std::string home = std::getenv("HOME") ? std::getenv("HOME") : ".";
+  std::string home = get_home_dir();
   std::string wrp_dir = home + "/.wrp";
   std::string config_path = wrp_dir + "/config";
 
@@ -293,7 +311,7 @@ bool test_ReadAWSConfig_no_file() {
   cae::OMNI omni;
   omni.SetQuiet(true);
 
-  std::string home = std::getenv("HOME") ? std::getenv("HOME") : ".";
+  std::string home = get_home_dir();
   std::string config_path = home + "/.aws/config";
 
   // Temporarily rename config if it exists
@@ -319,7 +337,7 @@ bool test_ReadAWSConfig_with_file() {
   cae::OMNI omni;
   omni.SetQuiet(true);
 
-  std::string home = std::getenv("HOME") ? std::getenv("HOME") : ".";
+  std::string home = get_home_dir();
   std::string aws_dir = home + "/.aws";
   std::string config_path = aws_dir + "/config";
 
@@ -361,7 +379,7 @@ bool test_ReadAWSConfig_with_comments() {
   cae::OMNI omni;
   omni.SetQuiet(true);
 
-  std::string home = std::getenv("HOME") ? std::getenv("HOME") : ".";
+  std::string home = get_home_dir();
   std::string aws_dir = home + "/.aws";
   std::string config_path = aws_dir + "/config";
 
