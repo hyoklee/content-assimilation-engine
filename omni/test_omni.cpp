@@ -5,6 +5,7 @@
 #include <fstream>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <sys/stat.h>
 
 namespace fs = std::filesystem;
