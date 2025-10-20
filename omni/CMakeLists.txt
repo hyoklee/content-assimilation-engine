@@ -269,6 +269,25 @@ else()
     message(STATUS "Skipping Globus Utils unit test (USE_GLOBUS disabled)")
 endif()
 
+# glo.cc comprehensive unit test (requires POCO support)
+if(USE_POCO)
+    add_executable(test_glo test_glo.cpp format/globus_utils.cpp glo.cc OMNI.cc)
+    target_include_directories(test_glo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_glo ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
+    if(USE_POCO)
+        target_link_libraries(test_glo nlohmann_json::nlohmann_json)
+    endif()
+    if(USE_AWS)
+        target_link_libraries(test_glo ${AWS_LIBS})
+    endif()
+    if(USE_HERMES)
+        target_link_libraries(test_glo ${HERMES_LIBS})
+    endif()
+    message(STATUS "Building glo.cc comprehensive unit test (test_glo)")
+else()
+    message(STATUS "Skipping glo.cc unit test (USE_POCO disabled)")
+endif()
+
 # OMNI unit test binary (requires POCO support)
 if(USE_POCO)
     add_executable(test_omni test_omni.cpp OMNI.cc format/globus_utils.cpp glo.cc)
@@ -599,6 +618,16 @@ if(USE_GLOBUS)
         PASS_REGULAR_EXPRESSION "All tests passed!"
     )
     message(STATUS "Added Globus Utils unit test (tests is_globus_uri and parse_globus_uri)")
+endif()
+
+# glo.cc comprehensive unit test (requires POCO support)
+if(USE_POCO)
+    add_test(NAME glo_unit COMMAND $<TARGET_FILE:test_glo>)
+    set_tests_properties(glo_unit
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "All glo.cc tests passed!"
+    )
+    message(STATUS "Added glo.cc comprehensive unit test (tests all glo.cc functions)")
 endif()
 
 # OMNI unit test (requires POCO support)
