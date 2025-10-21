@@ -1125,11 +1125,10 @@ std::string OMNI::GetFileName(const std::string& uri) {
 
 #ifdef USE_AWS
 int OMNI::WriteS3(const std::string& dest, char* ptr) {
-  Aws::SDKOptions options;
-  options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Debug;
+  // Note: AWS SDK InitAPI/ShutdownAPI are now managed globally in wrp.cc main()
+  // to avoid multiple init/shutdown cycles that can cause segfaults
 
   const Aws::String prefix = "s3://";
-  Aws::InitAPI(options);
   if (dest.find(prefix) != 0) {
     std::cerr << "Error: not a valid S3 URL (missing 's3://' prefix)"
               << std::endl;
@@ -1257,7 +1256,7 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
     }
     return -1;
   }
-  Aws::ShutdownAPI(options);
+  // Note: AWS SDK ShutdownAPI is called automatically at program exit via atexit()
   return 0;
 }
 #endif

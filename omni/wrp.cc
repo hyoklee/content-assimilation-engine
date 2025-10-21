@@ -117,8 +117,37 @@ typedef SSIZE_T ssize_t;
 using namespace cae;
 namespace fs = std::filesystem;
 
+#ifdef USE_AWS
+// Global AWS SDK options for proper lifecycle management
+static Aws::SDKOptions g_aws_options;
+static bool g_aws_initialized = false;
+
+// Cleanup function to be called at program exit
+static void cleanup_aws_sdk() {
+  if (g_aws_initialized) {
+    Aws::ShutdownAPI(g_aws_options);
+    g_aws_initialized = false;
+  }
+}
+
+// Initialize AWS SDK once at program startup
+static void init_aws_sdk() {
+  if (!g_aws_initialized) {
+    g_aws_options.loggingOptions.logLevel = Aws::Utils::Logging::LogLevel::Error;
+    Aws::InitAPI(g_aws_options);
+    g_aws_initialized = true;
+    std::atexit(cleanup_aws_sdk);
+  }
+}
+#endif
+
 int main(int argc, char *argv[])
 {
+#ifdef USE_AWS
+  // Initialize AWS SDK once at program startup
+  init_aws_sdk();
+#endif
+
   if (argc < 2) {
     std::cerr << "Usage: " << argv[0] << " [-q] <command> [options]" << std::endl;
     std::cerr << "Options:" << std::endl;
