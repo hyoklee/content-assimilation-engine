@@ -334,6 +334,16 @@ else()
     message(STATUS "Skipping OMNI unit tests (USE_POCO disabled)")
 endif()
 
+# HDF5 dataset client unit test (requires HDF5 support)
+if(USE_HDF5)
+    add_executable(test_hdf5_dataset_client test_hdf5_dataset_client.cpp)
+    target_include_directories(test_hdf5_dataset_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_hdf5_dataset_client omni_lib ${YAML_CPP_LIBS} ${HDF5_LIBS})
+    message(STATUS "Building HDF5 dataset client unit test (test_hdf5_dataset_client)")
+else()
+    message(STATUS "Skipping HDF5 dataset client unit test (USE_HDF5 disabled)")
+endif()
+
 # MPI binary format processor (wrp_binary_format_mpi binary)
 if(USE_MPI)
     add_executable(wrp_binary_format_mpi wrp_binary_format_mpi.cc)
@@ -657,6 +667,16 @@ if(USE_POCO)
         PASS_REGULAR_EXPRESSION "All tests passed!"
     )
     message(STATUS "Added OMNI extended unit test (tests YAML parsing and workflows)")
+endif()
+
+# HDF5 dataset client unit test (requires HDF5 support)
+if(USE_HDF5)
+    add_test(NAME hdf5_dataset_client_unit COMMAND $<TARGET_FILE:test_hdf5_dataset_client>)
+    set_tests_properties(hdf5_dataset_client_unit
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "All HDF5 Dataset Client tests passed!"
+    )
+    message(STATUS "Added HDF5 dataset client unit test (tests all HDF5 dataset client functions)")
 endif()
 
 # DataHub unit tests (requires POCO and DataHub support)
