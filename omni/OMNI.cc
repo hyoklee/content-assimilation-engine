@@ -112,6 +112,19 @@ typedef SSIZE_T ssize_t;
 #endif
 #endif
 
+#ifdef USE_MEMCACHED
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#endif
+#endif
+
 #ifdef USE_AWS
 #include <aws/core/Aws.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
@@ -941,6 +954,202 @@ int OMNI::GetHermes(const std::string& name, const std::string& path) {
 }
 #endif
 
+#ifdef USE_MEMCACHED
+// Simple memcached client implementation
+class MemcachedClient {
+private:
+#ifdef _WIN32
+    SOCKET sockfd;
+#else
+    int sockfd;
+#endif
+    std::string host;
+    int port;
+    
+public:
+    MemcachedClient(const std::string& host = "localhost", int port = 11211) 
+        : sockfd(-1), host(host), port(port) {
+#ifdef _WIN32
+        WSADATA wsaData;
+        WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
+    }
+    
+    ~MemcachedClient() {
+        if (sockfd != -1) {
+#ifdef _WIN32
+            closesocket(sockfd);
+            WSACleanup();
+#else
+            close(sockfd);
+#endif
+        }
+    }
+    
+    bool connect() {
+#ifdef _WIN32
+        sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (sockfd == INVALID_SOCKET) {
+            return false;
+        }
+#else
+        sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd < 0) {
+            return false;
+        }
+#endif
+        
+        struct sockaddr_in server_addr;
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_port = htons(port);
+        
+#ifdef _WIN32
+        if (inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr) <= 0) {
+            // Try to resolve hostname
+            struct addrinfo hints, *result;
+            memset(&hints, 0, sizeof(hints));
+            hints.ai_family = AF_INET;
+            hints.ai_socktype = SOCK_STREAM;
+            
+            if (getaddrinfo(host.c_str(), nullptr, &hints, &result) != 0) {
+                closesocket(sockfd);
+                sockfd = INVALID_SOCKET;
+                return false;
+            }
+            
+            struct sockaddr_in* addr_in = (struct sockaddr_in*)result->ai_addr;
+            server_addr.sin_addr = addr_in->sin_addr;
+            freeaddrinfo(result);
+        }
+        
+        if (::connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
+            closesocket(sockfd);
+            sockfd = INVALID_SOCKET;
+            return false;
+        }
+#else
+        if (inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr) <= 0) {
+            // Try to resolve hostname
+            struct hostent* he = gethostbyname(host.c_str());
+            if (he == nullptr) {
+                close(sockfd);
+                sockfd = -1;
+                return false;
+            }
+            memcpy(&server_addr.sin_addr, he->h_addr_list[0], he->h_length);
+        }
+        
+        if (::connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+            close(sockfd);
+            sockfd = -1;
+            return false;
+        }
+#endif
+        
+        return true;
+    }
+    
+    bool set(const std::string& key, const std::string& value, int expiration = 0) {
+#ifdef _WIN32
+        if (sockfd == INVALID_SOCKET) {
+            return false;
+        }
+#else
+        if (sockfd < 0) {
+            return false;
+        }
+#endif
+        
+        std::string command = "set " + key + " 0 " + std::to_string(expiration) + " " + 
+                             std::to_string(value.length()) + "\r\n" + value + "\r\n";
+        
+#ifdef _WIN32
+        int sent = send(sockfd, command.c_str(), static_cast<int>(command.length()), 0);
+        if (sent == SOCKET_ERROR) {
+            return false;
+        }
+#else
+        ssize_t sent = send(sockfd, command.c_str(), command.length(), 0);
+        if (sent < 0) {
+            return false;
+        }
+#endif
+        
+        char response[256];
+#ifdef _WIN32
+        int received = recv(sockfd, response, sizeof(response) - 1, 0);
+        if (received == SOCKET_ERROR) {
+            return false;
+        }
+#else
+        ssize_t received = recv(sockfd, response, sizeof(response) - 1, 0);
+        if (received < 0) {
+            return false;
+        }
+#endif
+        response[received] = '\0';
+        
+        return (strncmp(response, "STORED", 6) == 0);
+    }
+    
+    bool get(const std::string& key, std::string& value) {
+#ifdef _WIN32
+        if (sockfd == INVALID_SOCKET) {
+            return false;
+        }
+#else
+        if (sockfd < 0) {
+            return false;
+        }
+#endif
+        
+        std::string command = "get " + key + "\r\n";
+        
+#ifdef _WIN32
+        int sent = send(sockfd, command.c_str(), static_cast<int>(command.length()), 0);
+        if (sent == SOCKET_ERROR) {
+            return false;
+        }
+#else
+        ssize_t sent = send(sockfd, command.c_str(), command.length(), 0);
+        if (sent < 0) {
+            return false;
+        }
+#endif
+        
+        char response[4096];
+#ifdef _WIN32
+        int received = recv(sockfd, response, sizeof(response) - 1, 0);
+        if (received == SOCKET_ERROR) {
+            return false;
+        }
+#else
+        ssize_t received = recv(sockfd, response, sizeof(response) - 1, 0);
+        if (received < 0) {
+            return false;
+        }
+#endif
+        response[received] = '\0';
+        
+        // Parse response: VALUE key flags size\r\nvalue\r\nEND\r\n
+        std::string resp_str(response);
+        size_t value_start = resp_str.find("\r\n");
+        if (value_start == std::string::npos) {
+            return false;
+        }
+        value_start += 2;
+        
+        size_t value_end = resp_str.find("\r\n", value_start);
+        if (value_end == std::string::npos) {
+            return false;
+        }
+        
+        value = resp_str.substr(value_start, value_end - value_start);
+        return true;
+    }
+};
+#endif
+
 int OMNI::PutData(const std::string& name, const std::string& tags,
                   const std::string& path, unsigned char* buffer,
                   size_t nbyte) {
@@ -994,8 +1203,38 @@ int OMNI::PutData(const std::string& name, const std::string& tags,
                 << "' buffer...";
     }
 
+#ifdef USE_MEMCACHED
+    // Try Memcached first if available
+    try {
+      MemcachedClient memcached_client("localhost", 11211);
+      if (memcached_client.connect()) {
+        std::string data_str((const char*)buffer, nbyte);
+        if (memcached_client.set(name, data_str)) {
+          if (!quiet_) {
+            std::cout << "done (Memcached)" << std::endl;
+          }
+#ifndef NDEBUG
+          if (!quiet_) {
+            std::cout << "wrote data to Memcached key '" << name << "'" << std::endl;
+          }
+#endif
+          return WriteMeta(name, tags);
+        } else {
+          throw std::runtime_error("Memcached SET command failed");
+        }
+      } else {
+        throw std::runtime_error("Failed to connect to Memcached server");
+      }
+    } catch (const std::exception& e) {
+      if (!quiet_) {
+        std::cout << "Memcached error: " << e.what() << ", falling back to other storage..." << std::endl;
+      }
+      // Fall through to other storage backends
+    }
+#endif
+
 #ifdef USE_REDIS
-    // Try Redis first if available
+    // Try Redis if available
     try {
       Poco::Redis::Client redis_client("localhost", 6379);
       Poco::Redis::Command set_cmd("SET");
@@ -1843,8 +2082,33 @@ int OMNI::ReadOmni(const std::string& input_file) {
                                             "' not found");
         }
 
+#ifdef USE_MEMCACHED
+        // Try Memcached first if available
+        try {
+          MemcachedClient memcached_client("localhost", 11211);
+          if (memcached_client.connect()) {
+            std::string memcached_data;
+            if (memcached_client.get(name, memcached_data)) {
+              if (!quiet_) {
+                std::cout << "read data from Memcached key '" << name << "'" << std::endl;
+              }
+              WriteS3(dest, memcached_data.c_str());
+            } else {
+              throw std::runtime_error("Memcached GET command failed - key not found");
+            }
+          } else {
+            throw std::runtime_error("Failed to connect to Memcached server");
+          }
+        } catch (const std::exception& e) {
+          if (!quiet_) {
+            std::cout << "Memcached error: " << e.what() << ", falling back to other storage..." << std::endl;
+          }
+          // Fall through to other storage backends
+        }
+#endif
+
 #ifdef USE_REDIS
-        // Try Redis first if available
+        // Try Redis if available
         try {
           Poco::Redis::Client redis_client("localhost", 6379);
           Poco::Redis::Command get_cmd("GET");
