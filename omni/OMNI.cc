@@ -104,6 +104,12 @@ typedef SSIZE_T ssize_t;
 #include "Poco/TemporaryFile.h"
 #include "Poco/URI.h"
 #include "format/globus_utils.h"
+#ifdef USE_REDIS
+#include "Poco/Redis/Client.h"
+#include "Poco/Redis/Command.h"
+#include "Poco/Redis/Array.h"
+#include "Poco/Redis/Type.h"
+#endif
 #endif
 
 #ifdef USE_AWS
@@ -987,12 +993,48 @@ int OMNI::PutData(const std::string& name, const std::string& tags,
       std::cout << "putting " << nbyte << " bytes into '" << name
                 << "' buffer...";
     }
+
+#ifdef USE_REDIS
+    // Try Redis first if available
+    try {
+      Poco::Redis::Client redis_client("localhost", 6379);
+      Poco::Redis::Command set_cmd("SET");
+      set_cmd << name << std::string((const char*)buffer, nbyte);
+      
+      std::string result = redis_client.execute<std::string>(set_cmd);
+      if (result == "OK") {
+        if (!quiet_) {
+          std::cout << "done (Redis)" << std::endl;
+        }
+#ifndef NDEBUG
+        if (!quiet_) {
+          std::cout << "wrote data to Redis key '" << name << "'" << std::endl;
+        }
+#endif
+        return WriteMeta(name, tags);
+      } else {
+        throw Poco::Exception("Redis SET command failed");
+      }
+    } catch (const Poco::Exception& e) {
+      if (!quiet_) {
+        std::cout << "Redis error: " << e.displayText() << ", falling back to SharedMemory..." << std::endl;
+      }
+      // Fall through to SharedMemory
+    } catch (const std::exception& e) {
+      if (!quiet_) {
+        std::cout << "Redis error: " << e.what() << ", falling back to SharedMemory..." << std::endl;
+      }
+      // Fall through to SharedMemory
+    }
+#endif
+
+    // Fallback to SharedMemory (original implementation)
     Poco::SharedMemory shm(file, Poco::SharedMemory::AM_WRITE);
 
     char* data = static_cast<char*>(shm.begin());
     std::memcpy(data, (const char*)buffer, nbyte);
     if (!quiet_) {
-      std::cout << "done" << std::endl;
+      std::cout << "done (SharedMemory)" << std::endl;
     }
 #ifndef NDEBUG
     if (!quiet_) {
@@ -1800,10 +1842,42 @@ int OMNI::ReadOmni(const std::string& input_file) {
           throw Poco::FileNotFoundException("Error: buffer '" + name +
                                             "' not found");
         }
+
+#ifdef USE_REDIS
+        // Try Redis first if available
+        try {
+          Poco::Redis::Client redis_client("localhost", 6379);
+          Poco::Redis::Command get_cmd("GET");
+          get_cmd << name;
+          
+          Poco::Redis::BulkString result = redis_client.execute<Poco::Redis::BulkString>(get_cmd);
+          if (!result.isNull()) {
+            std::string redis_data = result.value();
+            if (!quiet_) {
+              std::cout << "read data from Redis key '" << name << "'" << std::endl;
+            }
+            WriteS3(dest, redis_data.c_str());
+          } else {
+            throw Poco::Exception("Redis GET command failed - key not found");
+          }
+        } catch (const Poco::Exception& e) {
+          if (!quiet_) {
+            std::cout << "Redis error: " << e.displayText() << ", falling back to SharedMemory..." << std::endl;
+          }
+          // Fall through to SharedMemory
+        } catch (const std::exception& e) {
+          if (!quiet_) {
+            std::cout << "Redis error: " << e.what() << ", falling back to SharedMemory..." << std::endl;
+          }
+          // Fall through to SharedMemory
+        }
+#endif
+
+        // Fallback to SharedMemory (original implementation)
         Poco::SharedMemory shm_r(file, Poco::SharedMemory::AM_READ);
         if (!quiet_) {
           std::cout << "read '" << shm_r.begin() << "' from '" << name
-                    << "' buffer." << std::endl;
+                    << "' buffer (SharedMemory)." << std::endl;
         }
         WriteS3(dest, shm_r.begin());
 #endif  // AWS
