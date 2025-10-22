@@ -114,7 +114,7 @@ int parse_yaml(std::string input_file) {
 #endif 
 	}
 	
-	if(key == "dest") {
+	if(key == "dst") {
           std::string dest = it->second.as<std::string>();  
 #ifndef _WIN32
   	  std::cout << "dest=" << dest << std::endl;

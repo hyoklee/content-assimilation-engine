@@ -88,8 +88,8 @@ OmniJobConfig ParseOmniFile(const std::string &yaml_file) {
           data_entry.run_script = entry["run"].as<std::string>();
         }
 
-        if (entry["dest"]) {
-          data_entry.destination = entry["dest"].as<std::string>();
+        if (entry["dst"]) {
+          data_entry.destination = entry["dst"].as<std::string>();
         }
 #endif
         // File size detection removed as it's not part of the current implementation
