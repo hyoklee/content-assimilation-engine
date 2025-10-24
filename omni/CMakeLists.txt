@@ -146,6 +146,8 @@ endif()
 if(USE_HERMES)
     add_definitions(-DUSE_HERMES)
     find_package(Hermes REQUIRED)
+    # Find thallium package for include directories
+    find_package(thallium REQUIRED)
     # Link required Hermes/IOWarp libraries
     set(HERMES_LIBS
         hermes_hermes_core_client
@@ -153,6 +155,7 @@ if(USE_HERMES)
         chimaera_client_host
         chimaera_runtime
         margo
+        thallium
     )
     message(STATUS "HERMES support enabled with libraries: ${HERMES_LIBS}")
 else()
