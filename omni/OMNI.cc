@@ -285,53 +285,124 @@ ProxyConfig OMNI::ReadProxyConfig() {
   std::string config_path = home_dir + "/.wrp/config";
   std::string config_content = ReadConfigFile(config_path);
 
-  if (config_content.empty()) {
-    return config;
-  }
+  // First try to read from config file
+  if (!config_content.empty()) {
+    // Parse ProxyConfig lines from config
+    // Expected format:
+    // ProxyConfig enabled
+    // ProxyHost proxy.example.com
+    // ProxyPort 8080
+    // ProxyUsername username (optional)
+    // ProxyPassword password (optional)
+    std::istringstream stream(config_content);
+    std::string line;
 
-  // Parse ProxyConfig lines from config
-  // Expected format:
-  // ProxyConfig enabled
-  // ProxyHost proxy.example.com
-  // ProxyPort 8080
-  // ProxyUsername username (optional)
-  // ProxyPassword password (optional)
-  std::istringstream stream(config_content);
-  std::string line;
+    while (std::getline(stream, line)) {
+      // Trim whitespace
+      line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+      line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
 
-  while (std::getline(stream, line)) {
-    // Trim whitespace
-    line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
-    line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
-
-    if (line.find("ProxyConfig enabled") == 0) {
-      config.enabled = true;
-    } else if (line.find("ProxyHost ") == 0) {
-      config.host = line.substr(10);
-      // Trim any remaining whitespace
-      config.host.erase(0, config.host.find_first_not_of(" \t\n\r\f\v"));
-      config.host.erase(config.host.find_last_not_of(" \t\n\r\f\v") + 1);
-    } else if (line.find("ProxyPort ") == 0) {
-      std::string port_str = line.substr(10);
-      port_str.erase(0, port_str.find_first_not_of(" \t\n\r\f\v"));
-      try {
-        config.port = std::stoi(port_str);
-      } catch (...) {
-        config.port = 0;
+      if (line.find("ProxyConfig enabled") == 0) {
+        config.enabled = true;
+      } else if (line.find("ProxyHost ") == 0) {
+        config.host = line.substr(10);
+        // Trim any remaining whitespace
+        config.host.erase(0, config.host.find_first_not_of(" \t\n\r\f\v"));
+        config.host.erase(config.host.find_last_not_of(" \t\n\r\f\v") + 1);
+      } else if (line.find("ProxyPort ") == 0) {
+        std::string port_str = line.substr(10);
+        port_str.erase(0, port_str.find_first_not_of(" \t\n\r\f\v"));
+        try {
+          config.port = std::stoi(port_str);
+        } catch (...) {
+          config.port = 0;
+        }
+      } else if (line.find("ProxyUsername ") == 0) {
+        config.username = line.substr(14);
+        config.username.erase(0, config.username.find_first_not_of(" \t\n\r\f\v"));
+        config.username.erase(config.username.find_last_not_of(" \t\n\r\f\v") + 1);
+      } else if (line.find("ProxyPassword ") == 0) {
+        config.password = line.substr(14);
+        config.password.erase(0, config.password.find_first_not_of(" \t\n\r\f\v"));
+        config.password.erase(config.password.find_last_not_of(" \t\n\r\f\v") + 1);
       }
-    } else if (line.find("ProxyUsername ") == 0) {
-      config.username = line.substr(14);
-      config.username.erase(0, config.username.find_first_not_of(" \t\n\r\f\v"));
-      config.username.erase(config.username.find_last_not_of(" \t\n\r\f\v") + 1);
-    } else if (line.find("ProxyPassword ") == 0) {
-      config.password = line.substr(14);
-      config.password.erase(0, config.password.find_first_not_of(" \t\n\r\f\v"));
-      config.password.erase(config.password.find_last_not_of(" \t\n\r\f\v") + 1);
     }
   }
 
-  if (!quiet_ && config.enabled) {
-    std::cout << "Proxy configured: " << config.host << ":" << config.port << std::endl;
+  // If config not found in file, check environment variables
+  // This is the standard way proxy settings are configured on compute nodes
+  if (!config.enabled) {
+    // Check for http_proxy or HTTP_PROXY environment variable
+    const char* http_proxy = std::getenv("http_proxy");
+    if (http_proxy == nullptr) {
+      http_proxy = std::getenv("HTTP_PROXY");
+    }
+
+    // Check for https_proxy or HTTPS_PROXY environment variable
+    const char* https_proxy = std::getenv("https_proxy");
+    if (https_proxy == nullptr) {
+      https_proxy = std::getenv("HTTPS_PROXY");
+    }
+
+    // Use https_proxy if available, otherwise fall back to http_proxy
+    const char* proxy_url = https_proxy ? https_proxy : http_proxy;
+
+    if (proxy_url != nullptr && strlen(proxy_url) > 0) {
+      std::string proxy_str(proxy_url);
+
+      // Parse proxy URL format: [http://][username:password@]host:port[/]
+      // Remove protocol prefix if present
+      size_t protocol_end = proxy_str.find("://");
+      if (protocol_end != std::string::npos) {
+        proxy_str = proxy_str.substr(protocol_end + 3);
+      }
+
+      // Remove trailing slash if present
+      if (!proxy_str.empty() && proxy_str.back() == '/') {
+        proxy_str.pop_back();
+      }
+
+      // Check for username:password@
+      size_t at_pos = proxy_str.find('@');
+      if (at_pos != std::string::npos) {
+        std::string credentials = proxy_str.substr(0, at_pos);
+        proxy_str = proxy_str.substr(at_pos + 1);
+
+        // Parse username:password
+        size_t colon_pos = credentials.find(':');
+        if (colon_pos != std::string::npos) {
+          config.username = credentials.substr(0, colon_pos);
+          config.password = credentials.substr(colon_pos + 1);
+        } else {
+          config.username = credentials;
+        }
+      }
+
+      // Parse host:port
+      size_t colon_pos = proxy_str.find(':');
+      if (colon_pos != std::string::npos) {
+        config.host = proxy_str.substr(0, colon_pos);
+        std::string port_str = proxy_str.substr(colon_pos + 1);
+        try {
+          config.port = std::stoi(port_str);
+          config.enabled = true;
+        } catch (...) {
+          // Invalid port, disable proxy
+          config.enabled = false;
+        }
+      } else {
+        // No port specified, use default ports
+        config.host = proxy_str;
+        config.port = 8080;  // Default proxy port
+        config.enabled = true;
+      }
+
+      if (!quiet_ && config.enabled) {
+        std::cout << "Proxy configured from environment: " << config.host << ":" << config.port << std::endl;
+      }
+    }
+  } else if (!quiet_) {
+    std::cout << "Proxy configured from file: " << config.host << ":" << config.port << std::endl;
   }
 
   return config;
