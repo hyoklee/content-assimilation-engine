@@ -205,7 +205,43 @@ bool test_ReadProxyConfig_no_file() {
     remove_test_file(config_path);
   }
 
+  // Save and clear proxy environment variables to test the "no config" scenario
+  const char* saved_http_proxy = std::getenv("http_proxy");
+  const char* saved_https_proxy = std::getenv("https_proxy");
+  const char* saved_HTTP_PROXY = std::getenv("HTTP_PROXY");
+  const char* saved_HTTPS_PROXY = std::getenv("HTTPS_PROXY");
+
+  std::string http_proxy_backup = saved_http_proxy ? saved_http_proxy : "";
+  std::string https_proxy_backup = saved_https_proxy ? saved_https_proxy : "";
+  std::string HTTP_PROXY_backup = saved_HTTP_PROXY ? saved_HTTP_PROXY : "";
+  std::string HTTPS_PROXY_backup = saved_HTTPS_PROXY ? saved_HTTPS_PROXY : "";
+
+#ifndef _WIN32
+  unsetenv("http_proxy");
+  unsetenv("https_proxy");
+  unsetenv("HTTP_PROXY");
+  unsetenv("HTTPS_PROXY");
+#else
+  _putenv("http_proxy=");
+  _putenv("https_proxy=");
+  _putenv("HTTP_PROXY=");
+  _putenv("HTTPS_PROXY=");
+#endif
+
   cae::ProxyConfig config = omni.ReadProxyConfig();
+
+  // Restore proxy environment variables
+#ifndef _WIN32
+  if (!http_proxy_backup.empty()) setenv("http_proxy", http_proxy_backup.c_str(), 1);
+  if (!https_proxy_backup.empty()) setenv("https_proxy", https_proxy_backup.c_str(), 1);
+  if (!HTTP_PROXY_backup.empty()) setenv("HTTP_PROXY", HTTP_PROXY_backup.c_str(), 1);
+  if (!HTTPS_PROXY_backup.empty()) setenv("HTTPS_PROXY", HTTPS_PROXY_backup.c_str(), 1);
+#else
+  if (!http_proxy_backup.empty()) _putenv(("http_proxy=" + http_proxy_backup).c_str());
+  if (!https_proxy_backup.empty()) _putenv(("https_proxy=" + https_proxy_backup).c_str());
+  if (!HTTP_PROXY_backup.empty()) _putenv(("HTTP_PROXY=" + HTTP_PROXY_backup).c_str());
+  if (!HTTPS_PROXY_backup.empty()) _putenv(("HTTPS_PROXY=" + HTTPS_PROXY_backup).c_str());
+#endif
 
   // Restore config if it existed
   if (config_existed) {
