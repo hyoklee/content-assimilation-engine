@@ -70,7 +70,11 @@ void test_readProxyConfig_with_file() {
     std::string config_path = config_dir + "/config";
 
     // Create .wrp directory if it doesn't exist
-    system(("mkdir -p " + config_dir).c_str());
+    int ret = system(("mkdir -p " + config_dir).c_str());
+    if (ret != 0) {
+        std::cerr << "[ERROR] Failed to create directory: " << config_dir << std::endl;
+        return;
+    }
 
     // Create a test config file
     create_config_file(config_path,
@@ -107,7 +111,11 @@ void test_readProxyConfig_invalid_port() {
     std::string config_dir = std::string(home) + "/.wrp";
     std::string config_path = config_dir + "/config";
 
-    system(("mkdir -p " + config_dir).c_str());
+    int ret = system(("mkdir -p " + config_dir).c_str());
+    if (ret != 0) {
+        std::cerr << "[ERROR] Failed to create directory: " << config_dir << std::endl;
+        return;
+    }
 
     // Create config with invalid port
     create_config_file(config_path,
@@ -151,7 +159,11 @@ void test_httpGet_with_proxy() {
     std::string config_path = config_dir + "/config";
 
     // Create config with proxy enabled
-    system(("mkdir -p " + config_dir).c_str());
+    int ret = system(("mkdir -p " + config_dir).c_str());
+    if (ret != 0) {
+        std::cerr << "[ERROR] Failed to create directory: " << config_dir << std::endl;
+        return;
+    }
     create_config_file(config_path,
         "ProxyConfig enabled\n"
         "ProxyHost proxy.example.com\n"
@@ -184,7 +196,11 @@ void test_httpPost_with_proxy() {
     std::string config_path = config_dir + "/config";
 
     // Create config with proxy enabled
-    system(("mkdir -p " + config_dir).c_str());
+    int ret = system(("mkdir -p " + config_dir).c_str());
+    if (ret != 0) {
+        std::cerr << "[ERROR] Failed to create directory: " << config_dir << std::endl;
+        return;
+    }
     create_config_file(config_path,
         "ProxyConfig enabled\n"
         "ProxyHost proxy.example.com\n"
