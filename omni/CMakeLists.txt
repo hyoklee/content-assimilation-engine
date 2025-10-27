@@ -622,6 +622,15 @@ set_tests_properties(lseek
     RETURN_VALUE 1
 )
 
+# File waiting test - uses '>' prefix to wait for file arrival
+# Note: This test is disabled by default as it waits indefinitely for a file
+# To test manually: create the file ./delayed_input_file.csv, then run the test
+add_test(NAME wait_file COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/wait_file.yml)
+set_tests_properties(wait_file
+    PROPERTIES
+    DISABLED TRUE
+)
+
 # POCO-specific tests
 if(USE_POCO)
     add_test(NAME hash COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/hash.yml)

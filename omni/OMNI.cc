@@ -497,6 +497,69 @@ AWSConfig OMNI::ReadAWSConfig() {
   return config;
 }
 
+WaitConfig OMNI::ReadWaitConfig() {
+  WaitConfig config;
+
+  // Get home directory
+  std::string home_dir;
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    home_dir = home_path;
+    free(home_path);
+  } else {
+    return config;
+  }
+#else
+  const char* home_path = std::getenv("HOME");
+  if (home_path == nullptr) {
+    struct passwd* pw = getpwuid(getuid());
+    if (pw == nullptr) {
+      return config;
+    }
+    home_dir = pw->pw_dir;
+  } else {
+    home_dir = home_path;
+  }
+#endif
+
+  std::string config_path = home_dir + "/.wrp/config";
+  std::string config_content = ReadConfigFile(config_path);
+
+  if (config_content.empty()) {
+    return config;
+  }
+
+  // Parse WaitConfig lines from config
+  // Expected format:
+  // WaitTimeout 300
+  std::istringstream stream(config_content);
+  std::string line;
+
+  while (std::getline(stream, line)) {
+    // Trim whitespace
+    line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+    line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+
+    if (line.find("WaitTimeout ") == 0) {
+      std::string timeout_str = line.substr(12);
+      timeout_str.erase(0, timeout_str.find_first_not_of(" \t\n\r\f\v"));
+      try {
+        config.timeout_seconds = std::stoi(timeout_str);
+        if (!quiet_) {
+          std::cout << "Wait timeout configured: " << config.timeout_seconds << " seconds" << std::endl;
+        }
+      } catch (...) {
+        config.timeout_seconds = -1;
+      }
+    }
+  }
+
+  return config;
+}
+
 #ifdef USE_DATAHUB
 std::string OMNI::ReadDataHubAPIKey() {
   // Get home directory
@@ -1819,6 +1882,9 @@ int OMNI::ReadOmni(const std::string& input_file) {
   std::string lambda;
   std::string dest;
 
+  // Read wait timeout configuration
+  WaitConfig wait_config = ReadWaitConfig();
+
   std::ifstream ifs(input_file);
   if (!ifs.is_open()) {
     std::cerr << "Error: could not open file " << input_file << std::endl;
@@ -1864,14 +1930,31 @@ int OMNI::ReadOmni(const std::string& input_file) {
 #ifdef USE_POCO
             Poco::File file(path);
             if (wait_for_file) {
-              // Wait indefinitely for the file to become available
+              // Wait for the file to become available with timeout
               if (!quiet_) {
                 std::cout << "Waiting for file '" << path
-                          << "' to become available..." << std::endl;
+                          << "' to become available";
+                if (wait_config.timeout_seconds > 0) {
+                  std::cout << " (timeout: " << wait_config.timeout_seconds << " seconds)";
+                }
+                std::cout << "..." << std::endl;
               }
+
+              auto start_time = std::chrono::steady_clock::now();
               while (!file.exists()) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 file = Poco::File(path);  // Refresh the file object
+
+                // Check timeout if configured
+                if (wait_config.timeout_seconds > 0) {
+                  auto elapsed = std::chrono::steady_clock::now() - start_time;
+                  auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
+                  if (elapsed_seconds >= wait_config.timeout_seconds) {
+                    std::cerr << "Error: Timeout waiting for file '" << path
+                              << "' after " << elapsed_seconds << " seconds" << std::endl;
+                    return -1;
+                  }
+                }
               }
               if (!quiet_) {
                 std::cout << "File '" << path
@@ -1883,14 +1966,30 @@ int OMNI::ReadOmni(const std::string& input_file) {
             }
 #else
             if (wait_for_file) {
-              // Wait indefinitely for the file to become available (non-POCO
-              // version)
+              // Wait for the file to become available with timeout (non-POCO version)
               if (!quiet_) {
                 std::cout << "Waiting for file '" << path
-                          << "' to become available..." << std::endl;
+                          << "' to become available";
+                if (wait_config.timeout_seconds > 0) {
+                  std::cout << " (timeout: " << wait_config.timeout_seconds << " seconds)";
+                }
+                std::cout << "..." << std::endl;
               }
+
+              auto start_time = std::chrono::steady_clock::now();
               while (!std::filesystem::exists(path)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                // Check timeout if configured
+                if (wait_config.timeout_seconds > 0) {
+                  auto elapsed = std::chrono::steady_clock::now() - start_time;
+                  auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
+                  if (elapsed_seconds >= wait_config.timeout_seconds) {
+                    std::cerr << "Error: Timeout waiting for file '" << path
+                              << "' after " << elapsed_seconds << " seconds" << std::endl;
+                    return -1;
+                  }
+                }
               }
               if (!quiet_) {
                 std::cout << "File '" << path

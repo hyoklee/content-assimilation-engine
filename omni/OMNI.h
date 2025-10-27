@@ -31,6 +31,11 @@ struct AWSConfig {
   std::string region;
 };
 
+// Wait configuration structure for file wait timeout
+struct WaitConfig {
+  int timeout_seconds = -1;  // -1 means wait forever (default), 0 or positive means timeout in seconds
+};
+
 class OMNI {
  public:
   OMNI() = default;
@@ -49,6 +54,7 @@ class OMNI {
   std::string ReadConfigFile(const std::string& config_path);
   ProxyConfig ReadProxyConfig();
   AWSConfig ReadAWSConfig();
+  WaitConfig ReadWaitConfig();
 
   // Exposed for testing
 #ifdef USE_POCO
