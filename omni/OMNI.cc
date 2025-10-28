@@ -242,9 +242,11 @@ int OMNI::WriteMeta(const std::string& name, const std::string& tags) {
 std::string OMNI::ReadConfigFile(const std::string& config_path) {
   std::ifstream config_file(config_path);
   if (!config_file.is_open()) {
+#ifdef USE_DATAHUB
     if (!quiet_) {
       std::cout << "Config file '" << config_path << "' not found, skipping DataHub registration" << std::endl;
     }
+#endif
     return "";
   }
 
@@ -2239,7 +2241,11 @@ int OMNI::ReadOmni(const std::string& input_file) {
   }
 
   if (!dest.empty()) {
-    std::cerr << "dst=" << dest << std::endl;
+#ifndef NDEBUG
+    if (!quiet_) {
+      std::cerr << "dst=" << dest << std::endl;
+    }
+#endif
 #ifdef USE_POCO
     try {
       if (run) {
