@@ -1,0 +1,9 @@
+name: globus
+
+tags:
+  - globus
+  - AFRL
+  - csv
+
+src: globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/afrl-challenge-data/musinski_afrl_am_package_v2.1/Calibration Data/Strain Data/A46_xx.csv
+dst: globus://f42284c6-3511-11f0-8090-0ea40f72f625/~/a46_xx.csv

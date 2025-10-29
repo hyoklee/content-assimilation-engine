@@ -1,0 +1,16 @@
+name: hdf5
+tags:
+   - HDF5
+   - 2D
+   - float
+
+src: "hdf5://../../data/A46_xx.h5/data/block0_values"
+start: [0, 0]
+count: [1, 3]
+stride: [1, 1]
+
+# lambda script
+# run: "../test/hdf5.bat"
+run: "../test/hdf5.sh"
+
+dst: "s3://iowarp/h5.parquet"

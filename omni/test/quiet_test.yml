@@ -1,0 +1,8 @@
+# Simple OMNI YAML for testing -q option
+name: quiet_test
+tags:
+  - test
+  - quiet
+src: "../../data/A46_xx.csv"
+offset: 0
+nbyte: 100

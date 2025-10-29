@@ -1,0 +1,11 @@
+name: jpss2
+
+tags:
+  - jpss
+
+src: "/home/hyoklee/GMODO-SVM-20G.h5"
+
+offset: 2147483648
+
+nbyte: 2147483647
+

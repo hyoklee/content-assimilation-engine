@@ -1,0 +1,5 @@
+# OMNI test file - missing required 'name' field
+tags:
+  - test
+  - validation
+

@@ -1,0 +1,27 @@
+Chimera
+
+OMNI specified millions csv files. using path: input_dir/*.csv 
+CAE 1Millions tasks for Chimaera?
+
+task1 - load (load csv)  - one file at a time. (batching here); developer decides granularity.
+  ping hermes to get max size.
+spawns (1000) task2 - wait load finished  (csv -> parquet)
+spawns (1000) task3 - wait until lambda finished  (parquet -> s3)
+ cpu bound / threads bound
+ efficiency - payload  / utilization issue may occur.
+ Functoinality of scheduling is up to developer - each function has different task
+ 
+lock among tasks?
+
+AWS S3: 3 buckets + 3 triggers.
+
+load[filledin]->[conversion]->[save]
+Jarvis
+ppl1-3tasks
+stage1 chimaerun
+stage2 cae
+stage3
+
+jarvis ppl append chimae cae lambda final
+
+

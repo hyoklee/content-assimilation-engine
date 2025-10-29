@@ -1,0 +1,15 @@
+# DataHub integration test YAML
+name: datahub_test_dataset
+
+tags:
+  - test
+  - datahub
+  - integration
+
+src: "../../data/A46_xx.csv"
+
+# bytes
+offset: 0
+
+# pread, read()
+nbyte: 100

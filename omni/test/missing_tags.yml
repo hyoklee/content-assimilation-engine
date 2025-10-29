@@ -1,0 +1,3 @@
+# OMNI test file - missing required 'tags' field
+name: test_missing_tags
+nbyte: 10
