@@ -760,6 +760,22 @@ if(USE_POCO AND USE_DATAHUB)
     )
 endif()
 
+# MPI binary format test (requires MPI support)
+if(USE_MPI)
+    # Use wrp executable as test binary file (guaranteed to exist after build)
+    add_test(NAME mpi_binary_format
+        COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 ${MPIEXEC_PREFLAGS}
+                $<TARGET_FILE:wrp_binary_format_mpi> $<TARGET_FILE:wrp>
+                ${MPIEXEC_POSTFLAGS}
+    )
+    set_tests_properties(mpi_binary_format
+        PROPERTIES
+        PASS_REGULAR_EXPRESSION "Rank.*[01]"
+        TIMEOUT 30
+    )
+    message(STATUS "Added MPI binary format test (uses mpiexec with 2 processes)")
+endif()
+
 # Add coverage target
 if(ENABLE_COVERAGE)
     # Find gcov and lcov tools
