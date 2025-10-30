@@ -4,6 +4,9 @@
 #include "dataset_config.h"
 #include "format_client.h"
 #include <hdf5.h>
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
 #include <iostream>
 #include <memory>
 #include <string>
@@ -57,33 +60,52 @@ protected:
 private:
   /** Open HDF5 file */
   hid_t OpenHdf5File(const std::string& file_path);
-  
+
   /** Close HDF5 file */
   void CloseHdf5File(hid_t file_id);
-  
+
   /** Read dataset hyperslab */
   bool ReadDatasetHyperslab(hid_t file_id, const std::string& dataset_name,
                            const std::vector<hsize_t>& start,
                            const std::vector<hsize_t>& count,
                            const std::vector<hsize_t>& stride,
                            void* buffer, hid_t datatype);
-  
+
   /** Get dataset information */
   bool GetDatasetInfo(hid_t file_id, const std::string& dataset_name,
                      std::vector<hsize_t>& dimensions, hid_t& datatype);
-  
+
   /** Allocate buffer for dataset */
   std::unique_ptr<char[]> AllocateBuffer(const std::vector<hsize_t>& dimensions, hid_t datatype);
-  
+
   /** Calculate total size of dataset */
   size_t CalculateDatasetSize(const std::vector<hsize_t>& dimensions, hid_t datatype);
-  
+
   /** Print dataset values for debugging */
   void PrintDatasetValues(hid_t dataset_id, const std::string& dataset_name);
-  
+
   /** Print hyperslab values after reading */
-  void PrintHyperslabValues(const void* buffer, const std::vector<hsize_t>& dimensions, 
+  void PrintHyperslabValues(const void* buffer, const std::vector<hsize_t>& dimensions,
                            hid_t datatype, const std::string& dataset_name);
+
+#ifdef USE_MPI
+  /** Open HDF5 file using MPI-IO with fallback to serial */
+  hid_t OpenHdf5FileMPI(const std::string& file_path, MPI_Comm comm, MPI_Info info);
+
+  /** Read dataset hyperslab using parallel HDF5 with fallback to serial */
+  bool ReadDatasetHyperslabMPI(hid_t file_id, const std::string& dataset_name,
+                               const std::vector<hsize_t>& start,
+                               const std::vector<hsize_t>& count,
+                               const std::vector<hsize_t>& stride,
+                               void* buffer, hid_t datatype);
+
+  /** Check if HDF5 parallel is available */
+  bool IsHdf5ParallelAvailable();
+
+  /** Flag to track if parallel HDF5 is available */
+  bool mpi_initialized_ = false;
+  bool parallel_hdf5_available_ = false;
+#endif
 };
 
 } // namespace cae

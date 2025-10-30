@@ -6,6 +6,10 @@
 #include <sstream>
 #include <cstdint>
 
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
+
 namespace cae {
 
 void Hdf5DatasetClient::Import(const FormatContext &ctx) {
@@ -30,14 +34,28 @@ unsigned char* Hdf5DatasetClient::ReadDataset(const DatasetConfig& config, size_
   
   std::cout << "File path: " << file_path << std::endl;
   std::cout << "Dataset name: " << dataset_name << std::endl;
-  
-  // Open HDF5 file
-  hid_t file_id = OpenHdf5File(file_path);
+
+  // Open HDF5 file (with MPI if available)
+  hid_t file_id;
+#ifdef USE_MPI
+  int mpi_initialized_flag = 0;
+  MPI_Initialized(&mpi_initialized_flag);
+  if (mpi_initialized_flag) {
+    std::cout << "MPI is initialized, attempting to use parallel HDF5" << std::endl;
+    file_id = OpenHdf5FileMPI(file_path, MPI_COMM_WORLD, MPI_INFO_NULL);
+  } else {
+    std::cout << "MPI not initialized, using serial HDF5" << std::endl;
+    file_id = OpenHdf5File(file_path);
+  }
+#else
+  file_id = OpenHdf5File(file_path);
+#endif
+
   if (!file_id) {
     std::cerr << "Error: Failed to open HDF5 file" << std::endl;
     return nullptr;
   }
-  
+
   // Get dataset information
   std::vector<hsize_t> dimensions;
   hid_t datatype;
@@ -46,14 +64,14 @@ unsigned char* Hdf5DatasetClient::ReadDataset(const DatasetConfig& config, size_
     CloseHdf5File(file_id);
     return nullptr;
   }
-  
+
   std::cout << "Dataset dimensions: ";
   for (size_t i = 0; i < dimensions.size(); ++i) {
     if (i > 0) std::cout << " x ";
     std::cout << dimensions[i];
   }
   std::cout << std::endl;
-  
+
   // Calculate required buffer size and allocate
   // Convert count from uint64_t to hsize_t for buffer size calculation
   std::vector<hsize_t> hsize_count(config.count.begin(), config.count.end());
@@ -63,20 +81,31 @@ unsigned char* Hdf5DatasetClient::ReadDataset(const DatasetConfig& config, size_
     CloseHdf5File(file_id);
     return nullptr;
   }
-  
+
   unsigned char* buffer = new (std::nothrow) unsigned char[buffer_size];
   if (!buffer) {
     std::cerr << "Error: Failed to allocate buffer" << std::endl;
     CloseHdf5File(file_id);
     return nullptr;
   }
-  
+
   // Convert vectors from uint64_t to hsize_t for HDF5 API
   std::vector<hsize_t> hsize_start(config.start.begin(), config.start.end());
   std::vector<hsize_t> hsize_stride(config.stride.begin(), config.stride.end());
-  
-  // Read the hyperslab
-  if (!ReadDatasetHyperslab(file_id, dataset_name, hsize_start, hsize_count, hsize_stride, buffer, datatype)) {
+
+  // Read the hyperslab (with MPI if available)
+  bool read_success = false;
+#ifdef USE_MPI
+  if (mpi_initialized_flag && parallel_hdf5_available_) {
+    read_success = ReadDatasetHyperslabMPI(file_id, dataset_name, hsize_start, hsize_count, hsize_stride, buffer, datatype);
+  } else {
+    read_success = ReadDatasetHyperslab(file_id, dataset_name, hsize_start, hsize_count, hsize_stride, buffer, datatype);
+  }
+#else
+  read_success = ReadDatasetHyperslab(file_id, dataset_name, hsize_start, hsize_count, hsize_stride, buffer, datatype);
+#endif
+
+  if (!read_success) {
     std::cerr << "Error: Failed to read dataset hyperslab" << std::endl;
     CloseHdf5File(file_id);
     delete[] buffer;
@@ -570,5 +599,202 @@ void Hdf5DatasetClient::PrintHyperslabValues(const void* buffer, const std::vect
   std::cout << std::endl;
   std::cout << "=== End Hyperslab Values ===" << std::endl;
 }
+
+#ifdef USE_MPI
+bool Hdf5DatasetClient::IsHdf5ParallelAvailable() {
+  // Check if MPI is initialized
+  int mpi_initialized = 0;
+  MPI_Initialized(&mpi_initialized);
+
+  if (!mpi_initialized) {
+    std::cout << "MPI not initialized, using serial HDF5" << std::endl;
+    return false;
+  }
+
+  // Try to check if parallel HDF5 is available by checking if H5Pset_fapl_mpio exists
+  // We'll do this by attempting to create a file access property list with MPI
+  hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
+  if (fapl < 0) {
+    std::cout << "Failed to create file access property list" << std::endl;
+    return false;
+  }
+
+  // Try to set MPI file access properties
+  herr_t status = H5Pset_fapl_mpio(fapl, MPI_COMM_WORLD, MPI_INFO_NULL);
+  H5Pclose(fapl);
+
+  if (status < 0) {
+    std::cout << "Parallel HDF5 not available (H5Pset_fapl_mpio failed), using serial HDF5" << std::endl;
+    return false;
+  }
+
+  std::cout << "Parallel HDF5 is available" << std::endl;
+  return true;
+}
+
+hid_t Hdf5DatasetClient::OpenHdf5FileMPI(const std::string& file_path, MPI_Comm comm, MPI_Info info) {
+  // Check if file exists
+  if (!std::filesystem::exists(file_path)) {
+    std::cerr << "Error: File does not exist: " << file_path << std::endl;
+    return -1;
+  }
+
+  // Check if parallel HDF5 is available (only check once)
+  if (!mpi_initialized_) {
+    parallel_hdf5_available_ = IsHdf5ParallelAvailable();
+    mpi_initialized_ = true;
+  }
+
+  // If parallel HDF5 is not available, fall back to serial
+  if (!parallel_hdf5_available_) {
+    std::cout << "Falling back to serial HDF5 file open" << std::endl;
+    return OpenHdf5File(file_path);
+  }
+
+  // Try to open with parallel HDF5
+  std::cout << "Opening HDF5 file with MPI-IO: " << file_path << std::endl;
+
+  // Create file access property list
+  hid_t fapl = H5Pcreate(H5P_FILE_ACCESS);
+  if (fapl < 0) {
+    std::cerr << "Error: Failed to create file access property list" << std::endl;
+    std::cout << "Falling back to serial HDF5 file open" << std::endl;
+    return OpenHdf5File(file_path);
+  }
+
+  // Set MPI file access properties
+  herr_t status = H5Pset_fapl_mpio(fapl, comm, info);
+  if (status < 0) {
+    std::cerr << "Error: Failed to set MPI file access properties" << std::endl;
+    H5Pclose(fapl);
+    std::cout << "Falling back to serial HDF5 file open" << std::endl;
+    return OpenHdf5File(file_path);
+  }
+
+  // Open HDF5 file for reading with MPI
+  hid_t file_id = H5Fopen(file_path.c_str(), H5F_ACC_RDONLY, fapl);
+  H5Pclose(fapl);
+
+  if (file_id < 0) {
+    std::cerr << "Error: Failed to open HDF5 file with MPI-IO: " << file_path << std::endl;
+    std::cout << "Falling back to serial HDF5 file open" << std::endl;
+    return OpenHdf5File(file_path);
+  }
+
+  int rank;
+  MPI_Comm_rank(comm, &rank);
+  if (rank == 0) {
+    std::cout << "Successfully opened HDF5 file with MPI-IO" << std::endl;
+  }
+
+  return file_id;
+}
+
+bool Hdf5DatasetClient::ReadDatasetHyperslabMPI(hid_t file_id, const std::string& dataset_name,
+                                                const std::vector<hsize_t>& start,
+                                                const std::vector<hsize_t>& count,
+                                                const std::vector<hsize_t>& stride,
+                                                void* buffer, hid_t datatype) {
+  // If parallel HDF5 is not available, fall back to serial
+  if (!parallel_hdf5_available_) {
+    std::cout << "Using serial HDF5 read" << std::endl;
+    return ReadDatasetHyperslab(file_id, dataset_name, start, count, stride, buffer, datatype);
+  }
+
+  std::cout << "Reading dataset with parallel HDF5: " << dataset_name << std::endl;
+
+  // Open dataset
+  hid_t dataset_id = H5Dopen2(file_id, dataset_name.c_str(), H5P_DEFAULT);
+  if (dataset_id < 0) {
+    std::cerr << "Error: Failed to open dataset: " << dataset_name << std::endl;
+    return false;
+  }
+
+  // Print dataset values after opening
+  PrintDatasetValues(dataset_id, dataset_name);
+
+  // Get dataspace
+  hid_t dataspace_id = H5Dget_space(dataset_id);
+  if (dataspace_id < 0) {
+    std::cerr << "Error: Failed to get dataspace for dataset: " << dataset_name << std::endl;
+    H5Dclose(dataset_id);
+    return false;
+  }
+
+  // Select hyperslab
+  herr_t status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET,
+                                     start.data(), stride.data(), count.data(), nullptr);
+  if (status < 0) {
+    std::cerr << "Error: Failed to select hyperslab" << std::endl;
+    H5Sclose(dataspace_id);
+    H5Dclose(dataset_id);
+    return false;
+  }
+
+  // Create memory dataspace
+  hid_t memspace_id = H5Screate_simple(count.size(), count.data(), nullptr);
+  if (memspace_id < 0) {
+    std::cerr << "Error: Failed to create memory dataspace" << std::endl;
+    H5Sclose(dataspace_id);
+    H5Dclose(dataset_id);
+    return false;
+  }
+
+  // Create data transfer property list for collective I/O
+  hid_t dxpl = H5Pcreate(H5P_DATASET_XFER);
+  if (dxpl < 0) {
+    std::cerr << "Error: Failed to create data transfer property list" << std::endl;
+    H5Sclose(memspace_id);
+    H5Sclose(dataspace_id);
+    H5Dclose(dataset_id);
+    // Fall back to serial read
+    std::cout << "Falling back to serial HDF5 read" << std::endl;
+    return ReadDatasetHyperslab(file_id, dataset_name, start, count, stride, buffer, datatype);
+  }
+
+  // Try to set collective I/O mode
+  status = H5Pset_dxpl_mpio(dxpl, H5FD_MPIO_COLLECTIVE);
+  if (status < 0) {
+    std::cerr << "Warning: Failed to set collective I/O mode, trying independent mode" << std::endl;
+    // Try independent mode
+    status = H5Pset_dxpl_mpio(dxpl, H5FD_MPIO_INDEPENDENT);
+    if (status < 0) {
+      std::cerr << "Error: Failed to set MPI transfer properties" << std::endl;
+      H5Pclose(dxpl);
+      H5Sclose(memspace_id);
+      H5Sclose(dataspace_id);
+      H5Dclose(dataset_id);
+      // Fall back to serial read
+      std::cout << "Falling back to serial HDF5 read" << std::endl;
+      return ReadDatasetHyperslab(file_id, dataset_name, start, count, stride, buffer, datatype);
+    }
+    std::cout << "Using independent I/O mode" << std::endl;
+  } else {
+    std::cout << "Using collective I/O mode" << std::endl;
+  }
+
+  // Read data with MPI I/O
+  status = H5Dread(dataset_id, datatype, memspace_id, dataspace_id, dxpl, buffer);
+
+  H5Pclose(dxpl);
+  H5Sclose(memspace_id);
+  H5Sclose(dataspace_id);
+  H5Dclose(dataset_id);
+
+  if (status < 0) {
+    std::cerr << "Error: Failed to read dataset with parallel HDF5" << std::endl;
+    std::cout << "Falling back to serial HDF5 read" << std::endl;
+    return ReadDatasetHyperslab(file_id, dataset_name, start, count, stride, buffer, datatype);
+  }
+
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank == 0) {
+    std::cout << "Successfully read dataset with parallel HDF5" << std::endl;
+  }
+
+  return true;
+}
+#endif
 
 } // namespace cae

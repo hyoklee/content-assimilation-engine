@@ -143,6 +143,21 @@ static void init_aws_sdk() {
 
 int main(int argc, char *argv[])
 {
+#ifdef USE_MPI
+  // Initialize MPI
+  int mpi_provided;
+  MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &mpi_provided);
+
+  int rank, size;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  if (rank == 0) {
+    std::cout << "MPI initialized with " << size << " processes" << std::endl;
+    std::cout << "Thread support level: " << mpi_provided << std::endl;
+  }
+#endif
+
 #ifdef USE_AWS
   // Initialize AWS SDK once at program startup
   init_aws_sdk();
@@ -156,6 +171,9 @@ int main(int argc, char *argv[])
     std::cerr << "  put <omni.yaml>    - Put data into buffer from YAML config" << std::endl;
     std::cerr << "  get <buffer>       - Get data from buffer and create YAML config" << std::endl;
     std::cerr << "  ls                 - List all buffers" << std::endl;
+#ifdef USE_MPI
+    MPI_Finalize();
+#endif
     return 1;
   }
 
@@ -168,6 +186,9 @@ int main(int argc, char *argv[])
     arg_idx = 2;
     if (argc < 3) {
       std::cerr << "Usage: " << argv[0] << " [-q] <command> [options]" << std::endl;
+#ifdef USE_MPI
+      MPI_Finalize();
+#endif
       return 1;
     }
   }
@@ -201,31 +222,45 @@ int main(int argc, char *argv[])
   omni.SetQuiet(quiet);
 
   // Check for put/get/ls commands
+  int result = 0;
   if (command == "put") {
     if (argc < arg_idx + 2) {
       std::cerr << "Usage: " << argv[0] << " [-q] put <omni.yaml>" << std::endl;
+#ifdef USE_MPI
+      MPI_Finalize();
+#endif
       return 1;
     }
     std::string name = argv[arg_idx + 1];
-    return omni.Put(name);
+    result = omni.Put(name);
 
   } else if (command == "get") {
     if (argc < arg_idx + 2) {
       std::cerr << "Usage: " << argv[0] << " [-q] get <buffer>" << std::endl;
+#ifdef USE_MPI
+      MPI_Finalize();
+#endif
       return 1;
     }
     std::string name = argv[arg_idx + 1];
-    return omni.Get(name);
+    result = omni.Get(name);
 
   } else if (command == "ls") {
     if (!quiet) {
       std::cout << "connecting runtime" << std::endl;
     }
-    return omni.List();
+    result = omni.List();
 
   } else {
     std::cerr << "Error: invalid command - " << command << std::endl;
+#ifdef USE_MPI
+    MPI_Finalize();
+#endif
     return 1;
   }
-  return 0;
+
+#ifdef USE_MPI
+  MPI_Finalize();
+#endif
+  return result;
 }

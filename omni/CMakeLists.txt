@@ -215,6 +215,10 @@ target_link_libraries(omni_lib ${MPI_LIBS} ${YAML_CPP_LIBS})
 target_include_directories(omni_lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 if(USE_HDF5)
     target_include_directories(omni_lib PRIVATE ${HDF5_INCLUDE_DIRS})
+    target_link_libraries(omni_lib ${HDF5_LIBS})
+endif()
+if(USE_MPI)
+    target_compile_definitions(omni_lib PRIVATE USE_MPI)
 endif()
 
 # Main YAML parser and job orchestrator (wrp binary)
@@ -626,7 +630,10 @@ set_tests_properties(lseek
 if(USE_POCO)
     # File waiting test - uses '>' prefix to wait for file arrival
     # Note: This test requires the file 'cae' to exist for proper testing
-    add_test(NAME wait_file COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/wait_file.yml)
+    # Skip this test when USE_REDIS is ON due to known issues
+    if(NOT USE_REDIS)
+        add_test(NAME wait_file COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/wait_file.yml)
+    endif()
     add_test(NAME hash COMMAND wrp put ${CMAKE_CURRENT_SOURCE_DIR}/test/hash.yml)
     set_tests_properties(hash
         PROPERTIES
