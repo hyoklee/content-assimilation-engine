@@ -226,7 +226,7 @@ if(USE_POCO)
     add_executable(wrp
         wrp.cc
         OMNI.cc
-        format/globus_utils.cpp
+        format/globus_utils.cc
         glo.cc
     )
 else()
@@ -267,7 +267,7 @@ target_link_libraries(wrp ${WRP_LIBS})
 
 # DataHub unit test binary (requires POCO and DataHub support)
 if(USE_POCO AND USE_DATAHUB)
-    add_executable(test_datahub test_datahub.cpp OMNI.cc format/globus_utils.cpp glo.cc)
+    add_executable(test_datahub test_datahub.cc OMNI.cc format/globus_utils.cc glo.cc)
     target_include_directories(test_datahub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_datahub omni_lib ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     if(USE_POCO)
@@ -291,7 +291,7 @@ endif()
 
 # Globus Utils unit test binary (requires Globus support)
 if(USE_GLOBUS)
-    add_executable(test_globus_utils test_globus_utils.cpp format/globus_utils.cpp glo.cc)
+    add_executable(test_globus_utils test_globus_utils.cc format/globus_utils.cc glo.cc)
     target_include_directories(test_globus_utils PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_globus_utils ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     if(USE_POCO)
@@ -304,7 +304,7 @@ endif()
 
 # glo.cc comprehensive unit test (requires POCO support)
 if(USE_POCO)
-    add_executable(test_glo test_glo.cpp format/globus_utils.cpp glo.cc OMNI.cc)
+    add_executable(test_glo test_glo.cc format/globus_utils.cc glo.cc OMNI.cc)
     target_include_directories(test_glo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_glo omni_lib ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     if(USE_POCO)
@@ -326,7 +326,7 @@ endif()
 
 # OMNI unit test binary (requires POCO support)
 if(USE_POCO)
-    add_executable(test_omni test_omni.cpp OMNI.cc format/globus_utils.cpp glo.cc)
+    add_executable(test_omni test_omni.cc OMNI.cc format/globus_utils.cc glo.cc)
     target_include_directories(test_omni PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_omni omni_lib ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     if(USE_POCO)
@@ -344,7 +344,7 @@ if(USE_POCO)
     message(STATUS "Building OMNI unit test (test_omni)")
 
     # Extended OMNI unit test binary
-    add_executable(test_omni_extended test_omni_extended.cpp OMNI.cc format/globus_utils.cpp glo.cc)
+    add_executable(test_omni_extended test_omni_extended.cc OMNI.cc format/globus_utils.cc glo.cc)
     target_include_directories(test_omni_extended PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_omni_extended omni_lib ${YAML_CPP_LIBS} ${POCO_LIBS} ${CMAKE_THREAD_LIBS_INIT})
     if(USE_POCO)
@@ -366,7 +366,7 @@ endif()
 
 # HDF5 dataset client unit test (requires HDF5 support)
 if(USE_HDF5)
-    add_executable(test_hdf5_dataset_client test_hdf5_dataset_client.cpp)
+    add_executable(test_hdf5_dataset_client test_hdf5_dataset_client.cc)
     target_include_directories(test_hdf5_dataset_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_hdf5_dataset_client omni_lib ${YAML_CPP_LIBS} ${HDF5_LIBS})
     message(STATUS "Building HDF5 dataset client unit test (test_hdf5_dataset_client)")
