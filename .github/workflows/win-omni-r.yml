@@ -36,10 +36,12 @@ jobs:
           ctest -C Release -D Experimental
         shell: cmd
       - name: setup-msmpi
+        if: matrix.os != 'windows-11-arm'
         uses: mpi4py/setup-mpi@v1
         with:
           mpi: msmpi
       - name: hdf5-mpi
+        if: matrix.os != 'windows-11-arm'
         run: |
           vcpkg install hdf5[parallel]:x64-windows
           cd omni
