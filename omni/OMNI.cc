@@ -499,6 +499,84 @@ AWSConfig OMNI::ReadAWSConfig() {
   return config;
 }
 
+// Helper function to read AWS credentials from ~/.aws/credentials
+static std::pair<std::string, std::string> ReadAWSCredentials() {
+  // Get home directory
+  std::string home_dir;
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    home_dir = home_path;
+    free(home_path);
+  } else {
+    return {"", ""};
+  }
+#else
+  const char* home_path = std::getenv("HOME");
+  if (home_path == nullptr) {
+    struct passwd* pw = getpwuid(getuid());
+    if (pw == nullptr) {
+      return {"", ""};
+    }
+    home_dir = pw->pw_dir;
+  } else {
+    home_dir = home_path;
+  }
+#endif
+
+  std::string creds_path = home_dir + "/.aws/credentials";
+  std::ifstream creds_file(creds_path);
+  if (!creds_file.is_open()) {
+    return {"", ""};
+  }
+
+  std::string access_key, secret_key;
+  std::string line;
+  bool in_default_section = false;
+
+  while (std::getline(creds_file, line)) {
+    // Trim whitespace
+    line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+    line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+
+    // Skip comments and empty lines
+    if (line.empty() || line[0] == '#' || line[0] == ';') {
+      continue;
+    }
+
+    // Check for section headers
+    if (line[0] == '[') {
+      in_default_section = (line == "[default]");
+      continue;
+    }
+
+    // Parse key-value pairs in the default section
+    if (in_default_section) {
+      size_t eq_pos = line.find('=');
+      if (eq_pos != std::string::npos) {
+        std::string key = line.substr(0, eq_pos);
+        std::string value = line.substr(eq_pos + 1);
+
+        // Trim whitespace from key and value
+        key.erase(0, key.find_first_not_of(" \t\n\r\f\v"));
+        key.erase(key.find_last_not_of(" \t\n\r\f\v") + 1);
+        value.erase(0, value.find_first_not_of(" \t\n\r\f\v"));
+        value.erase(value.find_last_not_of(" \t\n\r\f\v") + 1);
+
+        if (key == "aws_access_key_id") {
+          access_key = value;
+        } else if (key == "aws_secret_access_key") {
+          secret_key = value;
+        }
+      }
+    }
+  }
+
+  return {access_key, secret_key};
+}
+
 WaitConfig OMNI::ReadWaitConfig() {
   WaitConfig config;
 
@@ -1608,14 +1686,46 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   client_config.endpointOverride = endpoint.c_str();
   client_config.scheme = scheme;
   client_config.region = region.c_str();
-  client_config.verifySSL = false;
+  client_config.verifySSL = true;  // Keep SSL verification enabled for security
   client_config.useDualStack = false;
 
-  Aws::Auth::AWSCredentials credentials("test", "test");
+  // For S3-compatible services like Synology, use path-style addressing
+  client_config.enableEndpointDiscovery = false;
+  client_config.enableTcpKeepAlive = true;
+  client_config.requestTimeoutMs = 30000;
+  client_config.connectTimeoutMs = 10000;
 
+  // Set HTTP client factory to use WinHTTP on Windows
+  client_config.httpLibOverride = Aws::Http::TransferLibType::WIN_INET_CLIENT;
+
+  if (!quiet_) {
+    std::cout << "S3 Configuration:" << std::endl;
+    std::cout << "  Endpoint: " << endpoint << std::endl;
+    std::cout << "  Region: " << region << std::endl;
+    std::cout << "  Scheme: " << (scheme == Aws::Http::Scheme::HTTPS ? "HTTPS" : "HTTP") << std::endl;
+  }
+
+  // Read credentials explicitly from ~/.aws/credentials
+  auto [access_key, secret_key] = ReadAWSCredentials();
+  if (access_key.empty() || secret_key.empty()) {
+    std::cerr << "Error: AWS credentials not found in ~/.aws/credentials" << std::endl;
+    return -1;
+  }
+
+  if (!quiet_) {
+    std::cout << "Using AWS credentials from ~/.aws/credentials" << std::endl;
+    std::cout << "  Access Key ID: " << access_key.substr(0, 8) << "..." << std::endl;
+  }
+
+  Aws::Auth::AWSCredentials credentials(access_key.c_str(), secret_key.c_str());
+
+  // Enable path-style addressing for S3-compatible services
   Aws::S3::S3Client s3_client(
-      client_config, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
-      false);
+      credentials,
+      client_config,
+      Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::RequestDependent,
+      false  // useVirtualAddressing = false (use path-style)
+  );
   Aws::S3::Model::CreateBucketRequest create_bucket_request;
   create_bucket_request.SetBucket(bucket_name);
 
@@ -1628,8 +1738,10 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
       std::cout << "Bucket created successfully!" << std::endl;
     }
   } else {
-    std::cerr << "Error creating bucket: "
-              << create_bucket_outcome.GetError().GetMessage() << std::endl;
+    auto error = create_bucket_outcome.GetError();
+    std::cerr << "Error creating bucket: " << error.GetMessage() << std::endl;
+    std::cerr << "Error code: " << static_cast<int>(error.GetErrorType()) << std::endl;
+    std::cerr << "Exception name: " << error.GetExceptionName() << std::endl;
   }
 
   // Create a PutObject request
@@ -1667,9 +1779,11 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
                 << object_key << std::endl;
     }
   } else {
+    auto error = put_object_outcome.GetError();
     if (!quiet_) {
-      std::cout << "Error: uploading object - "
-                << put_object_outcome.GetError().GetMessage() << std::endl;
+      std::cout << "Error: uploading object - " << error.GetMessage() << std::endl;
+      std::cout << "Error code: " << static_cast<int>(error.GetErrorType()) << std::endl;
+      std::cout << "Exception name: " << error.GetExceptionName() << std::endl;
     }
     return -1;
   }
