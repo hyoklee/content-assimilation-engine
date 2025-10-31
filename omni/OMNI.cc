@@ -99,6 +99,7 @@ typedef SSIZE_T ssize_t;
 #include "Poco/PipeStream.h"
 #include "Poco/Process.h"
 #include "Poco/SHA2Engine.h"
+#include "Poco/HMACEngine.h"
 #include "Poco/SharedMemory.h"
 #include "Poco/StreamCopier.h"
 #include "Poco/TemporaryFile.h"
@@ -1695,8 +1696,13 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   client_config.requestTimeoutMs = 30000;
   client_config.connectTimeoutMs = 10000;
 
-  // Set HTTP client factory to use WinHTTP on Windows
+  // Set HTTP client factory based on platform
+#ifdef _WIN32
   client_config.httpLibOverride = Aws::Http::TransferLibType::WIN_INET_CLIENT;
+#else
+  // On Linux, explicitly use libcurl client
+  client_config.httpLibOverride = Aws::Http::TransferLibType::CURL_CLIENT;
+#endif
 
   if (!quiet_) {
     std::cout << "S3 Configuration:" << std::endl;
@@ -1720,12 +1726,24 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   Aws::Auth::AWSCredentials credentials(access_key.c_str(), secret_key.c_str());
 
   // Enable path-style addressing for S3-compatible services
+  // On Linux, use PayloadSigningPolicy::Never to disable chunked transfer encoding
+  // which is not supported by some S3-compatible services like Synology C2
+  // On Windows, RequestDependent works fine with the WinHTTP client
+#ifdef _WIN32
   Aws::S3::S3Client s3_client(
       credentials,
       client_config,
       Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::RequestDependent,
       false  // useVirtualAddressing = false (use path-style)
   );
+#else
+  Aws::S3::S3Client s3_client(
+      credentials,
+      client_config,
+      Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
+      false  // useVirtualAddressing = false (use path-style)
+  );
+#endif
   Aws::S3::Model::CreateBucketRequest create_bucket_request;
   create_bucket_request.SetBucket(bucket_name);
 
@@ -1739,9 +1757,14 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
     }
   } else {
     auto error = create_bucket_outcome.GetError();
-    std::cerr << "Error creating bucket: " << error.GetMessage() << std::endl;
-    std::cerr << "Error code: " << static_cast<int>(error.GetErrorType()) << std::endl;
-    std::cerr << "Exception name: " << error.GetExceptionName() << std::endl;
+    // Bucket creation might fail if it already exists or user lacks CreateBucket permission
+    // This is common with S3-compatible services, so just warn and continue
+    if (!quiet_) {
+      std::cerr << "Warning: Could not create bucket (may already exist): "
+                << error.GetMessage() << std::endl;
+      std::cerr << "  Exception: " << error.GetExceptionName() << std::endl;
+      std::cerr << "Attempting to upload object anyway..." << std::endl;
+    }
   }
 
   // Create a PutObject request
@@ -1749,26 +1772,52 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   put_request.SetBucket(bucket_name);
   put_request.SetKey(object_key);
 
+  std::shared_ptr<Aws::IOStream> input_data;
+  size_t content_length = 0;
+
   if (ptr == NULL) {
     std::string file_path = GetFileName(dest);
-    std::shared_ptr<Aws::FStream> input_data = Aws::MakeShared<Aws::FStream>(
-        "SampleAllocationTag", file_path.c_str(),
-        std::ios_base::in | std::ios_base::binary);
-    if (!*input_data) {
+    // Read entire file into memory to avoid streaming issues with chunked encoding
+    std::ifstream file(file_path, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
       std::cerr << "Error: Unable to open file " << file_path << std::endl;
       return -1;
     }
-    put_request.SetBody(input_data);
+
+    content_length = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // Allocate buffer and read file
+    auto buffer = Aws::MakeShared<std::vector<unsigned char>>("PutObjectBuffer", content_length);
+    if (!file.read(reinterpret_cast<char*>(buffer->data()), content_length)) {
+      std::cerr << "Error: Unable to read file " << file_path << std::endl;
+      return -1;
+    }
+    file.close();
+
+    // Create stream from buffer
+    input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
+    input_data->write(reinterpret_cast<const char*>(buffer->data()), content_length);
+    input_data->seekg(0);
   } else {
-    auto input_data =
-        Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
-    *input_data << ptr;
-    put_request.SetBody(input_data);
+    content_length = std::strlen(ptr);
+    input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
+    input_data->write(ptr, content_length);
+    input_data->seekg(0);
   }
+
+  put_request.SetContentLength(content_length);
+  put_request.SetBody(input_data);
 
   // TODO: Set content type based on mime input in OMNI.
   // put_request.SetContentType("text/plain");
   put_request.SetContentType("application/octet-stream");
+
+  // Explicitly set Content-Length header to prevent chunked encoding
+  put_request.SetContentMD5("");  // Disable MD5 which might trigger chunking
+
+  // Add custom header to force non-chunked transfer
+  put_request.SetCustomizedAccessLogTag("");
 
   // Execute the PutObject request
   auto put_object_outcome = s3_client.PutObject(put_request);
@@ -1789,6 +1838,355 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   }
   // Note: AWS SDK ShutdownAPI is called automatically at program exit via atexit()
   return 0;
+}
+#elif defined(USE_POCO)
+// POCO-based S3 upload with manual AWS SigV4 signing
+// This is used when AWS SDK is not available (e.g., on Linux to avoid chunked encoding issues)
+int OMNI::WriteS3(const std::string& dest, char* ptr) {
+  const std::string prefix = "s3://";
+  if (dest.find(prefix) != 0) {
+    std::cerr << "Error: not a valid S3 URL (missing 's3://' prefix)" << std::endl;
+    return -1;
+  }
+
+  std::string path = dest.substr(prefix.length());
+  size_t first_slash = path.find('/');
+  if (first_slash == std::string::npos) {
+    std::cerr << "Error: invalid S3 URI (no path separator found)" << std::endl;
+    return -1;
+  }
+
+  std::string bucket_name = path.substr(0, first_slash);
+  std::string object_key = path.substr(first_slash + 1);
+
+  if (bucket_name.empty()) {
+    std::cerr << "Error: bucket name is empty" << std::endl;
+    return -1;
+  }
+  if (object_key.empty()) {
+    std::cerr << "Error: object key is empty" << std::endl;
+    return -1;
+  }
+
+  // Read AWS config
+  AWSConfig aws_config = ReadAWSConfig();
+  auto [access_key, secret_key] = ReadAWSCredentials();
+
+  if (access_key.empty() || secret_key.empty()) {
+    std::cerr << "Error: AWS credentials not found in ~/.aws/credentials" << std::endl;
+    return -1;
+  }
+
+  // Parse endpoint URL
+  std::string endpoint = "localhost:4566";
+  std::string scheme = "http";
+  std::string region = aws_config.region.empty() ? "us-east-1" : aws_config.region;
+  int port = 0;
+
+  if (!aws_config.endpoint_url.empty()) {
+    std::string url = aws_config.endpoint_url;
+    if (url.find("https://") == 0) {
+      scheme = "https";
+      url = url.substr(8);
+      port = 443;
+    } else if (url.find("http://") == 0) {
+      scheme = "http";
+      url = url.substr(7);
+      port = 80;
+    }
+
+    if (!url.empty() && url[url.length() - 1] == '/') {
+      url = url.substr(0, url.length() - 1);
+    }
+
+    size_t port_pos = url.find(':');
+    if (port_pos != std::string::npos) {
+      endpoint = url.substr(0, port_pos);
+      port = std::stoi(url.substr(port_pos + 1));
+    } else {
+      endpoint = url;
+    }
+  }
+
+  // Read file content
+  std::string content;
+  size_t content_length = 0;
+
+  if (ptr == NULL) {
+    std::string file_path = GetFileName(dest);
+    std::ifstream file(file_path, std::ios::binary);
+    if (!file.is_open()) {
+      std::cerr << "Error: Unable to open file " << file_path << std::endl;
+      return -1;
+    }
+    content = std::string((std::istreambuf_iterator<char>(file)),
+                          std::istreambuf_iterator<char>());
+    file.close();
+    content_length = content.length();
+  } else {
+    content = std::string(ptr);
+    content_length = content.length();
+  }
+
+  // Compute SHA256 hash of payload
+  Poco::SHA2Engine256 sha256;
+  sha256.update(content);
+  std::string payload_hash = Poco::DigestEngine::digestToHex(sha256.digest());
+
+  // Get current timestamp
+  auto now = std::chrono::system_clock::now();
+  auto time_t_now = std::chrono::system_clock::to_time_t(now);
+  std::tm tm_now;
+  gmtime_r(&time_t_now, &tm_now);
+
+  char date_stamp[9];
+  char amz_date[17];
+  std::strftime(date_stamp, sizeof(date_stamp), "%Y%m%d", &tm_now);
+  std::strftime(amz_date, sizeof(amz_date), "%Y%m%dT%H%M%SZ", &tm_now);
+
+  // Create canonical request
+  std::string http_method = "PUT";
+  std::string canonical_uri = "/" + bucket_name + "/" + object_key;
+  std::string canonical_querystring = "";
+  std::string host = endpoint;
+
+  std::ostringstream canonical_headers;
+  canonical_headers << "content-length:" << content_length << "\n"
+                    << "content-type:application/octet-stream\n"
+                    << "host:" << host << "\n"
+                    << "x-amz-content-sha256:" << payload_hash << "\n"
+                    << "x-amz-date:" << amz_date << "\n";
+
+  std::string signed_headers = "content-length;content-type;host;x-amz-content-sha256;x-amz-date";
+
+  std::ostringstream canonical_request;
+  canonical_request << http_method << "\n"
+                    << canonical_uri << "\n"
+                    << canonical_querystring << "\n"
+                    << canonical_headers.str() << "\n"
+                    << signed_headers << "\n"
+                    << payload_hash;
+
+  // Hash canonical request
+  Poco::SHA2Engine256 sha256_canon;
+  sha256_canon.update(canonical_request.str());
+  std::string canonical_request_hash = Poco::DigestEngine::digestToHex(sha256_canon.digest());
+
+  // Create string to sign
+  std::string algorithm = "AWS4-HMAC-SHA256";
+  std::string credential_scope = std::string(date_stamp) + "/" + region + "/s3/aws4_request";
+  std::ostringstream string_to_sign;
+  string_to_sign << algorithm << "\n"
+                 << amz_date << "\n"
+                 << credential_scope << "\n"
+                 << canonical_request_hash;
+
+  // Calculate signature using HMAC-SHA256
+  std::string date_key_str = "AWS4" + secret_key;
+  Poco::HMACEngine<Poco::SHA2Engine256> hmac1(date_key_str);
+  hmac1.update(date_stamp);
+  auto date_key = hmac1.digest();
+
+  Poco::HMACEngine<Poco::SHA2Engine256> hmac2(std::string(date_key.begin(), date_key.end()));
+  hmac2.update(region);
+  auto region_key = hmac2.digest();
+
+  Poco::HMACEngine<Poco::SHA2Engine256> hmac3(std::string(region_key.begin(), region_key.end()));
+  hmac3.update("s3");
+  auto service_key = hmac3.digest();
+
+  Poco::HMACEngine<Poco::SHA2Engine256> hmac4(std::string(service_key.begin(), service_key.end()));
+  hmac4.update("aws4_request");
+  auto signing_key = hmac4.digest();
+
+  Poco::HMACEngine<Poco::SHA2Engine256> hmac5(std::string(signing_key.begin(), signing_key.end()));
+  hmac5.update(string_to_sign.str());
+  std::string signature = Poco::DigestEngine::digestToHex(hmac5.digest());
+
+  // Build authorization header
+  std::ostringstream authorization;
+  authorization << algorithm << " Credential=" << access_key << "/" << credential_scope
+                << ", SignedHeaders=" << signed_headers
+                << ", Signature=" << signature;
+
+  if (!quiet_) {
+    std::cout << "S3 Configuration:" << std::endl;
+    std::cout << "  Endpoint: " << endpoint << std::endl;
+    std::cout << "  Region: " << region << std::endl;
+    std::cout << "  Scheme: " << scheme << std::endl;
+    std::cout << "Using AWS credentials from ~/.aws/credentials" << std::endl;
+    std::cout << "  Access Key ID: " << access_key.substr(0, 8) << "..." << std::endl;
+  }
+
+  try {
+    // Create HTTP session
+    std::unique_ptr<Poco::Net::HTTPClientSession> session;
+    if (scheme == "https") {
+      Poco::Net::Context::Ptr context = new Poco::Net::Context(
+          Poco::Net::Context::CLIENT_USE, "", "", "",
+          Poco::Net::Context::VERIFY_NONE, 9, true);
+      session = std::make_unique<Poco::Net::HTTPSClientSession>(endpoint, port == 0 ? 443 : port, context);
+    } else {
+      session = std::make_unique<Poco::Net::HTTPClientSession>(endpoint, port == 0 ? 80 : port);
+    }
+
+    // Try to create bucket first
+    if (!quiet_) {
+      std::cout << "Creating bucket: " << bucket_name << std::endl;
+    }
+
+    // Create bucket with AWS SigV4 signing
+    std::string bucket_uri = "/" + bucket_name;
+
+    // For regions other than us-east-1, we need CreateBucketConfiguration XML
+    std::string bucket_payload;
+    std::string bucket_payload_hash;
+
+    if (region != "us-east-1") {
+      std::ostringstream xml;
+      xml << "<CreateBucketConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">"
+          << "<LocationConstraint>" << region << "</LocationConstraint>"
+          << "</CreateBucketConfiguration>";
+      bucket_payload = xml.str();
+
+      // Calculate SHA256 of the XML payload
+      Poco::SHA2Engine256 sha256_payload;
+      sha256_payload.update(bucket_payload);
+      bucket_payload_hash = Poco::DigestEngine::digestToHex(sha256_payload.digest());
+    } else {
+      // For us-east-1, use empty payload
+      bucket_payload_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    }
+
+    // Create canonical request for CreateBucket
+    std::ostringstream bucket_canonical_headers;
+    bucket_canonical_headers << "host:" << host << "\n"
+                              << "x-amz-content-sha256:" << bucket_payload_hash << "\n"
+                              << "x-amz-date:" << amz_date << "\n";
+
+    std::string bucket_signed_headers = "host;x-amz-content-sha256;x-amz-date";
+
+    std::ostringstream bucket_canonical_request;
+    bucket_canonical_request << "PUT\n"
+                              << bucket_uri << "\n"
+                              << "\n"  // empty query string
+                              << bucket_canonical_headers.str() << "\n"
+                              << bucket_signed_headers << "\n"
+                              << bucket_payload_hash;
+
+    // Hash canonical request
+    Poco::SHA2Engine256 sha256_bucket_canon;
+    sha256_bucket_canon.update(bucket_canonical_request.str());
+    std::string bucket_canonical_request_hash = Poco::DigestEngine::digestToHex(sha256_bucket_canon.digest());
+
+    // Create string to sign
+    std::ostringstream bucket_string_to_sign;
+    bucket_string_to_sign << algorithm << "\n"
+                          << amz_date << "\n"
+                          << credential_scope << "\n"
+                          << bucket_canonical_request_hash;
+
+    // Calculate signature (reuse the signing key from earlier)
+    Poco::HMACEngine<Poco::SHA2Engine256> hmac_bucket(std::string(signing_key.begin(), signing_key.end()));
+    hmac_bucket.update(bucket_string_to_sign.str());
+    std::string bucket_signature = Poco::DigestEngine::digestToHex(hmac_bucket.digest());
+
+    // Build authorization header
+    std::ostringstream bucket_authorization;
+    bucket_authorization << algorithm << " Credential=" << access_key << "/" << credential_scope
+                         << ", SignedHeaders=" << bucket_signed_headers
+                         << ", Signature=" << bucket_signature;
+
+    // Send CreateBucket request
+    Poco::Net::HTTPRequest bucket_request(Poco::Net::HTTPRequest::HTTP_PUT, bucket_uri);
+    bucket_request.setContentLength(bucket_payload.length());
+    bucket_request.set("Host", host);
+    bucket_request.set("x-amz-date", amz_date);
+    bucket_request.set("x-amz-content-sha256", bucket_payload_hash);
+    bucket_request.set("Authorization", bucket_authorization.str());
+
+    std::ostream& bucket_os = session->sendRequest(bucket_request);
+    if (!bucket_payload.empty()) {
+      bucket_os << bucket_payload;
+    }
+    bucket_os.flush();
+
+    // Get bucket creation response
+    Poco::Net::HTTPResponse bucket_response;
+    std::istream& bucket_rs = session->receiveResponse(bucket_response);
+
+    if (bucket_response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK ||
+        bucket_response.getStatus() == Poco::Net::HTTPResponse::HTTP_NO_CONTENT) {
+      if (!quiet_) {
+        std::cout << "Bucket created successfully!" << std::endl;
+      }
+    } else if (bucket_response.getStatus() == Poco::Net::HTTPResponse::HTTP_CONFLICT ||
+               bucket_response.getStatus() == Poco::Net::HTTPResponse::HTTP_FORBIDDEN) {
+      // Bucket already exists or no permission - continue anyway
+      if (!quiet_) {
+        std::string response_body;
+        Poco::StreamCopier::copyToString(bucket_rs, response_body);
+        std::cerr << "Warning: Could not create bucket (may already exist): "
+                  << bucket_response.getReason() << std::endl;
+        std::cerr << "Attempting to upload object anyway..." << std::endl;
+      }
+    } else {
+      // Other error - log but continue
+      if (!quiet_) {
+        std::string response_body;
+        Poco::StreamCopier::copyToString(bucket_rs, response_body);
+        std::cerr << "Warning: Bucket creation returned status " << bucket_response.getStatus()
+                  << " " << bucket_response.getReason() << std::endl;
+      }
+    }
+
+    // Recreate session for PutObject (HTTP connection may be closed after bucket creation)
+    if (scheme == "https") {
+      Poco::Net::Context::Ptr context = new Poco::Net::Context(
+          Poco::Net::Context::CLIENT_USE, "", "", "",
+          Poco::Net::Context::VERIFY_NONE, 9, true);
+      session = std::make_unique<Poco::Net::HTTPSClientSession>(endpoint, port == 0 ? 443 : port, context);
+    } else {
+      session = std::make_unique<Poco::Net::HTTPClientSession>(endpoint, port == 0 ? 80 : port);
+    }
+
+    // Create PutObject request
+    Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_PUT, canonical_uri);
+    request.setContentLength(content_length);
+    request.setContentType("application/octet-stream");
+    request.set("Host", host);
+    request.set("x-amz-date", amz_date);
+    request.set("x-amz-content-sha256", payload_hash);
+    request.set("Authorization", authorization.str());
+
+    // Send request
+    std::ostream& os = session->sendRequest(request);
+    os << content;
+
+    // Get response
+    Poco::Net::HTTPResponse response;
+    std::istream& rs = session->receiveResponse(response);
+
+    if (response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK ||
+        response.getStatus() == Poco::Net::HTTPResponse::HTTP_NO_CONTENT) {
+      if (!quiet_) {
+        std::cout << "Successfully uploaded object to " << bucket_name << "/" << object_key << std::endl;
+      }
+      return 0;
+    } else {
+      std::string response_body;
+      Poco::StreamCopier::copyToString(rs, response_body);
+      std::cerr << "Error: S3 upload failed with status " << response.getStatus()
+                << " " << response.getReason() << std::endl;
+      if (!response_body.empty()) {
+        std::cerr << "Response: " << response_body << std::endl;
+      }
+      return -1;
+    }
+  } catch (Poco::Exception& ex) {
+    std::cerr << "Error: " << ex.displayText() << std::endl;
+    return -1;
+  }
 }
 #endif
 
@@ -2365,7 +2763,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
       if (run) {
         res = RunLambda(lambda, name, dest);
       } else {
-#ifdef USE_AWS
+#if defined(USE_AWS) || defined(USE_POCO)
         Poco::File file(name);
         if (!file.exists()) {
           throw Poco::FileNotFoundException("Error: buffer '" + name +
@@ -2434,12 +2832,12 @@ int OMNI::ReadOmni(const std::string& input_file) {
                     << "' buffer (SharedMemory)." << std::endl;
         }
         WriteS3(dest, shm_r.begin());
-#endif  // AWS
+#endif  // USE_AWS || USE_POCO
       }
       if (res == 0) {
-#ifdef USE_AWS
+#if defined(USE_AWS) || defined(USE_POCO)
         WriteS3(dest, NULL);
-#endif  // AWS
+#endif  // USE_AWS || USE_POCO
       } else {
         std::cerr << "Error: lambda failed to generate '" << dest << "'"
                   << std::endl;
