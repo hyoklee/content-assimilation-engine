@@ -12,3 +12,8 @@
 # Metadata Storage Configuration
 # Uncomment to enable DataHub metadata registration
 # MetaStore DataHub
+
+# Globus Transfer Configuration
+# Uncomment and set your Globus transfer token for globus:// transfers
+# If not set here, the GLOBUS_TRANSFER_TOKEN environment variable will be used
+# GLOBUS_TRANSFER_TOKEN your_globus_transfer_token_here

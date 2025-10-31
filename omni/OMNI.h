@@ -52,6 +52,7 @@ class OMNI {
   // DataHub configuration (public for testing)
   bool CheckDataHubConfig();
   std::string ReadConfigFile(const std::string& config_path);
+  std::string ReadConfigValue(const std::string& key);
   ProxyConfig ReadProxyConfig();
   AWSConfig ReadAWSConfig();
   WaitConfig ReadWaitConfig();

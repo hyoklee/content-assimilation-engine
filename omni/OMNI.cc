@@ -278,6 +278,67 @@ std::string OMNI::ReadConfigFile(const std::string& config_path) {
   return buffer.str();
 }
 
+std::string OMNI::ReadConfigValue(const std::string& key) {
+  // Get home directory
+  std::string home_dir;
+#ifdef _WIN32
+  char* home_path = nullptr;
+  size_t len = 0;
+  errno_t err = _dupenv_s(&home_path, &len, "USERPROFILE");
+  if (err == 0 && home_path != nullptr) {
+    home_dir = home_path;
+    free(home_path);
+  } else {
+    return "";
+  }
+#else
+  char* home_path = std::getenv("HOME");
+  if (home_path == nullptr) {
+    struct passwd* pw = getpwuid(getuid());
+    if (pw == nullptr) {
+      return "";
+    }
+    home_dir = pw->pw_dir;
+  } else {
+    home_dir = home_path;
+  }
+#endif
+
+  std::string config_path = home_dir + "/.wrp/config";
+  std::string config_content = ReadConfigFile(config_path);
+
+  if (config_content.empty()) {
+    return "";
+  }
+
+  // Parse config file looking for the key
+  std::istringstream stream(config_content);
+  std::string line;
+  std::string key_prefix = key + " ";
+
+  while (std::getline(stream, line)) {
+    // Trim whitespace
+    line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
+    line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+
+    // Skip comments and empty lines
+    if (line.empty() || line[0] == '#') {
+      continue;
+    }
+
+    // Check if line starts with the key
+    if (line.find(key_prefix) == 0) {
+      std::string value = line.substr(key_prefix.length());
+      // Trim any remaining whitespace
+      value.erase(0, value.find_first_not_of(" \t\n\r\f\v"));
+      value.erase(value.find_last_not_of(" \t\n\r\f\v") + 1);
+      return value;
+    }
+  }
+
+  return "";
+}
+
 ProxyConfig OMNI::ReadProxyConfig() {
   ProxyConfig config;
 
@@ -1838,7 +1899,7 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   put_request.SetContentMD5("");  // Disable MD5 which might trigger chunking
 
   // Add custom header to force non-chunked transfer
-  put_request.SetCustomizedAccessLogTag("");
+  put_request.SetCustomizedAccessLogTag(std::map<std::string, std::string>());
 
   // Execute the PutObject request
   auto put_object_outcome = s3_client.PutObject(put_request);
@@ -2554,13 +2615,17 @@ int OMNI::ReadOmni(const std::string& input_file) {
         if (path.find("globus://") != path.npos && key == "dst") {
           std::string dest_uri = it->second.as<std::string>();
           if (dest_uri.find("globus://") == 0) {
+            // Try environment variable first, then config file
             std::string transfer_token =
                 std::getenv("GLOBUS_TRANSFER_TOKEN")
                     ? std::getenv("GLOBUS_TRANSFER_TOKEN")
                     : "";
             if (transfer_token.empty()) {
+              transfer_token = ReadConfigValue("GLOBUS_TRANSFER_TOKEN");
+            }
+            if (transfer_token.empty()) {
               std::cerr
-                  << "Error: GLOBUS_TRANSFER_TOKEN environment variable not set"
+                  << "Error: GLOBUS_TRANSFER_TOKEN not found in environment or ~/.wrp/config"
                   << std::endl;
               return -1;
             }
