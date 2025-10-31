@@ -105,6 +105,27 @@ typedef SSIZE_T ssize_t;
 #include "Poco/TemporaryFile.h"
 #include "Poco/URI.h"
 #include "format/globus_utils.h"
+
+// Compatibility wrapper for older POCO versions that don't have SHA2Engine256
+// SHA2Engine256 was added in POCO 1.12.0 (0x010C0000)
+#ifdef USE_POCO
+#include "Poco/Version.h"
+#if POCO_VERSION < 0x010C0000
+namespace Poco {
+// Fallback for older POCO versions
+class SHA2Engine256 : public SHA2Engine {
+public:
+  enum {
+    BLOCK_SIZE = 64,
+    DIGEST_SIZE = 32
+  };
+
+  SHA2Engine256() : SHA2Engine(SHA_256) {}
+};
+}  // namespace Poco
+#endif
+#endif
+
 #ifdef USE_REDIS
 #include "Poco/Redis/Client.h"
 #include "Poco/Redis/Command.h"
