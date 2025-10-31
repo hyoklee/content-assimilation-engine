@@ -35,3 +35,16 @@ jobs:
           cmake -DUSE_POCO=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r/poco" ..
           ctest -C Release -D Experimental
         shell: cmd
+      - name: setup-msmpi
+        uses: mpi4py/setup-mpi@v1
+        with:
+          mpi: msmpi
+      - name: hdf5-mpi
+        run: |
+          vcpkg install hdf5[parallel]:x64-windows
+          cd omni
+          mkdir hdf5
+          cd hdf5
+          cmake -DUSE_HDF5=ON -DUSE_MPI=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DSITE:STRING="${{ matrix.os }}" -DBUILDNAME="omni/r/hdf5-mpi" ..
+          ctest -C Release -D Experimental
+        shell: cmd
