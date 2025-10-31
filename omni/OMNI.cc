@@ -1958,7 +1958,11 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   auto now = std::chrono::system_clock::now();
   auto time_t_now = std::chrono::system_clock::to_time_t(now);
   std::tm tm_now;
+#ifdef _WIN32
+  gmtime_s(&tm_now, &time_t_now);
+#else
   gmtime_r(&time_t_now, &tm_now);
+#endif
 
   char date_stamp[9];
   char amz_date[17];
