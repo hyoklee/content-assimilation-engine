@@ -1780,7 +1780,7 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
 
   // Set HTTP client factory based on platform
 #ifdef _WIN32
-  client_config.httpLibOverride = Aws::Http::TransferLibType::WIN_INET_CLIENT;
+  client_config.httpLibOverride = Aws::Http::TransferLibType::WIN_HTTP_CLIENT;
 #else
   // On Linux, explicitly use libcurl client
   client_config.httpLibOverride = Aws::Http::TransferLibType::CURL_CLIENT;
@@ -1895,11 +1895,8 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   // put_request.SetContentType("text/plain");
   put_request.SetContentType("application/octet-stream");
 
-  // Explicitly set Content-Length header to prevent chunked encoding
-  put_request.SetContentMD5("");  // Disable MD5 which might trigger chunking
-
-  // Add custom header to force non-chunked transfer
-  put_request.SetCustomizedAccessLogTag(std::map<std::string, std::string>());
+  // Note: We don't set Content-MD5 header to avoid compatibility issues
+  // with some S3-compatible services. The AWS SDK will handle integrity checking.
 
   // Execute the PutObject request
   auto put_object_outcome = s3_client.PutObject(put_request);
