@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(black:*)",
+      "Bash(python3:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:abapy.readthedocs.io)",
+      "Bash(curl:*)",
+      "WebFetch(domain:classes.engineering.wustl.edu)",
+      "WebFetch(domain:figshare.com)",
+      "WebFetch(domain:stackoverflow.com)",
+      "Bash(pip3 install:*)",
+      "Bash(chmod:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
