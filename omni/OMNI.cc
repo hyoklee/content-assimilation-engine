@@ -1735,7 +1735,8 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   // Read AWS config to get endpoint_url if available
   AWSConfig aws_config = ReadAWSConfig();
 
-  Aws::Client::ClientConfiguration client_config;
+  // Use S3-specific client configuration which supports S3 Express options
+  Aws::S3::S3ClientConfiguration client_config;
 
   // Parse and use endpoint_url from config if available
   std::string endpoint = "localhost:4566";  // default
@@ -1772,18 +1773,32 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   client_config.verifySSL = true;  // Keep SSL verification enabled for security
   client_config.useDualStack = false;
 
+  // Disable S3 Express authentication which uses aws-chunked encoding
+  // This is critical for S3-compatible services like Synology C2 that don't support aws-chunked
+  client_config.disableS3ExpressAuth = true;
+  client_config.useVirtualAddressing = false;  // Use path-style for S3-compatible services
+  client_config.payloadSigningPolicy = Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never;
+
   // For S3-compatible services like Synology, use path-style addressing
   client_config.enableEndpointDiscovery = false;
   client_config.enableTcpKeepAlive = true;
   client_config.requestTimeoutMs = 30000;
   client_config.connectTimeoutMs = 10000;
 
+  // Disable request compression to prevent chunked transfer encoding
+  // This is critical for S3-compatible services that don't support aws-chunked encoding
+  client_config.requestCompressionConfig.useRequestCompression = Aws::Client::UseRequestCompression::DISABLE;
+
+  // Disable Expect: 100-continue header to avoid chunked encoding issues
+  client_config.disableExpectHeader = true;
+
   // Set HTTP client factory based on platform
 #ifdef _WIN32
   client_config.httpLibOverride = Aws::Http::TransferLibType::WIN_HTTP_CLIENT;
 #else
-  // On Linux, explicitly use libcurl client
-  client_config.httpLibOverride = Aws::Http::TransferLibType::CURL_CLIENT;
+  // Try using CRT HTTP client which handles chunked encoding better
+  // Fall back to CURL if CRT is not available
+  client_config.httpLibOverride = Aws::Http::TransferLibType::DEFAULT_CLIENT;
 #endif
 
   if (!quiet_) {
@@ -1807,25 +1822,9 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
 
   Aws::Auth::AWSCredentials credentials(access_key.c_str(), secret_key.c_str());
 
-  // Enable path-style addressing for S3-compatible services
-  // On Linux, use PayloadSigningPolicy::Never to disable chunked transfer encoding
-  // which is not supported by some S3-compatible services like Synology C2
-  // On Windows, RequestDependent works fine with the WinHTTP client
-#ifdef _WIN32
-  Aws::S3::S3Client s3_client(
-      credentials,
-      client_config,
-      Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::RequestDependent,
-      false  // useVirtualAddressing = false (use path-style)
-  );
-#else
-  Aws::S3::S3Client s3_client(
-      credentials,
-      client_config,
-      Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
-      false  // useVirtualAddressing = false (use path-style)
-  );
-#endif
+  // Create S3 client with the configuration that disables S3 Express (aws-chunked encoding)
+  // Use constructor: S3Client(credentials, endpointProvider, clientConfiguration)
+  Aws::S3::S3Client s3_client(credentials, nullptr, client_config);
   Aws::S3::Model::CreateBucketRequest create_bucket_request;
   create_bucket_request.SetBucket(bucket_name);
 
@@ -1857,6 +1856,9 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
   std::shared_ptr<Aws::IOStream> input_data;
   size_t content_length = 0;
 
+  // We need to keep the buffer alive for the duration of the upload
+  std::shared_ptr<std::vector<unsigned char>> buffer_ptr;
+
   if (ptr == NULL) {
     std::string file_path = GetFileName(dest);
     // Read entire file into memory to avoid streaming issues with chunked encoding
@@ -1870,30 +1872,35 @@ int OMNI::WriteS3(const std::string& dest, char* ptr) {
     file.seekg(0, std::ios::beg);
 
     // Allocate buffer and read file
-    auto buffer = Aws::MakeShared<std::vector<unsigned char>>("PutObjectBuffer", content_length);
-    if (!file.read(reinterpret_cast<char*>(buffer->data()), content_length)) {
+    buffer_ptr = Aws::MakeShared<std::vector<unsigned char>>("PutObjectBuffer", content_length);
+    if (!file.read(reinterpret_cast<char*>(buffer_ptr->data()), content_length)) {
       std::cerr << "Error: Unable to read file " << file_path << std::endl;
       return -1;
     }
     file.close();
 
-    // Create stream from buffer
-    input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
-    input_data->write(reinterpret_cast<const char*>(buffer->data()), content_length);
-    input_data->seekg(0);
+    // Create stream from buffer using string constructor to avoid chunked encoding
+    // This ensures the stream has a known, fixed size
+    std::string data_string(reinterpret_cast<const char*>(buffer_ptr->data()), content_length);
+    input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream", data_string);
   } else {
     content_length = std::strlen(ptr);
-    input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream");
-    input_data->write(ptr, content_length);
-    input_data->seekg(0);
+    // Create stream from string to ensure fixed size and avoid chunked encoding
+    std::string data_string(ptr, content_length);
+    input_data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream", data_string);
   }
 
+  // Set content length BEFORE setting body to ensure SDK doesn't use chunked encoding
   put_request.SetContentLength(content_length);
   put_request.SetBody(input_data);
 
   // TODO: Set content type based on mime input in OMNI.
   // put_request.SetContentType("text/plain");
   put_request.SetContentType("application/octet-stream");
+
+  // Disable checksum calculation to prevent aws-chunked encoding
+  // S3-compatible services like Synology C2 don't support aws-chunked
+  put_request.SetChecksumAlgorithm(Aws::S3::Model::ChecksumAlgorithm::NOT_SET);
 
   // Note: We don't set Content-MD5 header to avoid compatibility issues
   // with some S3-compatible services. The AWS SDK will handle integrity checking.
@@ -2647,7 +2654,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
         }
         if (key == "nbyte") {
           nbyte = it->second.as<size_t>();
-          std::vector<char> buffer(nbyte);
+          std::vector<char> buffer(nbyte + 1);  // Allocate extra byte for null terminator
           unsigned char* ptr = reinterpret_cast<unsigned char*>(buffer.data());
           if (!path.empty() && f == true) {
 #ifndef NDEBUG
@@ -2657,6 +2664,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
 #endif
             if (ReadExactBytesFromOffset(path.c_str(), offset, nbyte, ptr) ==
                 0) {
+              ptr[nbyte] = '\0';  // Null-terminate the buffer for safe printing
 #ifndef NDEBUG
               if (!quiet_) {
                 std::cout << "buffer=" << ptr << std::endl;

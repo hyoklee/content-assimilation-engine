@@ -28,6 +28,32 @@ if(ENABLE_COVERAGE)
     endif()
 endif()
 
+# Option to enable sanitizers for memory leak and error detection
+option(ENABLE_SANITIZERS "Enable sanitizers (address, leak, undefined)" OFF)
+set(SANITIZER_TYPE "address" CACHE STRING "Type of sanitizer to use: address, leak, memory, thread, undefined")
+
+# Add sanitizer compiler flags if enabled
+if(ENABLE_SANITIZERS)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(STATUS "Sanitizers enabled: ${SANITIZER_TYPE}")
+        set(SANITIZER_FLAGS "-fsanitize=${SANITIZER_TYPE} -fno-omit-frame-pointer -g")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SANITIZER_FLAGS}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SANITIZER_FLAGS}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=${SANITIZER_TYPE}")
+
+        # Set runtime options for better reports
+        if(SANITIZER_TYPE STREQUAL "address")
+            message(STATUS "AddressSanitizer will detect memory leaks, buffer overflows, use-after-free")
+        elseif(SANITIZER_TYPE STREQUAL "leak")
+            message(STATUS "LeakSanitizer will detect memory leaks only (faster than address)")
+        elseif(SANITIZER_TYPE STREQUAL "undefined")
+            message(STATUS "UndefinedBehaviorSanitizer will detect undefined behavior")
+        endif()
+    else()
+        message(WARNING "Sanitizers are only supported with GCC or Clang")
+    endif()
+endif()
+
 # Check if we have the necessary dependencies available from the parent project
 if(USE_MPI)
     if(NOT TARGET MPI::MPI_CXX)
@@ -821,4 +847,15 @@ if(ENABLE_COVERAGE)
     else()
         message(WARNING "gcov/lcov tools not found. Coverage target not available.")
     endif()
+endif()
+
+# Add sanitizer test target
+if(ENABLE_SANITIZERS)
+    add_custom_target(sanitizer_test
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Running tests with ${SANITIZER_TYPE} sanitizer..."
+    )
+    message(STATUS "Sanitizer test target added. Run 'make sanitizer_test' or 'cmake --build . --target sanitizer_test'")
+    message(STATUS "Note: Sanitizer reports will be printed to stderr during test execution")
 endif()
