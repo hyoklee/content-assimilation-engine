@@ -3086,7 +3086,11 @@ int OMNI::ReadExactBytesFromOffset(const char* filename, off_t offset,
   ssize_t total_bytes_read = 0;
   ssize_t bytes_read;
 
+#ifdef _WIN32
+  fd = open(filename, O_RDONLY | O_BINARY);
+#else
   fd = open(filename, O_RDONLY);
+#endif
   if (fd == -1) {
     std::cerr << "Error: opening file" << filename << std::endl;
     return -1;
