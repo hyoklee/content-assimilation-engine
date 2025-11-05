@@ -1,0 +1,202 @@
+name: ubuntu-24.04 spack-0.23.0
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: checkout spack
+      uses: actions/checkout@v4
+      with:
+        repository: spack/spack
+        ref: v0.23.0
+        path: ./spack
+    - name: checkout iowarp-install
+      uses: actions/checkout@v4
+      with:
+        repository: hyoklee/iowarp-install
+        path: ./iowarp-install
+    - name: cmake
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: 3.31.5
+        ninjaVersion: 1.12.1
+    - name: spack
+      run: |
+        sudo apt-get update
+        . ./spack/share/spack/setup-env.sh
+        spack external find
+        spack config add "modules:default:enable:[lmod]"
+        spack install --reuse lmod
+        spack load lmod
+        source $(spack location -i lmod)/lmod/lmod/init/bash
+        cd ./iowarp-install/
+        spack repo add iowarp-spack || true
+        spack install --reuse mpi
+        spack load mpi
+        spack install --reuse hdf5
+        spack load hdf5
+        spack install --reuse yaml-cpp
+        spack load yaml-cpp
+        spack install --reuse iowarp
+        spack load iowarp
+        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core
+        echo $MODULEPATH
+        module use $MODULEPATH
+        module avail
+        module list
+    - name: test module
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        spack load yaml-cpp
+        spack load iowarp
+        chi_make_repo ~/my_mod_repo example
+        chi_make_mod ~/my_mod_repo/compressor
+        scspkg create compressor
+        chi_refresh_repo ~/my_mod_repo
+        cd ~/my_mod_repo
+        mkdir build
+        cd build
+        cmake ..  -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example)
+        make -j
+    - name: test jarvis
+      env:
+        FI_PROVIDER: "sockets"
+        HG_LOG_LEVEL: "debug"
+      run: |
+        pwd
+        . ./spack/share/spack/setup-env.sh
+        spack load yaml-cpp
+        spack load iowarp
+        jarvis bootstrap from local
+        jarvis rg build
+        mkdir -p ~/my_mod_repo/jarvis_example/jarvis_example
+        mkdir -p ~/my_mod_repo/jarvis_example/pipelines
+        jarvis repo add ~/my_mod_repo/jarvis_example
+        jarvis repo create compressor app
+        tree ~/my_mod_repo/
+    - name: test cae
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        spack load lmod
+        spack load hdf5
+        spack load yaml-cpp
+        spack load iowarp
+        source $(spack location -i lmod)/lmod/lmod/init/bash
+        cd ..
+        ls
+        ln -s content-assimilation-engine/data
+        cd content-assimilation-engine
+        spack load yaml-cpp
+        export LD_LIBRARY_PATH=$(spack location -i yaml-cpp)/lib:$LD_LIBRARY_PATH
+        cmake \
+          -DCMAKE_INSTALL_PREFIX=$(scspkg pkg root example) \
+          --preset debug \
+          -DSITE:STRING="ubuntu-24.04" -DBUILDNAME="cae/d"
+        cd build
+        ninja
+        ninja install
+
+    - name: load iowarp_run
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        echo $MODULEPATH
+        spack load lmod
+        spack load hdf5
+        spack load yaml-cpp
+        spack load iowarp
+        source $(spack location -i lmod)/lmod/lmod/init/bash
+        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
+        echo $MODULEPATH
+        module use $MODULEPATH
+        module avail
+        module list
+        scspkg init
+        scspkg create iowarp-runtime
+        ls $HOME/.scspkg/modulefiles
+
+    - name: load chimaera_run
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        echo $MODULEPATH
+        spack load lmod
+        spack load hdf5
+        spack load yaml-cpp
+        spack load iowarp
+        source $(spack location -i lmod)/lmod/lmod/init/bash
+        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
+        echo $MODULEPATH
+        module use $MODULEPATH
+        module avail
+        module list
+        scspkg create chimaera_run
+        export CHIMAERA_DIR=$(spack location -i iowarp-runtime)
+        echo $CHIMAERA_DIR
+        scspkg env set chimaera_run CHIMAERA_PATH=${CHIMAERA_DIR}
+        scspkg env prepend chimaera_run PATH ${CHIMAERA_DIR}/bin
+        scspkg env prepend chimaera_run LD_LIBRARY_PATH ${CHIMAERA_DIR}/lib
+        scspkg env prepend chimaera_run LIBRARY_PATH ${CHIMAERA_DIR}/lib
+        ls $HOME/.scspkg/modulefiles
+        module load chimaera_run
+        jarvis repo add $CHIMAERA_DIR/jarvis/jarvis_chimaera
+
+    - name: copy chimaera_run jarvis package from iowarp
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        spack load iowarp
+        IOWARP_DIR=$(spack location -i iowarp-runtime)
+        mkdir -p test/jarvis_wrp_cae/jarvis_wrp_cae/
+        cp -r ${IOWARP_DIR}/jarvis/jarvis_chimaera/jarvis_chimaera/chimaera_run test/jarvis_wrp_cae/jarvis_wrp_cae/
+        ls -la test/jarvis_wrp_cae/jarvis_wrp_cae/chimaera_run/
+
+    - name: jarvis hermes
+      run: |
+        . ./spack/share/spack/setup-env.sh
+        spack load lmod
+        spack load hdf5
+        spack load yaml-cpp
+        spack load iowarp
+        source $(spack location -i lmod)/lmod/lmod/init/bash
+        export MODULEPATH=$SPACK_ROOT/share/spack/lmod/linux-ubuntu24.04-x86_64/Core:$HOME/.scspkg/modulefiles
+        module use $MODULEPATH
+        module load compressor
+        module load iowarp-runtime
+        module load chimaera_run
+        export LD_LIBRARY_PATH=$(spack location -i yaml-cpp)/lib:$LD_LIBRARY_PATH
+        jarvis bootstrap from local
+        sleep 5
+        jarvis rg build
+        sleep 5
+        jarvis repo list
+        jarvis env build jarvis_wrp_cae
+        jarvis env build hermes
+        find ${HOME}/.jarvis
+        find ${HOME}/.scspkg
+        pwd
+        jarvis ppl create test_omni
+        cd omni
+        cd test
+        echo "APPEND demo_job"
+        jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/test/posix.yml wrp_path=$(scspkg pkg root example)/bin/wrp
+        sleep 5
+        jarvis ppl print
+        jarvis ppl run
+        # jarvis ppl append omni_parse omni_yaml=/home/runner/work/content-assimilation-engine/content-assimilation-engine/omni/config/demo_job.yaml wrp_path=$(scspkg pkg root example)/bin/wrp
+        # jarvis pkg conf chimaera_run data_shm=500m rdata_shm=500m task_shm=500m qdepth=50 worker_cpus=[0,1,1]
+        # jarvis ppl print
+        # cat $(jarvis path +shared)/chimaera_run/hostfile
+        # cat $(jarvis path +shared)/chimaera_run/chimaera_server.yaml
+        # ctest -VV
+        cd ../../build
+        pwd
+        ctest -D Experimental
