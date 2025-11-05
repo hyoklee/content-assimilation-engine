@@ -52,6 +52,7 @@ class OMNI {
   // DataHub configuration (public for testing)
   bool CheckDataHubConfig();
   std::string ReadConfigFile(const std::string& config_path);
+  std::string ReadConfigValue(const std::string& key);
   ProxyConfig ReadProxyConfig();
   AWSConfig ReadAWSConfig();
   WaitConfig ReadWaitConfig();
@@ -95,7 +96,7 @@ class OMNI {
 #endif
   int PutData(const std::string& name, const std::string& tags,
               const std::string& path, unsigned char* buffer, size_t nbyte);
-#ifdef USE_AWS
+#if defined(USE_AWS) || defined(USE_POCO)
   int WriteS3(const std::string& dest, char* ptr);
 #endif
 

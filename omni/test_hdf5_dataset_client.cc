@@ -9,10 +9,19 @@
 #include <fstream>
 #include <vector>
 #include <hdf5.h>
-#include <sys/stat.h>  // For chmod
+#include <sys/stat.h>
 #include "format/hdf5_dataset_client.h"
 #include "format/dataset_config.h"
 #include "format/format_client.h"
+
+// Cross-platform chmod support
+#ifdef _WIN32
+#include <io.h>
+#define chmod_exec(path) _chmod(path, _S_IREAD | _S_IWRITE)
+#else
+#include <sys/stat.h>
+#define chmod_exec(path) chmod(path, 0755)
+#endif
 
 using namespace cae;
 
@@ -337,7 +346,7 @@ void test_execute_run_script_success() {
     script << "exit 0\n";
     script.close();
 
-    chmod(script_path.c_str(), 0755);
+    chmod_exec(script_path.c_str());
 
     Hdf5DatasetClient client;
     client.ExecuteRunScript(script_path, "input.txt", "output.txt");
@@ -359,7 +368,7 @@ void test_execute_run_script_failure() {
     script << "exit 1\n";
     script.close();
 
-    chmod(script_path.c_str(), 0755);
+    chmod_exec(script_path.c_str());
 
     Hdf5DatasetClient client;
     client.ExecuteRunScript(script_path, "input.txt", "output.txt");
