@@ -14,9 +14,13 @@ import pickle
 import numpy as np
 
 def main(o, h):
+    if h.startswith('s3://'):
+        # Split by '/' and take the last part as the file name
+        h = h.split('/')[-1]
+
     # Open an existing Abaqus Odb
     # odb = openOdb(o)
-    with open(o, "rb") as f:    
+    with open(o, "rb") as f:
       odb = pickle.load(f)
     # Create a new hdf5 file
     k = h5py.File(h, "w")
