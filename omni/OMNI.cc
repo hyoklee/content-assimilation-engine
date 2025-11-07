@@ -2853,11 +2853,58 @@ int OMNI::ReadOmni(const std::string& input_file) {
       std::cerr << "dst=" << dest << std::endl;
     }
 #endif
+
 #ifdef USE_POCO
     try {
       if (run) {
+        // Execute the lambda script first
         res = RunLambda(lambda, name, dest);
+
+        // After script execution, process dst
+        if (res == 0) {
+          // Check if destination is an S3 URL
+          bool is_s3_dest = (dest.find("s3://") == 0);
+
+          if (is_s3_dest) {
+            // S3 destination - upload the file
+#if defined(USE_AWS) || defined(USE_POCO)
+            WriteS3(dest, NULL);
+#endif
+          } else {
+            // Non-S3 destination - check if file exists
+            Poco::File dest_file(dest);
+            if (dest_file.exists()) {
+              if (!quiet_) {
+                std::cout << "Destination file already exists: " << dest << std::endl;
+              }
+            } else {
+              std::cerr << "Error: destination file does not exist and s3:// prefix not specified: " << dest << std::endl;
+              return 1;
+            }
+          }
+        } else {
+          std::cerr << "Error: lambda failed to generate '" << dest << "'"
+                    << std::endl;
+        }
       } else {
+        // Not using run - check dst before processing
+        bool is_s3_dest = (dest.find("s3://") == 0);
+
+        // If not S3, check if the destination file exists
+        if (!is_s3_dest) {
+          Poco::File dest_file(dest);
+          if (dest_file.exists()) {
+            if (!quiet_) {
+              std::cout << "Destination file already exists: " << dest << std::endl;
+            }
+            return 0;  // Exit successfully
+          } else {
+            std::cerr << "Error: destination file does not exist and s3:// prefix not specified: " << dest << std::endl;
+            return 1;  // Exit with error
+          }
+        }
+
+        // S3 destination - proceed with data retrieval and upload
 #if defined(USE_AWS) || defined(USE_POCO)
         Poco::File file(name);
         if (!file.exists()) {
@@ -2896,7 +2943,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
           Poco::Redis::Client redis_client("localhost", 6379);
           Poco::Redis::Command get_cmd("GET");
           get_cmd << name;
-          
+
           Poco::Redis::BulkString result = redis_client.execute<Poco::Redis::BulkString>(get_cmd);
           if (!result.isNull()) {
             std::string redis_data = result.value();
@@ -2927,15 +2974,10 @@ int OMNI::ReadOmni(const std::string& input_file) {
                     << "' buffer (SharedMemory)." << std::endl;
         }
         WriteS3(dest, shm_r.begin());
-#endif  // USE_AWS || USE_POCO
-      }
-      if (res == 0) {
-#if defined(USE_AWS) || defined(USE_POCO)
+
+        // Final WriteS3 call with NULL to finalize
         WriteS3(dest, NULL);
 #endif  // USE_AWS || USE_POCO
-      } else {
-        std::cerr << "Error: lambda failed to generate '" << dest << "'"
-                  << std::endl;
       }
     } catch (Poco::Exception& e) {
       std::cerr << "Error: poco exception - " << e.displayText() << std::endl;
