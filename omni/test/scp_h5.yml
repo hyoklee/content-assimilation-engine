@@ -1,0 +1,12 @@
+name: nava.h5
+tags:
+  - ares
+  - scp
+
+src: ">nava.h5"
+offset: 0
+nbyte: 83376
+
+run: ../test/scp.bat
+
+dst: ares:~/

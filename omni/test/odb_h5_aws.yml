@@ -1,0 +1,14 @@
+name: indentation_axi1.odb
+
+tags:
+  - ai
+  - material sicence
+  - utah
+
+src: "../test/Abacus/indentation_axi1.odb"
+offset: 0
+nbyte: 60753
+
+run: "../test/Abacus/lambda.bat"
+
+dst: "s3://iowarp/nava.h5"
