@@ -3128,14 +3128,49 @@ int OMNI::ReadExactBytesFromOffset(const char* filename, off_t offset,
   ssize_t total_bytes_read = 0;
   ssize_t bytes_read;
 
+  // Retry logic for file opening (handles file locks from concurrent writes)
+  const int max_retries = 50;  // Try for up to 5 seconds
+  const int retry_delay_ms = 100;  // 100ms between retries
+  int retry_count = 0;
+
+  while (retry_count < max_retries) {
 #ifdef _WIN32
-  fd = open(filename, O_RDONLY | O_BINARY);
+    fd = open(filename, O_RDONLY | O_BINARY);
 #else
-  fd = open(filename, O_RDONLY);
+    fd = open(filename, O_RDONLY);
 #endif
+    if (fd != -1) {
+      break;  // Successfully opened the file
+    }
+
+    // Check if error is due to file locking/permission issues
+    if (errno == EACCES || errno == EPERM || errno == EBUSY
+#ifdef _WIN32
+        || errno == EAGAIN
+#endif
+    ) {
+      retry_count++;
+      if (retry_count == 1 && !quiet_) {
+        std::cout << "File is locked, waiting for it to become available..." << std::endl;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(retry_delay_ms));
+    } else {
+      // Other error, don't retry
+      break;
+    }
+  }
+
   if (fd == -1) {
-    std::cerr << "Error: opening file" << filename << std::endl;
+    std::cerr << "Error: opening file " << filename;
+    if (retry_count > 0) {
+      std::cerr << " (tried " << retry_count << " times)";
+    }
+    std::cerr << std::endl;
     return -1;
+  }
+
+  if (retry_count > 0 && !quiet_) {
+    std::cout << "File successfully opened after " << retry_count << " retries" << std::endl;
   }
 
   if (lseek(fd, offset, SEEK_SET) == -1) {
@@ -3148,9 +3183,45 @@ int OMNI::ReadExactBytesFromOffset(const char* filename, off_t offset,
     bytes_read =
         read(fd, buffer + total_bytes_read, num_bytes - total_bytes_read);
     if (bytes_read == -1) {
-      perror("Error reading file");
-      close(fd);
-      return -1;
+      // Check if error is due to file locking/permission issues
+      if ((errno == EACCES || errno == EPERM || errno == EBUSY
+#ifdef _WIN32
+           || errno == EAGAIN
+#endif
+          ) && retry_count < max_retries) {
+        // Close the file, wait, and retry from the beginning
+        close(fd);
+        retry_count++;
+        if (retry_count == 1 && !quiet_) {
+          std::cout << "File is locked during read, waiting for it to become available..." << std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(retry_delay_ms));
+
+        // Retry opening the file
+        total_bytes_read = 0;  // Reset read count
+#ifdef _WIN32
+        fd = open(filename, O_RDONLY | O_BINARY);
+#else
+        fd = open(filename, O_RDONLY);
+#endif
+        if (fd == -1) {
+          std::cerr << "Error: reopening file " << filename << std::endl;
+          return -1;
+        }
+
+        // Retry seeking
+        if (lseek(fd, offset, SEEK_SET) == -1) {
+          std::cerr << "Error: seeking file " << filename << std::endl;
+          close(fd);
+          return -1;
+        }
+
+        continue;  // Retry reading
+      } else {
+        perror("Error reading file");
+        close(fd);
+        return -1;
+      }
     }
     if (bytes_read == 0) {
       fprintf(stderr,
