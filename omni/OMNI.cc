@@ -2482,6 +2482,7 @@ int OMNI::ReadOmni(const std::string& input_file) {
   size_t nbyte = 0;
   bool run = false;
   bool f = true;
+  bool wait_for_file = false;
   int res = -1;
   std::string lambda;
   std::string dest;
@@ -2507,7 +2508,6 @@ int OMNI::ReadOmni(const std::string& input_file) {
         }
         if (key == "src") {
           std::string original_path = it->second.as<std::string>();
-          bool wait_for_file = false;
 
           // Check if src starts with '>' indicating we should wait for the file
           if (!original_path.empty() && original_path[0] == '>') {
@@ -2531,79 +2531,22 @@ int OMNI::ReadOmni(const std::string& input_file) {
               && path.find("globus://") == path.npos
 #endif
           ) {
+            // Don't wait for file here - wait when we know the expected byte count
+            // Just check if file exists when not waiting
+            if (!wait_for_file) {
 #ifdef USE_POCO
-            Poco::File file(path);
-            if (wait_for_file) {
-              // Wait for the file to become available with timeout
-              if (!quiet_) {
-                std::cout << "Waiting for file '" << path
-                          << "' to become available";
-                if (wait_config.timeout_seconds > 0) {
-                  std::cout << " (timeout: " << wait_config.timeout_seconds << " seconds)";
-                }
-                std::cout << "..." << std::endl;
+              Poco::File file(path);
+              if (!file.exists()) {
+                std::cerr << "Error: '" << path << "' does not exist" << std::endl;
+                return -1;
               }
-
-              auto start_time = std::chrono::steady_clock::now();
-              while (!file.exists()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                file = Poco::File(path);  // Refresh the file object
-
-                // Check timeout if configured
-                if (wait_config.timeout_seconds > 0) {
-                  auto elapsed = std::chrono::steady_clock::now() - start_time;
-                  auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
-                  if (elapsed_seconds >= wait_config.timeout_seconds) {
-                    std::cerr << "Error: Timeout waiting for file '" << path
-                              << "' after " << elapsed_seconds << " seconds" << std::endl;
-                    return -1;
-                  }
-                }
-              }
-              if (!quiet_) {
-                std::cout << "File '" << path
-                          << "' is now available, continuing..." << std::endl;
-              }
-            } else if (!file.exists()) {
-              std::cerr << "Error: '" << path << "' does not exist" << std::endl;
-              return -1;
-            }
 #else
-            if (wait_for_file) {
-              // Wait for the file to become available with timeout (non-POCO version)
-              if (!quiet_) {
-                std::cout << "Waiting for file '" << path
-                          << "' to become available";
-                if (wait_config.timeout_seconds > 0) {
-                  std::cout << " (timeout: " << wait_config.timeout_seconds << " seconds)";
-                }
-                std::cout << "..." << std::endl;
+              if (!std::filesystem::exists(path)) {
+                std::cerr << "Error: '" << path << "' does not exist" << std::endl;
+                return -1;
               }
-
-              auto start_time = std::chrono::steady_clock::now();
-              while (!std::filesystem::exists(path)) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-                // Check timeout if configured
-                if (wait_config.timeout_seconds > 0) {
-                  auto elapsed = std::chrono::steady_clock::now() - start_time;
-                  auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
-                  if (elapsed_seconds >= wait_config.timeout_seconds) {
-                    std::cerr << "Error: Timeout waiting for file '" << path
-                              << "' after " << elapsed_seconds << " seconds" << std::endl;
-                    return -1;
-                  }
-                }
-              }
-              if (!quiet_) {
-                std::cout << "File '" << path
-                          << "' is now available, continuing..." << std::endl;
-              }
-            } else if (!std::filesystem::exists(path)) {
-              std::cerr << "Error: '" << path << "' does not exist" << std::endl;
-              return -1;
-            }
 #endif
+            }
           } else {
             f = false;
           }
@@ -2654,6 +2597,60 @@ int OMNI::ReadOmni(const std::string& input_file) {
         }
         if (key == "nbyte") {
           nbyte = it->second.as<size_t>();
+
+          // If wait_for_file is true, wait for the file to have all expected bytes
+          if (wait_for_file && !path.empty() && f == true) {
+            if (!quiet_) {
+              std::cout << "Waiting for file '" << path
+                        << "' to have " << nbyte << " bytes";
+              if (wait_config.timeout_seconds > 0) {
+                std::cout << " (timeout: " << wait_config.timeout_seconds << " seconds)";
+              }
+              std::cout << "..." << std::endl;
+            }
+
+            auto start_time = std::chrono::steady_clock::now();
+            bool file_ready = false;
+
+            while (!file_ready) {
+              // Check if file exists and has enough bytes
+#ifdef USE_POCO
+              Poco::File file(path);
+              if (file.exists() && file.getSize() >= static_cast<Poco::File::FileSize>(offset + nbyte)) {
+                file_ready = true;
+                break;
+              }
+#else
+              if (std::filesystem::exists(path)) {
+                auto file_size = std::filesystem::file_size(path);
+                if (file_size >= offset + nbyte) {
+                  file_ready = true;
+                  break;
+                }
+              }
+#endif
+
+              // Check timeout if configured
+              if (wait_config.timeout_seconds > 0) {
+                auto elapsed = std::chrono::steady_clock::now() - start_time;
+                auto elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
+                if (elapsed_seconds >= wait_config.timeout_seconds) {
+                  std::cerr << "Error: Timeout waiting for file '" << path
+                            << "' to have " << nbyte << " bytes after "
+                            << elapsed_seconds << " seconds" << std::endl;
+                  return -1;
+                }
+              }
+
+              std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+
+            if (!quiet_) {
+              std::cout << "File '" << path
+                        << "' is now ready with all " << nbyte << " bytes, continuing..." << std::endl;
+            }
+          }
+
           std::vector<char> buffer(nbyte + 1);  // Allocate extra byte for null terminator
           unsigned char* ptr = reinterpret_cast<unsigned char*>(buffer.data());
           if (!path.empty() && f == true) {
