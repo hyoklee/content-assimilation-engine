@@ -3,7 +3,7 @@ tags:
   - test
   - scp
 
-src: ../../data/A46_xx.csv
+src: >../../data/A46_xx.csv
 offset: 0
 nbyte: 106922
 
