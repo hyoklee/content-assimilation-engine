@@ -7,6 +7,6 @@ src: ">nava.h5"
 offset: 0
 nbyte: 83376
 
-run: ../test/scp.bat
+run: scp
 
 dst: ares:~/

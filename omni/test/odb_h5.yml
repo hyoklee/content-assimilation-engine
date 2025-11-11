@@ -5,10 +5,10 @@ tags:
   - material sicence
   - utah
 
-src: "../test/Abacus/indentation_axi1.odb"
+src: "../test/Abaqus/indentation_axi1.odb"
 offset: 0
 nbyte: 60753
 
-run: "../test/Abacus/lambda.bat"
+run: "../test/Abaqus/lambda.sh"
 
 dst: "nava.h5"
